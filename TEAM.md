@@ -19,7 +19,7 @@ subsystem, ask its owner or open a pull request for them to review.
 |---|---|---|---|---|---|
 | 1 | Network Gatekeeper: WiFi, MQTT, Telemetry | 2502578 | DynamoLiquidDetergent | `app_program/subsystem1/` | `testing/subsystem1/` |
 | 2 | *example:* Producer: makes a sample every 300 ms | 2500461 | SnakeMaister420 | `app_program/subsystem2/` | `testing/subsystem2/` |
-| 3 | *example:* Consumer: collects samples into statistics | 2500172 | ahdew | `app_program/subsystem3/` | `testing/subsystem3/` |
+| 3 | IR Perception: Line Tracking, Junction Detection, Barcode Decode | 2500172 | ahdew | `app_program/subsystem3/` | `testing/subsystem3/` |
 | 4 | *example:* Monitor: prints reports, pauses the LED | 2500767 | xcher21 | `app_program/subsystem4/` | `testing/subsystem4/` |
 | 5 | | 2503437 | chongmh18 | `app_program/subsystem5/` | `testing/subsystem5/` |
 
@@ -111,7 +111,7 @@ the drivers have no locking to stop it.
 | I2C1 | | | |
 | SPI0 | | | |
 | SPI1 | | | |
-| ADC | | | GP26–GP28 |
+| ADC | S3 | Line Sensor Task (line_sensor.c) | GP26–GP28 |
 | PWM slices (list) | | | |
 | WiFi radio, TCP/IP, MQTT | *kernel* | `cyw43_utk_task` (built in) | GP23–25, GP29 |
 
