@@ -17,7 +17,7 @@ subsystem, ask its owner or open a pull request for them to review.
 
 | # | Subsystem (what it does) | Student ID | GitHub username | Code | Tests |
 |---|---|---|---|---|---|
-| 1 | *example:* LED heartbeat on GP19 | 2502578 | DynamoLiquidDetergent | `app_program/subsystem1/` | `testing/subsystem1/` |
+| 1 | Network Gatekeeper: WiFi, MQTT, Telemetry | 2502578 | DynamoLiquidDetergent | `app_program/subsystem1/` | `testing/subsystem1/` |
 | 2 | *example:* Producer: makes a sample every 300 ms | 2500461 | SnakeMaister420 | `app_program/subsystem2/` | `testing/subsystem2/` |
 | 3 | *example:* Consumer: collects samples into statistics | 2500172 | ahdew | `app_program/subsystem3/` | `testing/subsystem3/` |
 | 4 | *example:* Monitor: prints reports, pauses the LED | 2500767 | xcher21 | `app_program/subsystem4/` | `testing/subsystem4/` |
@@ -32,12 +32,7 @@ row in this file (a pin, a peripheral, an interface ID), which anyone may do
 
 One owner per pin. Claim a pin here **before** you wire or code it.
 
-**Why:** two subsystems using the same pin is one of the most common and
-hardest-to-find mistakes in a team project. The code builds without any
-error, but the hardware misbehaves. Each subsystem can pass its own tests
-and then fail once they are combined, and two outputs driving the same pin
-against each other can damage it. Writing the claim down first means a clash
-is spotted when someone edits this table, not hours later on the bench.
+Drafted table based off W6 & feedback to be confirmed by team OR ammended individually.
 
 **No instructor check needed.** The team keeps this table itself. You do not
 need the instructor, or the rest of the team, to check or approve a claim:
@@ -50,30 +45,36 @@ fixed.
 | GP23, GP24, GP25, GP29 | *reserved* | Pico W radio |
 | GP0 | | (taken whenever the team builds with `CRASH_REPORT=1`) |
 | GP1 | | (taken whenever the team builds with `CRASH_REPORT=1`) |
-| GP2 | | |
-| GP3 | | |
-| GP4 | | |
-| GP5 | | |
-| GP6 | | |
-| GP7 | | |
-| GP8 | | |
-| GP9 | | |
-| GP10 | | |
-| GP11 | | |
-| GP12 | | |
-| GP13 | | |
-| GP14 | | |
-| GP15 | | |
-| GP16 | | |
-| GP17 | | |
-| GP18 | | |
-| GP19 | *example:* S1 | external LED (LED + 330 Ω to GND) |
-| GP20 | | |
-| GP21 | | |
-| GP22 | | |
-| GP26 | | (ADC0 capable) |
-| GP27 | | (ADC1 capable) |
-| GP28 | | (ADC2 capable) |
+| GP2 | S4 | IMU SDA, I2C1 (Grove 2) |
+| GP3 | S4 | IMU SCL, I2C1 (Grove 2) |
+| GP4 | S2 | right encoder A (Grove 3) |
+| GP5 | S2 | right encoder B (Grove 3) |
+| GP6 | | free (jumper wire only, Grove 5 shares GP26) |
+| GP7 | | free (jumper wire only, Grove 7 shares GP28) |
+| GP8 | S2 | left motor M1A (PWM4 A) |
+| GP9 | S2 | left motor M1B (PWM4 B) |
+| GP10 | S2 | right motor M2A (PWM5 A) |
+| GP11 | S2 | right motor M2B (PWM5 B) |
+| GP12 | S5 | servo, servo port 1 (PWM6 A) |
+| GP13 | | free (servo port 2) |
+| GP14 | S2 | left encoder A (breakout header) |
+| GP15 | S2 | left encoder B (breakout header) |
+| GP16 | S5 | HC-SR04 TRIG (Grove 4). UNVERIFIED: 5 V supply source |
+| GP17 | S5 | HC-SR04 ECHO (Grove 4). UNVERIFIED, do not wire: needs divider for 5 V echo |
+| GP18 | | free (on-board RGB LED) |
+| GP19 | | free |
+| GP20 | S5 | START button (on board) |
+| GP21 | S5 | STOP / reset button (on board) |
+| GP22 | | free (on-board buzzer) |
+| GP26 | S3 | IR left AOUT, ADC0 (Grove 6) |
+| GP27 | S3 | IR centre AOUT, ADC1 (Grove 6) |
+| GP28 | S3 | IR right / barcode AOUT, ADC2 (Grove 7). VBAT jumper left open (default) |
+
+Last Updated: 24/10, 2350 hrs by Saad. 
+
+**Changes from Week 6:** Left encoder moved from GP0/GP1 to GP14/GP15 to keep
+the UART console free. GP20/GP21 added as START and STOP/reset buttons.
+GP16/GP17 stay unverified until a 5 V source and ECHO divider are fully figured out.
 
 ## 3. Peripherals
 
