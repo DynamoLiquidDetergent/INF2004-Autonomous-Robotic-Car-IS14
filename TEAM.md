@@ -149,7 +149,7 @@ change it only by team agreement. Write down every task you create.
 |---|---|---|
 | 1 | 12–13 | *example:* led_task – 12 – any |
 | 2 | 14–15 | *example:* producer_task – 14 – core 1 |
-| 3 | 16–17 | *example:* consumer_task – 16 – core 0 |
+| 3 | 16–17 | line_sensor_task - 16 - any (High priority; 20 ms line cycle, 2 ms GP28 sub-cycle). barcode_decode_task - 17 - any (Medium priority; event-driven on i16 queue) |
 | 4 | 18–19 | *example:* monitor_task – 18 – any |
 | 5 | 20–21 | |
 
@@ -167,8 +167,11 @@ sends to it or waits on it. Agree on the data format before coding.
 | IF-02 | S3 → S2 | semaphore + fixed memory pool (owned by S2) | `sem_slots`, `mpf_samples` | receiver returns the block, then 1 slot | *example* |
 | IF-03 | S3 → S4 | message buffer + event flag (owned by S4) | `mbf_summary`, `flg_events` | text line ≤ `S4_SUMMARY_MAX` bytes, then `FLG_BATCH` | *example* |
 | IF-04 | S4 → S3 | shared data under a mutex (owned by S3) | `app_stats`, `mtx_stats` | `APP_STATS`, read only while locked | *example* |
-| IF-05 | S4 → S1 | task control | `tid_led` | `tk_sus_tsk` / `tk_rsm_tsk` / `tk_chg_pri` | *example* |
-| IF-06 | | | | | |
+| IF-05 | S3 → S5 | message buffer (owned by S3) | q_line_data | 	LINE_DATA_MSG (uint8_t): bits[7:5] pos_zone (0–7, 4=centre), bit[4] junction, bit[3] line_lost; sent every 20 ms | S3 + S5 (Teams, W8) |
+| IF-06 | S3 → S3 (internal) | message buffer (owned by barcode_decode_task) | q_gp28_samples | GP28_SAMPLE_MSG (uint16_t): bits[15:4] 12-bit ADC value, bits[3:0] rolling slot index (gap in slot → reject decode); sent every 2 ms, drop-newest on full | S3 internal |
+| IF-07 | S3 → S5 | message buffer (owned by S3) | q_barcode_cmd | BARCODE_CMD (uint8_t): 0=NONE, 1=TURN_LEFT (A), 2=TURN_RIGHT (B), 3=STRAIGHT (C), 4=UTURN (D); sent on valid decode only | S3 + S5 - A–D mapping TBD, confirm with S5 owner |
+| IF-08 | S3 → S5 (Safety Monitor) | 	event flag bit (owned by Safety Monitor) | flg_fault_i14 | BS3 sets bit S3_FAULT_BIT (bit number TBD, agree with S5 owner) on debounced LINE_LOST outside bypass; never cleared by S3 | S3 + S5 - bit number TBD |
+| IF-09 | S5 → S3 | function call / shared flag (owned by S3) | subsystem3_set_bypass(bool) | 	VC calls before leaving line during obstacle bypass; S3 suppresses LINE_LOST and fault-bit while active; VC clears on re-acquire or timeout | S3 + S5 |
 
 Each interface is tested by at least one integration test
 (`testing/integration/TEST_LOG.md`).
@@ -180,12 +183,12 @@ limit there. The numbers below are the example's usage.
 
 | Object | Limit | S1 | S2 | S3 | S4 | S5 |
 |---|---|---|---|---|---|---|
-| Task | 32 | 1 | 1 | 1 | 1 | |
+| Task | 32 | 1 | 1 | 2 | 1 | |
 | Semaphore | 16 | | 1 | | | |
 | Event flag | 16 | | | | 1 | |
 | Mailbox | 12 | | | 1 | | |
 | Mutex | 12 | | | 1 | | |
-| Message buffer | 12 | | | | 1 | |
+| Message buffer | 12 | | | 3 | 1 | |
 | Fixed memory pool | 12 | | 1 | | | |
 | Variable memory pool | 12 | | | | | |
 | Cyclic handler | 12 | 1 | | | | |
