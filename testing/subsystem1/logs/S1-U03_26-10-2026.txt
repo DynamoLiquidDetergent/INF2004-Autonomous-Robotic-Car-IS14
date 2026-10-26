@@ -1,0 +1,47 @@
+---- Opened the serial port COM3 ----
+s1: alive tick=40 t=3355773866 ms
+monitor: batch  n=15 last=60 from core 1
+monitor: t=3355774196 ms  samples=15  min=0 max=100 avg=56  free slots=4  free blocks=4
+s1: alive tick=50 t=3355774866 ms
+monitor: batch  n=20 last=10 from core 1
+monitor: t=3355775746 ms  samples=20  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: alive tick=60 t=3355775866 ms
+s1: alive tick=70 t=3355776866 ms
+monitor: batch  n=25 last=40 from core 1
+monitor: t=3355777296 ms  samples=25  min=0 max=100 avg=44  free slots=4  free blocks=4
+s1: alive tick=80 t=3355777866 ms
+monitor: batch  n=30 last=90 from core 1
+monitor: t=3355778846 ms  samples=30  min=0 max=100 avg=48  free slots=4  free blocks=4
+monitor: LED task paused, state=WAIT+SUSPEND, pri=23
+s1: alive tick=90 t=3355778866 ms
+s1: alive tick=100 t=3355779866 ms
+monitor: batch  n=35 last=60 from core 1
+monitor: t=3355780396 ms  samples=35  min=0 max=100 avg=52  free slots=4  free blocks=4
+s1: alive tick=110 t=3355780866 ms
+s1: alive tick=120 t=3355781866 ms
+monitor: batch  n=40 last=10 from core 1
+monitor: t=3355781946 ms  samples=40  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: alive tick=130 t=3355782866 ms
+monitor: batch  n=45 last=40 from core 1
+monitor: t=3355783496 ms  samples=45  min=0 max=100 avg=46  free slots=4  free blocks=4
+s1: alive tick=140 t=3355783866 ms
+s1: alive tick=150 t=3355784866 ms
+monitor: batch  n=50 last=90 from core 1
+monitor: t=3355785046 ms  samples=50  min=0 max=100 avg=49  free slots=4  free blocks=4
+s1: alive tick=160 t=3355785866 ms
+monitor: batch  n=55 last=60 from core 1
+monitor: t=3355786596 ms  samples=55  min=0 max=100 avg=51  free slots=4  free blocks=4
+s1: alive tick=170 t=3355786866 ms
+s1: alive tick=180 t=3355787866 ms
+monitor: batch  n=60 last=10 from core 1
+monitor: t=3355788146 ms  samples=60  min=0 max=100 avg=50  free slots=4  free blocks=4
+monitor: LED task resumed, state=WAIT, pri=22
+s1: alive tick=190 t=3355788866 ms
+monitor: batch  n=65 last=40 from core 1
+monitor: t=3355789696 ms  samples=65  min=0 max=100 avg=47  free slots=4  free blocks=4
+s1: alive tick=200 t=3355789866 ms
+s1: alive tick=210 t=3355790866 ms
+monitor: batch  n=70 last=90 from core 1
+monitor: t=3355791246 ms  samples=70  min=0 max=100 avg=49  free slots=4  free blocks=4
+s1: alive tick=220 t=3355791866 ms
+---- Closed the serial port COM3 ----
