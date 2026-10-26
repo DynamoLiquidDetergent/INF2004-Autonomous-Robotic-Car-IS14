@@ -9,37 +9,37 @@
 
 #include "subsystem1.h"
 #include "../test_report.h"
+#define S1_TEST_START_DELAY_MS  (5000)  /* time to open the serial port */
 
 #if APP_TEST
 
 EXPORT void subsystem1_test(void)
 {
-	T_RCYC	rcyc;
-	T_RTSK	rtsk;
-	ER	er;
+    T_RTSK rtsk;
+    INT    i;
+    INT    waiting = 0;
 
-	TEST_INIT();
+    /* Give the tester time to open the USB serial port */
+    (void)tk_dly_tsk(S1_TEST_START_DELAY_MS);
 
-	/* S1-U01: the cyclic handler exists and is running */
-	er = tk_ref_cyc(cyc_led, &rcyc);
-	TEST_CHECK("S1-U01", er == E_OK && (rcyc.cycstat & TCYC_STA),
-		   "cyclic handler is running");
+    TEST_INIT();
 
-	/* S1-U02: between ticks the LED task is asleep, not busy-looping.
-	   Sample it 10 times over ~1 s; it should almost always be waiting. */
-	{
-		INT	i, waiting = 0;
-		for (i = 0; i < 10; i++) {
-			tk_dly_tsk(97);	/* not a multiple of the tick */
-			if (tk_ref_tsk(tid_led, &rtsk) == E_OK &&
-			    (rtsk.tskstat & TTS_WAI)) {
-				waiting++;
-			}
-		}
-		TEST_CHECK("S1-U02", waiting >= 9, "LED task sleeps between ticks");
-	}
+    /* S1-U01: telemetry task was created */
+    TEST_CHECK("S1-U01", g_s1_tid_telem > 0, "telemetry task created");
 
-	TEST_SUMMARY("subsystem1");
+    /* S1-U02: task sleeps between ticks (not busy-looping) */
+    for (i = 0; i < 10; i++)
+    {
+        (void)tk_dly_tsk(97);   /* not a multiple of the tick */
+        if ((tk_ref_tsk(g_s1_tid_telem, &rtsk) == E_OK) &&
+            ((rtsk.tskstat & TTS_WAI) != 0))
+        {
+            waiting++;
+        }
+    }
+    TEST_CHECK("S1-U02", waiting >= 9, "telemetry task sleeps between ticks");
+
+    TEST_SUMMARY("subsystem1");
 }
 
 #endif /* APP_TEST */

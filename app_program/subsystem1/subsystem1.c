@@ -1,35 +1,58 @@
 /*
- *	subsystem1.c
- *	Subsystem 1 -- LED heartbeat: creates its objects and starts its task.
- *
- *	APIs shown: tk_cre_cyc, tk_sta_cyc
+ * subsystem1.c
+ * Subsystem 1 (Network Gatekeeper): creates objects, starts tasks.
  */
 
 #include "subsystem1.h"
+#include "telemetry_task.h"
 
-EXPORT ID	tid_led;	/* IF-05, see subsystem1.h */
-EXPORT ID	cyc_led;
+EXPORT ID g_s1_tid_telem = 0;
 
+#if S1_IF05_COMPAT
+EXPORT ID tid_led = 0;
+
+/* Stub for S4's IF-05: sleeps forever, safe to suspend/resume. DELETE when S4 removes IF-05 code */
+static void if05_stub_task(INT stacd, void *exinf)
+{
+    (void)stacd;
+    (void)exinf;
+
+    for (;;)
+    {
+        (void)tk_slp_tsk(TMO_FEVR);
+    }
+}
+#endif
+
+/* Create kernel objects.  Message buffers are added in step 2. */
 EXPORT ER subsystem1_init(void)
 {
-	T_CCYC	ccyc = {0};
-
-	/* Cyclic handler: once started, the kernel calls led_cyclic_handler
-	   every S1_TICK_MS.  Without TA_STA it is created stopped; it is
-	   started in subsystem1_start(), once the task it wakes exists. */
-	ccyc.cycatr = TA_HLNG;
-	ccyc.cychdr = (FP)led_cyclic_handler;
-	ccyc.cyctim = S1_TICK_MS;	/* period, ms */
-	ccyc.cycphs = S1_TICK_MS;	/* delay before the first call, ms */
-	cyc_led = tk_cre_cyc(&ccyc);
-	return (cyc_led < E_OK) ? cyc_led : E_OK;
+    return E_OK;
 }
 
+/* Create and start subsystem 1's tasks. */
 EXPORT ER subsystem1_start(void)
 {
-	tid_led = app_start_task(led_task, S1_PRI_LED, 0, "led_task");
-	if (tid_led < E_OK) {
-		return tid_led;
-	}
-	return tk_sta_cyc(cyc_led);	/* start the cyclic handler now */
+    ER er = E_OK;
+
+    g_s1_tid_telem = app_start_task(telemetry_task, S1_PRI_TELEM, 0,
+                                    "telemetry_task");
+    if (g_s1_tid_telem < E_OK)
+    {
+        er = g_s1_tid_telem;
+    }
+
+#if S1_IF05_COMPAT
+    if (er == E_OK)
+    {
+        tid_led = app_start_task(if05_stub_task, S1_PRI_LED, 0,
+                                 "if05_stub");
+        if (tid_led < E_OK)
+        {
+            er = tid_led;
+        }
+    }
+#endif
+
+    return er;
 }

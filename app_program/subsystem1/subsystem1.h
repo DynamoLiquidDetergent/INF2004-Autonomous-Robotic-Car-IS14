@@ -1,10 +1,9 @@
 /*
- *	subsystem1.h
- *	Subsystem 1 -- LED heartbeat.  Student ID: <student ID>.
+ * subsystem1.h
+ * Subsystem 1 (Network Gatekeeper): public interface.
+ * Owner: 2502578 (DynamoLiquidDetergent)
  *
- *	This header is subsystem 1's PUBLIC interface: only what other
- *	subsystems are allowed to use.  Everything else stays LOCAL in the .c
- *	files.  Other subsystems include it as "../subsystem1/subsystem1.h".
+ * Only what other subsystems may use goes here.
  */
 
 #ifndef SUBSYSTEM1_H
@@ -12,16 +11,19 @@
 
 #include "../app.h"
 
-#define S1_PRI_LED	12		/* priority band 12-13 (TEAM.md) */
-#define S1_LED_PIN	19		/* GP19: LED + 330R resistor to GND */
-#define S1_TICK_MS	250		/* LED toggles every tick */
+#define S1_PRI_TELEM        (22)    /* TEAM.md sec 4: lowest app task */
 
-/* IF-05: the LED task's ID, so subsystem 4 may pause/resume it */
-IMPORT ID	tid_led;
+IMPORT ID g_s1_tid_telem;           /* telemetry task ID (for tests) */
 
-/* Private to subsystem 1, shared between its own .c files */
-IMPORT ID	cyc_led;
-IMPORT void	led_task(INT stacd, void *exinf);
-IMPORT void	led_cyclic_handler(void *exinf);
+/*
+ * TEMPORARY: IF-05 compatibility for S4's example monitor, which
+ * suspends/resumes tid_led.  tid_led is a stub task that only sleeps.
+ * Set to 0 and DELETE once S4 removes IF-05 code.
+ */
+#define S1_IF05_COMPAT      (1)
+#if S1_IF05_COMPAT
+#define S1_PRI_LED          (S1_PRI_TELEM)
+IMPORT ID tid_led;
+#endif
 
 #endif /* SUBSYSTEM1_H */
