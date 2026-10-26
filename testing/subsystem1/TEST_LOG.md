@@ -23,6 +23,6 @@ Add a new row for every run. Never edit or delete old rows.
 
 | Date | Test ID | Commit | Tester | Result | Log / evidence | Notes |
 |---|---|---|---|---|---|---|
-| 2026-10-26 | S1-U01 | `<c27b799>` | Saad | PASS | `logs/S1-U01-U02_26-10-2026.txt` | TEST=1 image |
-| 2026-10-26 | S1-U02 | `<c27b799>` | Saad | PASS | `logs/S1-U01-U02_26-10-2026.txt` | TEST=1 image |
-| 2026-10-26 | S1-U03 | `<c27b799>` | Saad | PASS | `logs/S1-U03_26-10-2026.txt`, `logs/S1-U01-U02_26-10-2026.txt` | 1000 ms ±0 over 10+ ticks; also held during S2 timing tests |
+| 2026-10-26 | S1-U01 | `<c27b799>` | Saad | PASS | `logs/2026-10-26_S1-U01-U02.txt` | TEST=1 image |
+| 2026-10-26 | S1-U02 | `<c27b799>` | Saad | PASS | `logs/2026-10-26_S1-U01-U02.txt` | TEST=1 image |
+| 2026-10-26 | S1-U03 | `<c27b799>` | Saad | PASS | `logs/2026-10-26_S1-U03.txt`, `logs/2026-10-26_S1-U01-U02.txt` | 1000 ms ±0 over 10+ ticks; also held during S2 timing tests |
