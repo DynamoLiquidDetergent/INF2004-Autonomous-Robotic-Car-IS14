@@ -115,7 +115,7 @@ the drivers have no locking to stop it.
 | PWM slices (list) | | | |
 | PWM slice 6 (servo) | S5 | Obstacle Detection Task (obstacle_detect.c) | GP12 (servo port 1); GP13 kept unused |
 | GPIO interrupt (IO_IRQ_BANK0) | S2 + S5 (to agree) | one shared handler, owner to be agreed. S2 encoders (GP4/GP5, GP14/GP15) and S5 HC-SR04 echo (GP17) both need it, and a kernel interrupt number takes one handler. Alternative for S5: time the echo in hardware on PWM slice 0 channel B (GP17), untested | GP4, GP5, GP14, GP15, GP17 |
-| WiFi radio, TCP/IP, MQTT | *kernel* | `cyw43_utk_task` (built in) | GP23–25, GP29 |
+| WiFi radio, TCP/IP, MQTT | *kernel* | `cyw43_utk_task` (built in). S1 code runs inside it via `mqtt_utk.c` (IF-15) | GP23–25, GP29 |
 
 ### WiFi and MQTT are special
 
@@ -149,7 +149,7 @@ change it only by team agreement. Write down every task you create.
 
 | Subsystem | Priority band | Tasks (name – priority – core) |
 |---|---|---|
-| 1 | 12–13 | *example:* led_task – 12 – any |
+| 1 | 22 (moved from 12–13) | telemetry_task – 22 – any (Low priority; 500 ms telemetry, 1 s heartbeat). Lowest application task so WiFi load never delays driving (Week 6, NFR4). |
 | 2 | 14–15 | *example:* producer_task – 14 – core 1 |
 | 3 | 16–17 | line_sensor_task - 16 - any (High priority; 20 ms line cycle, 2 ms GP28 sub-cycle). barcode_decode_task - 17 - any (Medium priority; event-driven on i16 queue) |
 | 4 | 18–19 | *example:* monitor_task – 18 – any |
@@ -177,6 +177,9 @@ sends to it or waits on it. Agree on the data format before coding.
 | IF-10 | S5 → S2 | message buffer (owned by S2) | q_motion_cmd (name TBD) | Motion command (mode, speed, angle/distance, epoch). Epoch rises on pause, fault and reset. Sent at least every 100 ms (timeout value to confirm). Layout to agree with S2 | PROPOSED by S5, S2 to confirm |
 | IF-11 | S5 → S2 | event flag / shared latched flag (owned by S5 Safety Monitor) | flg_inhibit (name TBD) | Latched motor inhibit. Motion Control checks it before every PWM write and discards queued commands while it is set. Only the Safety Monitor clears it, after re-initialisation | PROPOSED by S5, S2 to confirm |
 | IF-12 | S2 / S3 / S4 / S5 → S5 | event flag group (owned by S5 Safety Monitor) | flg_fault_i14 | One bit per owner, set with tk_set_flg. Safety Monitor clears only the bits it handled. Bits: 0 S2, 1 S3, 2 S4, 3 S5 Obstacle Detection (proposed). Wi-Fi loss is not a fault and is not in this group | PROPOSED by S5, all to confirm |
+| IF-13 | S5 (Vehicle Controller) → S1 | message buffer (owned by S1) | mbf_telem_status | TELEM_STATUS_MSG: mission state, fault mask, line/barcode/hump/obstacle summary, timestamp; sent every 500 ms (Week 6 i10) | S1 + S5 - fields TBD |
+| IF-14 | S1 → S5 (Vehicle Controller) | message buffer (owned by S5) | mbf_sup_cmd | SUP_CMD_MSG (uint8_t): bits[2:0] cmd (0=NONE, 1=PAUSE, 2=RESUME, 3=ABORT), bit[7] link_up; sent on a valid command or a link change. S1 validates before sending (FR7, FR8). Link loss is status only, not a fault (see IF-12) (Week 6 i15) | S1 + S5 - proposed |
+| IF-15 | S1 ↔ kernel (`cyw43_utk_task`) | two message buffers (owned by S1); `mqtt_utk.c` reads TX with TMO_POL and copies RX in the callback without blocking | mbf_mqtt_tx, mbf_mqtt_rx | TX: topic + JSON payload (max size TBD). RX: raw command text. During an outage S1 keeps 20 messages (drop-oldest) and replays them at most 1 per 100 ms | S1 - needs team + instructor sign-off (changes `mqtt_utk.c`) |
 
 Each interface is tested by at least one integration test
 (`testing/integration/TEST_LOG.md`).
@@ -193,10 +196,10 @@ limit there. The numbers below are the example's usage.
 | Event flag | 16 | | | | 1 | 1 (flg_fault_i14) |
 | Mailbox | 12 | | | 1 | | |
 | Mutex | 12 | | | 1 | | |
-| Message buffer | 12 | | | 3 | 1 | |
+| Message buffer | 12 | 3 | | 3 | 1 | |
 | Fixed memory pool | 12 | | 1 | | | |
 | Variable memory pool | 12 | | | | | |
-| Cyclic handler | 12 | 1 | | | | |
+| Cyclic handler | 12 | | | | | |
 | Alarm handler | 12 | | | | 1 | |
 
 (The kernel's USB and WiFi service tasks also use a few of these.)
