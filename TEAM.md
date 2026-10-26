@@ -20,7 +20,7 @@ subsystem, ask its owner or open a pull request for them to review.
 | 1 | Network Gatekeeper: WiFi, MQTT, Telemetry | 2502578 | DynamoLiquidDetergent | `app_program/subsystem1/` | `testing/subsystem1/` |
 | 2 | *example:* Producer: makes a sample every 300 ms | 2500461 | SnakeMaister420 | `app_program/subsystem2/` | `testing/subsystem2/` |
 | 3 | IR Perception: Line Tracking, Junction Detection, Barcode Decode | 2500172 | ahdew | `app_program/subsystem3/` | `testing/subsystem3/` |
-| 4 | *example:* Monitor: prints reports, pauses the LED | 2500767 | xcher21 | `app_program/subsystem4/` | `testing/subsystem4/` |
+| 4 | Physics Watchdog: IMU-Based Motion and Terrain Monitoring | 2500767 | xcher21 | `app_program/subsystem4/` | `testing/subsystem4/` |
 | 5 | Spatial Optimizer: Obstacle Detection (HC-SR04 + servo), Vehicle Controller, Safety Monitor | 2503437 | chongmh18 | `app_program/subsystem5/` | `testing/subsystem5/` |
 
 Shared files (`app_program/app_main.c`, `app_program/app.h`, this file)
@@ -108,7 +108,7 @@ the drivers have no locking to stop it.
 |---|---|---|---|
 | UART1 | | | |
 | I2C0 | | | |
-| I2C1 | | | |
+| I2C1 | S4 | IMU Terrain task (imu_terrain_task.c) | GP2 SDA, GP3 SCL (Grove Port 2) |
 | SPI0 | | | |
 | SPI1 | | | |
 | ADC | S3 | Line Sensor Task (line_sensor.c) | GP26–GP28 |
@@ -152,7 +152,7 @@ change it only by team agreement. Write down every task you create.
 | 1 | 22 (moved from 12–13) | telemetry_task – 22 – any (Low priority; 500 ms telemetry, 1 s heartbeat). Lowest application task so WiFi load never delays driving (Week 6, NFR4). |
 | 2 | 14–15 | *example:* producer_task – 14 – core 1 |
 | 3 | 16–17 | line_sensor_task - 16 - any (High priority; 20 ms line cycle, 2 ms GP28 sub-cycle). barcode_decode_task - 17 - any (Medium priority; event-driven on i16 queue) |
-| 4 | 18–19 | *example:* monitor_task – 18 – any |
+| 4 | 18–19 | imu_terrain_task – 18 – any (Medium priority; 20 ms / 50 Hz IMU cycle) |
 | 5 | 5–8 (proposed; differs from the default 20–21 because the Safety Monitor must outrank Motion Control and every other application task) | safety_monitor_task - 5 - any (stop latch; Aaron proposed Safety Monitor 5, Motion Control 6). vehicle_controller_task - 7 - any. obstacle_detect_task - 8 - any. All proposed, to agree with S2 and S3 |
 
 Core: `TP_PRC1` = core 0, `TP_PRC2` = core 1, or "any".
