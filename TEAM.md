@@ -18,7 +18,7 @@ subsystem, ask its owner or open a pull request for them to review.
 | # | Subsystem (what it does) | Student ID | GitHub username | Code | Tests |
 |---|---|---|---|---|---|
 | 1 | Network Gatekeeper: WiFi, MQTT, Telemetry | 2502578 | DynamoLiquidDetergent | `app_program/subsystem1/` | `testing/subsystem1/` |
-| 2 | *example:* Producer: makes a sample every 300 ms | 2500461 | SnakeMaister420 | `app_program/subsystem2/` | `testing/subsystem2/` |
+| 2 | Real-Time Taskmaster: Motion Control (motors, wheel encoders, PID) | 2500461 | SnakeMaister420 | `app_program/subsystem2/` | `testing/subsystem2/` |
 | 3 | IR Perception: Line Tracking, Junction Detection, Barcode Decode | 2500172 | ahdew | `app_program/subsystem3/` | `testing/subsystem3/` |
 | 4 | Physics Watchdog: IMU-Based Motion and Terrain Monitoring | 2500767 | xcher21 | `app_program/subsystem4/` | `testing/subsystem4/` |
 | 5 | Spatial Optimizer: Obstacle Detection (HC-SR04 + servo), Vehicle Controller, Safety Monitor | 2503437 | chongmh18 | `app_program/subsystem5/` | `testing/subsystem5/` |
@@ -70,7 +70,7 @@ fixed.
 | GP27 | S3 | IR centre AOUT, ADC1 (Grove 6) |
 | GP28 | S3 | IR right / barcode AOUT, ADC2 (Grove 7). VBAT jumper left open (default) |
 
-Last Updated: 24/10, 2350 hrs by Saad. S5 rows, priorities, IF-10 to IF-12 and the S5 object counts edited 26/10, 0350 hrs by Min Han.
+Last Updated: 24/10, 2350 hrs by Saad. S5 rows, priorities, IF-10 to IF-12 and the S5 object counts edited 26/10, 0350 hrs by Min Han. S2 rows (member, PWM slices 4/5, GPIO IRQ handler, priority, IF-10, IF-11, IF-16, IF-17, S2 object counts) edited 26/10 by Aaron.
 
 **Changes from Week 6:** Left encoder moved from GP0/GP1 to GP14/GP15 to keep
 the UART console free. GP20/GP21 added as START and STOP/reset buttons.
@@ -114,7 +114,8 @@ the drivers have no locking to stop it.
 | ADC | S3 | Line Sensor Task (line_sensor.c) | GP26–GP28 |
 | PWM slices (list) | | | |
 | PWM slice 6 (servo) | S5 | Obstacle Detection Task (obstacle_detect.c) | GP12 (servo port 1); GP13 kept unused |
-| GPIO interrupt (IO_IRQ_BANK0) | S2 + S5 (to agree) | one shared handler, owner to be agreed. S2 encoders (GP4/GP5, GP14/GP15) and S5 HC-SR04 echo (GP17) both need it, and a kernel interrupt number takes one handler. Alternative for S5: time the echo in hardware on PWM slice 0 channel B (GP17), untested | GP4, GP5, GP14, GP15, GP17 |
+| PWM slices 4, 5 (motors) | S2 | Motion Control task (motion_control.c, drv_motor.c) | GP8, GP9 (slice 4 A/B, left), GP10, GP11 (slice 5 A/B, right). 20 kHz. drv_motor.c also takes the PWM block out of reset (config.h USE_PTMR is 0) using the atomic clear alias only, so S5's servo slice is never reset |
+| GPIO interrupt (IO_IRQ_BANK0) | S2 + S5 (to agree) | one shared handler, owner to be agreed. S2 encoders (GP4/GP5, GP14/GP15) and S5 HC-SR04 echo (GP17) both need it, and a kernel interrupt number takes one handler. Alternative for S5: time the echo in hardware on PWM slice 0 channel B (GP17), untested. **S2 has implemented the shared handler** in `subsystem2/drv_encoder.c` (enabled on the Motion Control core). S5 can take GP17 edges with `s2_gpio_hook_register(17, S2_GPIO_EDGE_RISE \| S2_GPIO_EDGE_FALL, hook)` from `subsystem5_init()`; the hook runs in interrupt context and gets a 1 MHz timestamp. Proposed by S2, S5 to confirm | GP4, GP5, GP14, GP15, GP17 |
 | WiFi radio, TCP/IP, MQTT | *kernel* | `cyw43_utk_task` (built in). S1 code runs inside it via `mqtt_utk.c` (IF-15) | GP23–25, GP29 |
 
 ### WiFi and MQTT are special
@@ -150,7 +151,7 @@ change it only by team agreement. Write down every task you create.
 | Subsystem | Priority band | Tasks (name – priority – core) |
 |---|---|---|
 | 1 | 22 (moved from 12–13) | telemetry_task – 22 – any (Low priority; 500 ms telemetry, 1 s heartbeat). Lowest application task so WiFi load never delays driving (Week 6, NFR4). |
-| 2 | 14–15 | *example:* producer_task – 14 – core 1 |
+| 2 | 6 (agreed at Tribunal 1: Safety Monitor 5, Motion Control 6, Vehicle Controller 7) and 14 | motion_task – 6 – core 1 (`TP_PRC2`; the encoder IRQ is enabled on the same core). Woken every 20 ms by cyclic handler `cyc_motion` (50 Hz PID, NFR9). producer_task – 14 – core 1: template example, kept running until S3/S4 stop using IF-01/IF-02 (set `S2_KEEP_EXAMPLE 0` in subsystem2.h to stop it) |
 | 3 | 16–17 | line_sensor_task - 16 - any (High priority; 20 ms line cycle, 2 ms GP28 sub-cycle). barcode_decode_task - 17 - any (Medium priority; event-driven on i16 queue) |
 | 4 | 18–19 | imu_terrain_task – 18 – any (Medium priority; 20 ms / 50 Hz IMU cycle) |
 | 5 | 5–8 (proposed; differs from the default 20–21 because the Safety Monitor must outrank Motion Control and every other application task) | safety_monitor_task - 5 - any (stop latch; Aaron proposed Safety Monitor 5, Motion Control 6). vehicle_controller_task - 7 - any. obstacle_detect_task - 8 - any. All proposed, to agree with S2 and S3 |
@@ -174,12 +175,14 @@ sends to it or waits on it. Agree on the data format before coding.
 | IF-07 | S3 → S5 | message buffer (owned by S3) | q_barcode_cmd | BARCODE_CMD (uint8_t): 0=NONE, 1=TURN_LEFT (A), 2=TURN_RIGHT (B), 3=STRAIGHT (C), 4=UTURN (D); sent on valid decode only | S3 + S5 - A–D mapping TBD, confirm with S5 owner |
 | IF-08 | S3 → S5 (Safety Monitor) | 	event flag bit (owned by Safety Monitor) | flg_fault_i14 | BS3 sets bit S3_FAULT_BIT (bit 1 proposed, from the Week 8 fault table: 0 Motion Control, 1 Line Sensor, 2 IMU, 3 Obstacle Detection; to confirm) on debounced LINE_LOST outside bypass; never cleared by S3 | S3 + S5 - bit 1 proposed, S5 to confirm |
 | IF-09 | S5 → S3 | function call / shared flag (owned by S3) | subsystem3_set_bypass(bool) | 	VC calls before leaving line during obstacle bypass; S3 suppresses LINE_LOST and fault-bit while active; VC clears on re-acquire or timeout | S3 + S5 |
-| IF-10 | S5 → S2 | message buffer (owned by S2) | q_motion_cmd (name TBD) | Motion command (mode, speed, angle/distance, epoch). Epoch rises on pause, fault and reset. Sent at least every 100 ms (timeout value to confirm). Layout to agree with S2 | PROPOSED by S5, S2 to confirm |
-| IF-11 | S5 → S2 | event flag / shared latched flag (owned by S5 Safety Monitor) | flg_inhibit (name TBD) | Latched motor inhibit. Motion Control checks it before every PWM write and discards queued commands while it is set. Only the Safety Monitor clears it, after re-initialisation | PROPOSED by S5, S2 to confirm |
+| IF-10 | S5 → S2 | message buffer (owned by S2) | q_motion_cmd | Motion command packed in ONE `UW` (27 bits, minimum-bit rule): bits 0–2 mode (0 STOP, 1 DRIVE, 2 TURN, 3 DRIVE_DIST, 4 HOLD), bits 3–12 speed (signed mm/s), bits 13–22 param (DRIVE: signed steering mm/s; TURN: signed degrees; DRIVE_DIST: mm 0–1023), bits 23–26 epoch. Use `s2_cmd_pack()` in subsystem2.h. Send with `tk_snd_mbf(q_motion_cmd, &w, 4, TMO_POL)` at least every 100 ms while moving; silence for 100 ms stops the motors. Epoch rises on pause, fault and reset; older epochs are discarded | Implemented by S2 (subsystem2.h); S5 to confirm |
+| IF-11 | S5 → S2 | event flag / shared latched flag (owned by S5 Safety Monitor) | flg_inhibit (name TBD), passed to S2 with `subsystem2_bind_safety()` | Latched motor inhibit. Motion Control checks it before every PWM write and discards queued commands while it is set. Only the Safety Monitor clears it, after re-initialisation | Implemented by S2: S5 calls `subsystem2_bind_safety(flg_inhibit, ptn, flg_fault_i14, 0x1)` once in `subsystem5_init()`. Motion Control reads the flag with `tk_ref_flg` before every PWM write; after it clears, only a command with a newer epoch moves the robot. S5 to confirm |
 | IF-12 | S2 / S3 / S4 / S5 → S5 | event flag group (owned by S5 Safety Monitor) | flg_fault_i14 | One bit per owner, set with tk_set_flg. Safety Monitor clears only the bits it handled. Bits: 0 S2, 1 S3, 2 S4, 3 S5 Obstacle Detection (proposed). Wi-Fi loss is not a fault and is not in this group | PROPOSED by S5, all to confirm |
 | IF-13 | S5 (Vehicle Controller) → S1 | message buffer (owned by S1) | mbf_telem_status | TELEM_STATUS_MSG: mission state, fault mask, line/barcode/hump/obstacle summary, timestamp; sent every 500 ms (Week 6 i10) | S1 + S5 - fields TBD |
 | IF-14 | S1 → S5 (Vehicle Controller) | message buffer (owned by S5) | mbf_sup_cmd | SUP_CMD_MSG (uint8_t): bits[2:0] cmd (0=NONE, 1=PAUSE, 2=RESUME, 3=ABORT), bit[7] link_up; sent on a valid command or a link change. S1 validates before sending (FR7, FR8). Link loss is status only, not a fault (see IF-12) (Week 6 i15) | S1 + S5 - proposed |
 | IF-15 | S1 ↔ kernel (`cyw43_utk_task`) | two message buffers (owned by S1); `mqtt_utk.c` reads TX with TMO_POL and copies RX in the callback without blocking | mbf_mqtt_tx, mbf_mqtt_rx | TX: topic + JSON payload (max size TBD). RX: raw command text. During an outage S1 keeps 20 messages (drop-oldest) and replays them at most 1 per 100 ms | S1 - needs team + instructor sign-off (changes `mqtt_utk.c`) |
+| IF-16 | S2 → S5 (Vehicle Controller), S1 telemetry | shared word, written in one store (owned by S2) | `s2_get_status()` | MOTION_STATUS (`UW`, 28 bits): bits 0–9 left speed, 10–19 right speed (signed mm/s), 20–22 state (0 IDLE, 1 DRIVING, 2 TURNING, 3 DRIVING_DIST, 4 HOLDING, 5 INHIBITED, 6 STALLED, 7 TIMEOUT), 23 done (TURN / DRIVE_DIST finished), 24–27 newest accepted epoch. Week 6 i4 | PROPOSED by S2, S5 to confirm |
+| IF-17 | S2 → S4 (direct or via S5) | shared word, written in one store (owned by S2) | `s2_get_odometry()` | ODOMETRY (`UW`): bits 31–16 distance in mm (`uint16`, wraps, use differences), bits 15–0 timestamp in ms (low 16 bits of `tk_get_tim`, wraps). Updated every 20 ms. For hump height (Week 6 i19; Tribunal 1: timestamped distance + steady speed via HOLD mode) | PROPOSED by S2; resolution to agree with S4 |
 
 Each interface is tested by at least one integration test
 (`testing/integration/TEST_LOG.md`).
@@ -191,15 +194,15 @@ limit there. The numbers below are the example's usage.
 
 | Object | Limit | S1 | S2 | S3 | S4 | S5 |
 |---|---|---|---|---|---|---|
-| Task | 32 | 1 | 1 | 2 | 1 | 3 |
+| Task | 32 | 1 | 2 (motion_task, producer_task) | 2 | 1 | 3 |
 | Semaphore | 16 | | 1 | | | |
 | Event flag | 16 | | | | 1 | 1 (flg_fault_i14) |
 | Mailbox | 12 | | | 1 | | |
 | Mutex | 12 | | | 1 | | |
-| Message buffer | 12 | 3 | | 3 | 1 | |
+| Message buffer | 12 | 3 | 1 (q_motion_cmd) | 3 | 1 | |
 | Fixed memory pool | 12 | | 1 | | | |
 | Variable memory pool | 12 | | | | | |
-| Cyclic handler | 12 | | | | | |
+| Cyclic handler | 12 | | 1 (cyc_motion) | | | |
 | Alarm handler | 12 | | | | 1 | |
 
 (The kernel's USB and WiFi service tasks also use a few of these.)
