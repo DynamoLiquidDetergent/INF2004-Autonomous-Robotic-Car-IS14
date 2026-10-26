@@ -1,0 +1,47 @@
+---- Opened the serial port COM3 ----
+s1: alive tick=20 t=3355771866 ms
+monitor: batch  n=10 last=90 from core 1
+monitor: t=3355772646 ms  samples=10  min=0 max=90 avg=45  free slots=4  free blocks=4
+s1: alive tick=30 t=3355772866 ms
+s1: alive tick=40 t=3355773866 ms
+monitor: batch  n=15 last=60 from core 1
+monitor: t=3355774196 ms  samples=15  min=0 max=100 avg=56  free slots=4  free blocks=4
+[TEST] S1-U01 PASS  telemetry task created
+s1: alive tick=50 t=3355774866 ms
+monitor: batch  n=20 last=10 from core 1
+monitor: t=3355775746 ms  samples=20  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: alive tick=60 t=3355775866 ms
+[TEST] S1-U02 PASS  telemetry task sleeps between ticks
+[TEST] S1-U04 PASS  empty outage buffer: pop fails, count 0
+[TEST] S1-U05 PASS  20 pushes: count 20, 0 dropped, popped 1..20 in order
+[TEST] S1-U06 PASS  25 pushes: oldest 5 dropped, popped 6..25 in order
+[TEST] S1-U07 PASS  bad frames refused; too-small pop keeps the frame
+[TEST] subsystem1 SUMMARY 6 passed, 0 failed
+[TEST] S2-U01 PASS  sample values stay within 0..100
+[TEST] S2-U02 PASS  free slots and free blocks within pool size
+[TEST] subsystem2 SUMMARY 2 passed, 0 failed
+s1: alive tick=70 t=3355776866 ms
+monitor: batch  n=25 last=40 from core 1
+monitor: t=3355777296 ms  samples=25  min=0 max=100 avg=44  free slots=4  free blocks=4
+s1: alive tick=80 t=3355777866 ms
+[TEST] INT-01 PASS  samples flow from subsystem 2 to subsystem 3
+[TEST] S3-U01 PASS  min <= max, both within 0..100
+[TEST] subsystem3 SUMMARY 2 passed, 0 failed
+[TEST] S4-U01 PASS  message buffer max line = S4_SUMMARY_MAX
+monitor: batch  n=30 last=90 from core 1
+monitor: t=3355778846 ms  samples=30  min=0 max=100 avg=48  free slots=4  free blocks=4
+monitor: LED task paused, state=WAIT+SUSPEND, pri=23
+s1: alive tick=90 t=3355778866 ms
+s1: alive tick=100 t=3355779866 ms
+monitor: batch  n=35 last=60 from core 1
+monitor: t=3355780396 ms  samples=35  min=0 max=100 avg=52  free slots=4  free blocks=4
+s1: alive tick=110 t=3355780866 ms
+[TEST] INT-02 PASS  summary lines flow from subsystem 3 to subsystem 4
+[TEST] subsystem4 SUMMARY 2 passed, 0 failed
+[TEST] S5-U01 PASS  example: running in a task context
+[TEST] subsystem5 SUMMARY 1 passed, 0 failed
+[TEST] === test run end ===
+s1: alive tick=120 t=3355781866 ms
+monitor: batch  n=40 last=10 from core 1
+monitor: t=3355781946 ms  samples=40  min=0 max=100 avg=50  free slots=4  free blocks=4
+---- Closed the serial port COM3 ----
