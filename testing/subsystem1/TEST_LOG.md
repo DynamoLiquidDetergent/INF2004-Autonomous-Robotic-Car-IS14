@@ -46,3 +46,9 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-10-27 | S1-U08 | `<ea7c7fc>` | Saad | PASS | `logs/2026-10-27_S1-U08-U10.txt` | TEST=1 image |
 | 2026-10-27 | S1-U09 | `<ea7c7fc>` | Saad | PASS | `logs/2026-10-27_S1-U08-U10.txt` | TEST=1 image |
 | 2026-10-27 | S1-U10 | `<ea7c7fc>` | Saad | PASS | `logs/2026-10-27_S1-U08-U10.txt` | TEST=1 image; U01–U07 also re-pass (regression) |
+| 2026-10-27 | S1-U11 | `<2be9391>` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image |
+| 2026-10-27 | S1-U12 | `<2be9391>` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image |
+| 2026-10-27 | S1-U13 | `<2be9391>` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image |
+| 2026-10-27 | S1-U14 | `<2be9391>` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image |
+| 2026-10-27 | S1-U15 | `<2be9391>` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image |
+| 2026-10-27 | S1-U16 | `<2be9391>` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image; U01–U10 re-passed old tests, U04–U07 with outage frames cut ~ 32 -> 15 B |
