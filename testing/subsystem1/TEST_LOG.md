@@ -20,6 +20,12 @@ Define a test here before running it. Test IDs never change.
 | S1-U08 | Command parser accepts PAUSE, RESUME, ABORT and decodes them. Reject count stays 0 | FR7, IF-15 RX | auto | make TEST=1, flash, read console | `[TEST] S1-U08 PASS` |
 | S1-U09 | NULL, empty and 2-byte frames rejected and counted. A valid frame afterwards still accepted | FR8, IF-15 RX (1 byte) | auto | make TEST=1, flash, read console | `[TEST] S1-U09 PASS` |
 | S1-U10 | Codes other than 1, 2 & 3 rejected. (0, 4, 255, ASCII 'P') means reject count is 4 | FR8 | auto | make TEST=1, flash, read console | `[TEST] S1-U10 PASS` |
+| S1-U11 | Fixed inputs pack to exact expected bytes (telemetry 15 B, heartbeat 4 B, event 3 B); expected bytes computed independently of the C code | CR1, IF-15 TX | auto | make TEST=1, flash, read console | `[TEST] S1-U11 PASS` |
+| S1-U12 | Telemetry frame is 15 B. Every field round-trips at its min & max | CR1 | auto | make TEST=1, flash, read console | `[TEST] S1-U12 PASS` |
+| S1-U13 | Out-of-range values clamp to the field max (never to "no data"); letter past Z becomes NONE; all no-data values round-trip | CR1 | auto | make TEST=1, flash, read console | `[TEST] S1-U13 PASS` |
+| S1-U14 | Heartbeat is 4 B; round-trips at min & max; rejected count stops at 15 | CR1, IF-15 TX | auto | make TEST=1, flash, read console | `[TEST] S1-U14 PASS` |
+| S1-U15 | Event is 3 B; type & data round-trip at limits; type > 7 or data > 13 bits refused | CR1, IF-15 TX | auto | make TEST=1, flash, read console | `[TEST] S1-U15 PASS` |
+| S1-U16 | Header carries version & type; replayed bit set without changing anything else; NULL or too-small buffer refused, nothing written; wrong frame type refused on unpack | CR1, IF-15 TX | auto | make TEST=1, flash, read console | `[TEST] S1-U16 PASS` |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).

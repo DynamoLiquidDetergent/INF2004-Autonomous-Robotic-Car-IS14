@@ -13,6 +13,7 @@
 #include "subsystem1.h"
 #include "outage_buf.h"
 #include "cmd_parse.h"
+#include "telem_pack.h"
 #include "../test_report.h"
 
 #if APP_TEST
@@ -39,6 +40,17 @@ static bool s1_cmd_bad_length(void);
 static bool s1_cmd_bad_code(void);
 static bool s1_cmd_expect(uint8_t code, cmd_result_t want,
                           cmd_code_t want_cmd);
+static bool s1_pack_golden(void);
+static bool s1_pack_limits(void);
+static bool s1_pack_clamp(void);
+static bool s1_pack_hb(void);
+static bool s1_pack_event(void);
+static bool s1_pack_header(void);
+static bool s1_bytes_equal(const uint8_t *p_a, const uint8_t *p_b,
+                           uint8_t len);
+static bool s1_status_equal(const telem_status_t *p_a,
+                            const telem_status_t *p_b);
+static void s1_status_fill(telem_status_t *p_s, bool b_max);
 
 EXPORT void subsystem1_test(void)
 {
@@ -70,6 +82,20 @@ EXPORT void subsystem1_test(void)
                "NULL and wrong-length frames rejected");
     TEST_CHECK("S1-U10", s1_cmd_bad_code(),
                "codes other than 1..3 (incl. 0, 4, 255, ASCII) rejected");
+
+    /* Binary packing (Change Requirement 1) */
+    TEST_CHECK("S1-U11", s1_pack_golden(),
+               "telemetry, heartbeat, event match independently computed bytes");
+    TEST_CHECK("S1-U12", s1_pack_limits(),
+               "telemetry 15 B; every field round-trips at min and max");
+    TEST_CHECK("S1-U13", s1_pack_clamp(),
+               "out-of-range values clamp; no-data values kept");
+    TEST_CHECK("S1-U14", s1_pack_hb(),
+               "heartbeat 4 B round-trip at min and max");
+    TEST_CHECK("S1-U15", s1_pack_event(),
+               "event 3 B round-trip; bad type/data refused");
+    TEST_CHECK("S1-U16", s1_pack_header(),
+               "header version/type/replayed; NULL and small buffer refused");
 
     TEST_SUMMARY("subsystem1");
 }
@@ -274,6 +300,329 @@ static bool s1_cmd_bad_code(void)
            s1_cmd_expect((uint8_t)'P', CMD_ERR_CODE, CMD_NONE) &&
            (cmd_parse_rejected(&s_test_parser) == 4U) &&
            s1_cmd_expect(3U, CMD_OK, CMD_ABORT);
+}
+
+/* ---- Packing tests -------------------------------------------------- */
+
+/* Expected bytes, worked out independently of telem_pack.c (by a
+   separate script) from the inputs in s1_pack_golden(). */
+static const uint8_t s_golden_telem[TELEM_FRAME_LEN] =
+{
+    0x01U, 0xD2U, 0x04U, 0x53U, 0xC8U, 0xA8U, 0xADU, 0x70U,
+    0x08U, 0xA5U, 0x3CU, 0x2AU, 0xAFU, 0xF4U, 0x00U
+};
+static const uint8_t s_golden_hb[TELEM_HB_FRAME_LEN] =
+{
+    0x09U, 0xC8U, 0x43U, 0x9BU
+};
+static const uint8_t s_golden_evt[TELEM_EVT_FRAME_LEN] =
+{
+    0x11U, 0x26U, 0x01U
+};
+
+/*
+ * S1-U11: fixed inputs give exactly the expected bytes.  This catches
+ * wrong field order, overlap and bit order, which a round-trip alone
+ * can miss.
+ */
+static bool s1_pack_golden(void)
+{
+    telem_status_t s;
+    telem_hb_t     hb;
+    uint8_t        out[TELEM_FRAME_LEN];
+
+    s.time_ds       = 1234U;   /* 123.4 s */
+    s.mission_state = 3U;
+    s.fault_mask    = 5U;
+    s.speed_left    = 200;
+    s.speed_right   = -150;
+    s.motion_state  = 2U;
+    s.dist_mm       = 4321U;
+    s.line_zone     = 2U;
+    s.b_junction    = true;
+    s.b_line_lost   = false;
+    s.letter        = 10U;     /* 'K' */
+    s.last_action   = 2U;      /* LEFT */
+    s.b_map_ok      = true;
+    s.barcodes      = 3U;
+    s.hump_mm       = 42U;
+    s.b_obstacle    = true;
+    s.obst_dist_cm  = 87U;
+    s.obst_side     = 1U;
+    s.obst_width_cm = 15U;
+
+    if ((telem_pack_status(&s, out, (uint8_t)sizeof(out)) != TELEM_FRAME_LEN) ||
+        !s1_bytes_equal(out, s_golden_telem, TELEM_FRAME_LEN))
+    {
+        return false;
+    }
+
+    hb.seq           = 200U;
+    hb.mission_state = 3U;
+    hb.outage_count  = 20U;
+    hb.b_wifi_up     = true;
+    hb.b_mqtt_up     = false;
+    hb.b_map_ok      = true;
+    hb.rejected      = 9U;
+
+    if ((telem_pack_hb(&hb, out, (uint8_t)sizeof(out)) != TELEM_HB_FRAME_LEN) ||
+        !s1_bytes_equal(out, s_golden_hb, TELEM_HB_FRAME_LEN))
+    {
+        return false;
+    }
+
+    /* STATE_CHANGE: new state 4 (bits 0-3), old state 2 (bits 4-7) */
+    return (telem_pack_event(TELEM_EVT_STATE_CHANGE, (uint16_t)(4U | (2U << 4)),
+                             out, (uint8_t)sizeof(out)) == TELEM_EVT_FRAME_LEN) &&
+           s1_bytes_equal(out, s_golden_evt, TELEM_EVT_FRAME_LEN);
+}
+
+/*
+ * S1-U12: the frame is TELEM_FRAME_LEN (15) bytes, and every field comes
+ * back unchanged at its minimum and at its largest real value.
+ */
+static bool s1_pack_limits(void)
+{
+    telem_status_t in;
+    telem_status_t back;
+    uint8_t        out[TELEM_FRAME_LEN];
+
+    s1_status_fill(&in, false);
+    if ((telem_pack_status(&in, out, (uint8_t)sizeof(out)) != 15U) ||
+        !telem_unpack_status(out, TELEM_FRAME_LEN, &back) ||
+        !s1_status_equal(&in, &back))
+    {
+        return false;
+    }
+
+    s1_status_fill(&in, true);
+    return (telem_pack_status(&in, out, (uint8_t)sizeof(out)) == 15U) &&
+           telem_unpack_status(out, TELEM_FRAME_LEN, &back) &&
+           s1_status_equal(&in, &back);
+}
+
+/*
+ * S1-U13: values past a field's range are clamped to its largest real
+ * value (never to the no-data value), a letter past 'Z' becomes NONE,
+ * and every no-data value survives the round trip.
+ */
+static bool s1_pack_clamp(void)
+{
+    telem_status_t in;
+    telem_status_t back;
+    uint8_t        out[TELEM_FRAME_LEN];
+    bool           b_ok;
+
+    s1_status_fill(&in, false);
+    in.speed_left   = 600;
+    in.speed_right  = -600;
+    in.hump_mm      = 255U;          /* is NONE: must stay NONE */
+    in.obst_dist_cm = 700U;
+    in.letter       = 27U;           /* not a letter */
+    in.barcodes     = 40U;
+    in.line_zone    = 9U;
+
+    b_ok = (telem_pack_status(&in, out, (uint8_t)sizeof(out)) == TELEM_FRAME_LEN) &&
+           telem_unpack_status(out, TELEM_FRAME_LEN, &back) &&
+           (back.speed_left   == TELEM_SPEED_MAX) &&
+           (back.speed_right  == TELEM_SPEED_MIN) &&
+           (back.hump_mm      == TELEM_HUMP_NONE) &&
+           (back.obst_dist_cm == TELEM_OBST_DIST_MAX) &&
+           (back.letter       == TELEM_LETTER_NONE) &&
+           (back.barcodes     == TELEM_BARCODES_MAX) &&
+           (back.line_zone    == TELEM_ZONE_MAX);
+    if (!b_ok)
+    {
+        return false;
+    }
+
+    s1_status_fill(&in, false);
+    in.mission_state = TELEM_MSTATE_NONE;
+    in.speed_left    = TELEM_SPEED_NONE;
+    in.speed_right   = TELEM_SPEED_NONE;
+    in.line_zone     = TELEM_ZONE_NONE;
+    in.letter        = TELEM_LETTER_NONE;
+    in.hump_mm       = TELEM_HUMP_NONE;
+    in.obst_dist_cm  = TELEM_OBST_DIST_NONE;
+    in.obst_width_cm = TELEM_OBST_WIDTH_NONE;
+
+    return (telem_pack_status(&in, out, (uint8_t)sizeof(out)) == TELEM_FRAME_LEN) &&
+           telem_unpack_status(out, TELEM_FRAME_LEN, &back) &&
+           s1_status_equal(&in, &back);
+}
+
+/*
+ * S1-U14: heartbeat is 4 bytes and round-trips at min and max.
+ */
+static bool s1_pack_hb(void)
+{
+    telem_hb_t in;
+    telem_hb_t back;
+    uint8_t    out[TELEM_HB_FRAME_LEN];
+    bool       b_ok;
+
+    in.seq           = 0U;
+    in.mission_state = 0U;
+    in.outage_count  = 0U;
+    in.b_wifi_up     = false;
+    in.b_mqtt_up     = false;
+    in.b_map_ok      = false;
+    in.rejected      = 0U;
+
+    b_ok = (telem_pack_hb(&in, out, (uint8_t)sizeof(out)) == 4U) &&
+           telem_unpack_hb(out, TELEM_HB_FRAME_LEN, &back) &&
+           (back.seq == 0U) && (back.outage_count == 0U) &&
+           !back.b_wifi_up && !back.b_mqtt_up && !back.b_map_ok &&
+           (back.rejected == 0U);
+    if (!b_ok)
+    {
+        return false;
+    }
+
+    in.seq           = 255U;
+    in.mission_state = TELEM_MSTATE_NONE;
+    in.outage_count  = OUTAGE_BUF_DEPTH;
+    in.b_wifi_up     = true;
+    in.b_mqtt_up     = true;
+    in.b_map_ok      = true;
+    in.rejected      = 200U;   /* stops at 15 */
+
+    return (telem_pack_hb(&in, out, (uint8_t)sizeof(out)) == 4U) &&
+           telem_unpack_hb(out, TELEM_HB_FRAME_LEN, &back) &&
+           (back.seq == 255U) && (back.mission_state == TELEM_MSTATE_NONE) &&
+           (back.outage_count == OUTAGE_BUF_DEPTH) &&
+           back.b_wifi_up && back.b_mqtt_up && back.b_map_ok &&
+           (back.rejected == TELEM_HB_REJECTED_MAX);
+}
+
+/*
+ * S1-U15: an event is 3 bytes, type and data come back unchanged at
+ * their limits, and a bad type or oversized data is refused.
+ */
+static bool s1_pack_event(void)
+{
+    uint8_t  out[TELEM_EVT_FRAME_LEN];
+    uint8_t  type = 0U;
+    uint16_t data = 0U;
+
+    return (telem_pack_event(TELEM_EVT_TYPE_MAX, TELEM_EVT_DATA_MAX,
+                             out, (uint8_t)sizeof(out)) == 3U) &&
+           telem_unpack_event(out, TELEM_EVT_FRAME_LEN, &type, &data) &&
+           (type == TELEM_EVT_TYPE_MAX) && (data == TELEM_EVT_DATA_MAX) &&
+           (telem_pack_event(TELEM_EVT_MAP_ACK, 0U,
+                             out, (uint8_t)sizeof(out)) == 3U) &&
+           telem_unpack_event(out, TELEM_EVT_FRAME_LEN, &type, &data) &&
+           (type == TELEM_EVT_MAP_ACK) && (data == 0U) &&
+           (telem_pack_event(8U, 0U, out, (uint8_t)sizeof(out)) == 0U) &&
+           (telem_pack_event(0U, (uint16_t)(TELEM_EVT_DATA_MAX + 1U),
+                             out, (uint8_t)sizeof(out)) == 0U);
+}
+
+/*
+ * S1-U16: header carries version and type; the replayed bit is set
+ * without changing anything else; NULL and too-small buffers are
+ * refused and nothing is written; unpack refuses the wrong type.
+ */
+static bool s1_pack_header(void)
+{
+    telem_status_t s;
+    telem_status_t back;
+    telem_hb_t     hb_back;
+    uint8_t        out[TELEM_FRAME_LEN];
+    uint8_t        small[TELEM_FRAME_LEN - 1U];
+    uint8_t        before;
+    uint8_t        i;
+
+    for (i = 0U; i < (uint8_t)sizeof(small); i++)
+    {
+        small[i] = 0xAAU;
+    }
+
+    s1_status_fill(&s, true);
+    if (telem_pack_status(&s, out, (uint8_t)sizeof(out)) != TELEM_FRAME_LEN)
+    {
+        return false;
+    }
+    before = out[0];
+    telem_mark_replayed(out);
+
+    return (telem_frame_version(out) == TELEM_VERSION) &&
+           (telem_frame_type(out) == TELEM_TYPE_TELEM) &&
+           telem_is_replayed(out) &&
+           (out[0] == (uint8_t)(before | TELEM_HDR_REPLAYED)) &&
+           telem_unpack_status(out, TELEM_FRAME_LEN, &back) &&   /* still valid */
+           !telem_unpack_hb(out, TELEM_HB_FRAME_LEN, &hb_back) &&   /* wrong type */
+           (telem_pack_status(NULL, out, (uint8_t)sizeof(out)) == 0U) &&
+           (telem_pack_status(&s, NULL, TELEM_FRAME_LEN) == 0U) &&
+           (telem_pack_status(&s, small, (uint8_t)sizeof(small)) == 0U) &&
+           (small[0] == 0xAAU) &&
+           (telem_pack_hb(NULL, out, (uint8_t)sizeof(out)) == 0U);
+}
+
+/*
+ * Fill a status with every field at 0 / minimum, or at its largest real
+ * value.
+ */
+static void s1_status_fill(telem_status_t *p_s, bool b_max)
+{
+    p_s->time_ds       = b_max ? 0xFFFFU : 0U;
+    p_s->mission_state = b_max ? TELEM_MSTATE_MAX : 0U;
+    p_s->fault_mask    = b_max ? TELEM_FAULT_MAX : 0U;
+    p_s->speed_left    = b_max ? (int16_t)TELEM_SPEED_MAX : (int16_t)TELEM_SPEED_MIN;
+    p_s->speed_right   = b_max ? (int16_t)TELEM_SPEED_MIN : (int16_t)TELEM_SPEED_MAX;
+    p_s->motion_state  = b_max ? TELEM_MOTION_MAX : 0U;
+    p_s->dist_mm       = b_max ? 0xFFFFU : 0U;
+    p_s->line_zone     = b_max ? TELEM_ZONE_MAX : 0U;
+    p_s->b_junction    = b_max;
+    p_s->b_line_lost   = b_max;
+    p_s->letter        = b_max ? TELEM_LETTER_MAX : 0U;
+    p_s->last_action   = b_max ? TELEM_ACTION_MAX : 0U;
+    p_s->b_map_ok      = b_max;
+    p_s->barcodes      = b_max ? TELEM_BARCODES_MAX : 0U;
+    p_s->hump_mm       = b_max ? TELEM_HUMP_MAX : 0U;
+    p_s->b_obstacle    = b_max;
+    p_s->obst_dist_cm  = b_max ? TELEM_OBST_DIST_MAX : 0U;
+    p_s->obst_side     = b_max ? TELEM_OBST_SIDE_MAX : 0U;
+    p_s->obst_width_cm = b_max ? TELEM_OBST_WIDTH_MAX : 0U;
+}
+
+static bool s1_status_equal(const telem_status_t *p_a,
+                            const telem_status_t *p_b)
+{
+    return (p_a->time_ds       == p_b->time_ds) &&
+           (p_a->mission_state == p_b->mission_state) &&
+           (p_a->fault_mask    == p_b->fault_mask) &&
+           (p_a->speed_left    == p_b->speed_left) &&
+           (p_a->speed_right   == p_b->speed_right) &&
+           (p_a->motion_state  == p_b->motion_state) &&
+           (p_a->dist_mm       == p_b->dist_mm) &&
+           (p_a->line_zone     == p_b->line_zone) &&
+           (p_a->b_junction    == p_b->b_junction) &&
+           (p_a->b_line_lost   == p_b->b_line_lost) &&
+           (p_a->letter        == p_b->letter) &&
+           (p_a->last_action   == p_b->last_action) &&
+           (p_a->b_map_ok      == p_b->b_map_ok) &&
+           (p_a->barcodes      == p_b->barcodes) &&
+           (p_a->hump_mm       == p_b->hump_mm) &&
+           (p_a->b_obstacle    == p_b->b_obstacle) &&
+           (p_a->obst_dist_cm  == p_b->obst_dist_cm) &&
+           (p_a->obst_side     == p_b->obst_side) &&
+           (p_a->obst_width_cm == p_b->obst_width_cm);
+}
+
+static bool s1_bytes_equal(const uint8_t *p_a, const uint8_t *p_b,
+                           uint8_t len)
+{
+    uint8_t i;
+
+    for (i = 0U; i < len; i++)
+    {
+        if (p_a[i] != p_b[i])
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 #endif /* APP_TEST */

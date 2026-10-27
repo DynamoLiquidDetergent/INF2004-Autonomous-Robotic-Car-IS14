@@ -20,8 +20,9 @@
 #include <stdint.h>
 
 #define OUTAGE_BUF_DEPTH      (20U)   /* frames kept (IF-15)            */
-#define OUTAGE_BUF_FRAME_MAX  (32U)   /* bytes; must be >= the packed
-                                         telemetry frame (step 1c)     */
+#define OUTAGE_BUF_FRAME_MAX  (15U)   /* bytes; = largest S1 frame
+                                         (TELEM_FRAME_MAX_LEN, checked
+                                         at build time in telem_pack.c) */
 
 typedef struct
 {
