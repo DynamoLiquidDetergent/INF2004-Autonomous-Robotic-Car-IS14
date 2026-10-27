@@ -1,0 +1,40 @@
+{
+  "code_commit": "b449c60633a348ef0fe2fd8adfa2f46b470e8064",
+  "started_singapore": "2026-10-27T22:36:45.563423+08:00",
+  "board_status": "OBSERVATIONS READY FOR REVIEW",
+  "limitations": [
+    "Console observation does not establish precise release jitter or worst-case execution time."
+  ],
+  "build_log": "2026-10-27_223645_phase1_build.txt",
+  "build_exit_code": 0,
+  "firmware_sha256": "c28c83ae86650beb9e1951c2ce4435b4fe1c991d0f3f8f82466b7be6e5e9e871",
+  "uf2_blocks": 1111,
+  "flashed_drive": "D:\\",
+  "flashed_at_singapore": "2026-10-27T22:38:06.760511+08:00",
+  "console_log": "2026-10-27_223645_phase1_board.txt",
+  "port": "COM4",
+  "observed_seconds": 600.062,
+  "task_priority_test_pass_seen": true,
+  "heartbeat_lines": 600,
+  "first_heartbeat": {
+    "elapsed_s": 1.046,
+    "cycles": 100,
+    "missed": 0
+  },
+  "last_heartbeat": {
+    "elapsed_s": 600.062,
+    "cycles": 30050,
+    "missed": 0
+  },
+  "counter_reset_seen": false,
+  "test_failures": [],
+  "finished_singapore": "2026-10-27T22:48:08.389293+08:00",
+  "firmware_filename": "Phase1_b449c60_smp1_usb_cdc_wifi_test.uf2",
+  "tester": "Bryan",
+  "copy_type": "Redacted copy of original capture summary",
+  "redactions": [
+    "Absolute local firmware path omitted; firmware filename retained. No timestamps or measured results changed."
+  ],
+  "original_summary_file": "2026-10-27_223645_phase1_board_summary.json",
+  "original_summary_sha256": "5cc6b73d6f0f2be34c185cca125222f2ce6279e58fb45549f30fd406dae515c5"
+}
