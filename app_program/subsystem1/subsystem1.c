@@ -10,6 +10,10 @@
 #include "telem_layout.h"
 #include "telem_pack.h"
 
+#if defined(TM_MQTT) && (TM_MQTT == 1)
+#include "mqtt_utk.h"
+#endif
+
 /* Message buffer depths (messages).  The kernel stores each message as a
    4-byte header plus the message rounded up to 4 bytes. */
 #define S1_MBF_SLOT(msz)     (4U + ((((UW)(msz)) + 3U) & ~3UL))
@@ -85,6 +89,11 @@ EXPORT ER subsystem1_init(void)
     {
         return mbf_mqtt_rx;
     }
+
+#if defined(TM_MQTT) && (TM_MQTT == 1)
+    /* Both buffers exist now: let mqtt_utk.c use them (IF-15) */
+    mqtt_utk_set_buffers((int32_t)mbf_mqtt_tx, (int32_t)mbf_mqtt_rx);
+#endif
 
     return E_OK;
 }
@@ -214,8 +223,9 @@ static void fake_s5_task(INT stacd, void *exinf)
 
 #if S1_USE_TX_SINK
 /*
- * TEMPORARY stand-in for mqtt_utk.c: take each message from mbf_mqtt_tx
- * and print it, e.g. "s1: pub telem t=12345 R 41 D2 04 ...".
+ * Debug stand-in for mqtt_utk.c (builds without MQTT=1): take each
+ * message from mbf_mqtt_tx and print it, e.g.
+ * "s1: pub telem t=12345 R 41 D2 04 ...".
  * R = replayed from the outage buffer.  Hex built by hand: tm_printf may
  * not support %02X.
  */

@@ -31,6 +31,10 @@
 #include "cyw43_utk.h"
 #endif
 
+#if defined(TM_MQTT) && (TM_MQTT == 1)
+#include "mqtt_utk.h"
+#endif
+
 /* Event data layouts (telem_layout.h lists the fields) */
 #define S1_EVT_STATE_MASK       (0x0FU) /* STATE_CHANGE: 4-bit states    */
 #define S1_EVT_OLD_STATE_SHIFT  (4U)    /* new bits 0-3, old bits 4-7    */
@@ -148,8 +152,9 @@ EXPORT void telem_test_force_link(INT mode)
 
 /*
  * True if telemetry can go out.  With the network stack built in
- * (NET=lwip) that means WiFi joined with an IP; without it there is no
- * link to lose, so frames always go straight to mbf_mqtt_tx.
+ * (NET=lwip) that means WiFi joined with an IP, and with MQTT=1 also
+ * connected to the broker.  Without the network stack there is no link
+ * to lose, so frames always go straight to mbf_mqtt_tx.
  */
 static bool s1_read_link(void)
 {
@@ -160,6 +165,10 @@ static bool s1_read_link(void)
 
     cyw43_utk_get_status(&st);
     b_up = (st.link_status == TELEM_WIFI_LINK_UP);
+#endif
+
+#if defined(TM_MQTT) && (TM_MQTT == 1)
+    b_up = b_up && (mqtt_utk_connected() != 0);
 #endif
 
 #if APP_TEST
@@ -353,11 +362,15 @@ static void s1_send_hb(s1_telem_ctx_t *p_ctx)
     hb.mission_state = p_ctx->status.mission_state;
     hb.outage_count  = outage_buf_count(&p_ctx->outage);
 #if defined(TM_NET_LWIP) && (TM_NET_LWIP == 1)
-    hb.b_wifi_up     = p_ctx->b_link_up;
+    hb.b_wifi_up     = true;                  /* hb only sent with link up */
 #else
     hb.b_wifi_up     = false;                 /* no network stack built */
 #endif
-    hb.b_mqtt_up     = false;                 /* MQTT state: next phase */
+#if defined(TM_MQTT) && (TM_MQTT == 1)
+    hb.b_mqtt_up     = (mqtt_utk_connected() != 0);
+#else
+    hb.b_mqtt_up     = false;                 /* no MQTT client built   */
+#endif
     hb.b_map_ok      = ((s1_get_nav_map() & S1_NAV_MAP_VALID) != 0UL);
     hb.rejected      = (rejected > 255U) ? 255U : (uint8_t)rejected;
 

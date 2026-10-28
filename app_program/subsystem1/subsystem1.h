@@ -75,10 +75,10 @@ IMPORT void s1_set_nav_map(UW map_word);
 #define S1_FAKE_S5          (1)
 
 /*
- * TEMPORARY: stand-in for mqtt_utk.c until it drains mbf_mqtt_tx.
- * A task takes each message and prints what would be published.
- * Normal builds without MQTT=1 only (tests drain the buffer themselves).
- * DELETE once mqtt_utk.c publishes from mbf_mqtt_tx.
+ * Debug: in builds WITHOUT MQTT=1, a task takes each message from
+ * mbf_mqtt_tx and prints what would be published.  With MQTT=1,
+ * mqtt_utk.c publishes them instead and this task is not built.
+ * Test builds drain the buffer themselves.  Set to 0 to drop it.
  */
 #define S1_TX_SINK          (1)
 

@@ -41,6 +41,9 @@ Test IDs are never changed.
 | S1-U29 | Link down 3 s, then up: nothing sent while down; kept frames come out marked replayed, in order, 1 per tick | IF-15, NFR4 | auto | make TEST=1, flash, read console | `[TEST] S1-U29 PASS` + `[INFO]` line |
 | S1-U30 | Link down 12 s, then up: only newest 20 kept (oldest dropped); replayed in order, 1 per tick | IF-15 (20, drop-oldest) | auto | make TEST=1, flash, read console | `[TEST] S1-U30 PASS` + `[INFO]` line |
 | S1-U31 | Real WiFi loss: hotspot off ~20 s, then on | IF-15, NFR4 | manual | build `WIFI=cyw43 NET=lwip`, flash, hotspot off/on, capture | `link down`, pub lines stop; `link up, 20 frame(s) to replay`, R frames 100 ms apart, then normal output; no reset |
+| S1-U32 | Frames reach the broker over MQTT | IF-15 TX | manual | MQTT build, mosquitto_sub on is14/car/# | Telem 15 B every 500 ms and hb 4 B every 1 s. Hb shows WiFi and MQTT up |
+| S1-U33 | Commands and maps from the PC | FR7, FR8, IF-15 RX, IF-18 | manual | mosquitto_pub on cmd and map | PAUSE accepted. Junk and too-long rejected. Map accepted when READY, rejected when not |
+| S1-U34 | Broker stopped ~15 s, then restarted | IF-15, NFR4 | manual | Stop and restart Mosquitto | Link down with one retry line per attempt. Reconnects, then kept frames replay (header 41) ~100 ms apart |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).
