@@ -2,68 +2,80 @@
  *	subsystem3.c
  *	Subsystem 3 -- IR Perception: creates its kernel objects and starts its tasks.
  *
- *	Two-phase startup (app_main.c / TEAM.md):
- *	  subsystem3_init()   – called first for EVERY subsystem before any
- *	                        task is started; creates all kernel objects
- *	                        and initialises hardware / lookup tables.
- *	  subsystem3_start()  – called after all _init() functions; tasks
- *	                        are already running (started inside the
- *	                        task-init helpers), so this just returns E_OK.
+ *	COMMIT 1 (skeleton):
+ *	  subsystem3_init()   creates the five S3 queues so their IDs are valid
+ *	                      (S3-U01).  No tasks yet: line_sensor.c,
+ *	                      barcode_decode.c and code39.c arrive in later commits.
+ *	  subsystem3_start()  only starts the legacy example consumer task.
  *
- *	APIs used: tk_cre_mbf  (queues created in line_sensor_task_init)
- *	           tk_cre_tsk, tk_sta_tsk  (tasks created in task-init helpers)
+ *	APIs used: tk_cre_mbf, tk_cre_mbx, tk_cre_mtx
  */
 
 #include "subsystem3.h"
-#include "code39.h"
 
-/* -------------------------------------------------------------------------
- *  Forward declarations for the per-file init helpers.
- *  Each helper creates its own queues and starts its task.
- * ------------------------------------------------------------------------- */
-void line_sensor_task_init(void);     /* defined in line_sensor.c   */
-void barcode_decode_task_init(void);  /* defined in barcode_decode.c */
+/* ---- S3 interface objects (declared IMPORT in subsystem3.h) ---- */
+EXPORT ID q_line_data;      /* IF-05 */
+EXPORT ID q_gp28_samples;   /* IF-06 */
+EXPORT ID q_decoded_char;   /* IF-07 */
+EXPORT ID q_barcode_cmd;    /* IF-07 */
+EXPORT ID mbx_char_map;     /* MQTT char map */
 
-/* =========================================================================
- *  subsystem3_init
- *
- *  Called by usermain() BEFORE any task is started (phase 1).
- *  Creates all kernel objects owned by S3 and initialises the Code 39
- *  lookup table.  Every queue and task used by S3 is set up here so that
- *  IDs are valid the moment other subsystems call _start().
- *
- *  Returns E_OK on success, or the first negative error code on failure.
- * ========================================================================= */
+/* ---- Legacy template objects (still used by S2 and S4) ---- */
+EXPORT ID        mbx_samples;
+EXPORT ID        mtx_stats;
+EXPORT APP_STATS app_stats;
+
+/* Each message in a message buffer takes a 4-byte header plus the
+   message rounded up to 4 bytes. */
+#define MBF_SLOT(sz)   ((((sz) + 3) & ~3) + 4)
+
+LOCAL ID make_mbf(INT msgsz, INT depth)
+{
+    T_CMBF cmbf = {0};
+
+    cmbf.mbfatr = TA_TFIFO;
+    cmbf.maxmsz = msgsz;
+    cmbf.bufsz  = depth * MBF_SLOT(msgsz);
+    return tk_cre_mbf(&cmbf);
+}
+
 EXPORT ER subsystem3_init(void)
 {
-    /* Initialise the Code 39 symbol lookup table (code39.c).
-       Must run before barcode_decode_task reads any samples. */
-    code39_init();
+    T_CMBX cmbx = {0};
+    T_CMTX cmtx = {0};
 
-    /* Create the message queues and spawn the line sensor task.
-       Queues created here: q_line_data (IF-05), q_gp28_samples (IF-06),
-       q_decoded_char, q_barcode_cmd (IF-07), mbx_char_map (MQTT map). */
-    line_sensor_task_init();
+    /* S3 queues */
+    q_line_data = make_mbf(sizeof(LINE_DATA_MSG), 8);
+    if (q_line_data < E_OK) return q_line_data;
 
-    /* Create the barcode decode task.
-       Reads from q_gp28_samples (IF-06), writes to q_decoded_char and
-       q_barcode_cmd (IF-07), polls mbx_char_map for mapping updates. */
-    barcode_decode_task_init();
+    q_gp28_samples = make_mbf(sizeof(GP28_SAMPLE_MSG), 64);
+    if (q_gp28_samples < E_OK) return q_gp28_samples;
+
+    q_decoded_char = make_mbf(sizeof(uint8_t), 4);
+    if (q_decoded_char < E_OK) return q_decoded_char;
+
+    q_barcode_cmd = make_mbf(sizeof(BARCODE_CMD), 4);
+    if (q_barcode_cmd < E_OK) return q_barcode_cmd;
+
+    mbx_char_map = make_mbf(sizeof(CHAR_MAP_MSG), 2);
+    if (mbx_char_map < E_OK) return mbx_char_map;
+
+    /* Legacy: mailbox that S2's producer sends sample pointers into */
+    cmbx.mbxatr = TA_TFIFO | TA_MFIFO;
+    mbx_samples = tk_cre_mbx(&cmbx);
+    if (mbx_samples < E_OK) return mbx_samples;
+
+    /* Legacy: mutex guarding app_stats (read by S4) */
+    cmtx.mtxatr = TA_INHERIT;
+    mtx_stats = tk_cre_mtx(&cmtx);
+    if (mtx_stats < E_OK) return mtx_stats;
 
     return E_OK;
 }
 
-/* =========================================================================
- *  subsystem3_start
- *
- *  Called by usermain() AFTER all _init() functions (phase 2).
- *  Both S3 tasks (line_sensor_task, barcode_decode_task) are already
- *  running — they were started inside their respective _init helpers —
- *  so nothing more is needed here.
- * ========================================================================= */
 EXPORT ER subsystem3_start(void)
 {
-    /* Tasks started inside line_sensor_task_init() and
-       barcode_decode_task_init() during phase 1 — nothing to do. */
-    return E_OK;
+    /* Legacy example consumer, keeps S2/S4 working until they are replaced */
+    ID tid = app_start_task(consumer_task, S3_PRI_CONSUMER, 0, "consumer_task");
+    return (tid < E_OK) ? tid : E_OK;
 }

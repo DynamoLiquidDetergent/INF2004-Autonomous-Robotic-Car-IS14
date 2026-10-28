@@ -15,7 +15,7 @@
 
 // task priorities for the two S3 tasks (line_sensor_task, barcode_decode_task)
 #define S3_LINE_TASK_PRI    16   // line_sensor_task  – high priority, 20 ms / 2 ms cycles
-#define S3_BC_TASK_PRI      17   // barcode_decode_task – event-driven on i16 queue       
+#define S3_BC_TASK_PRI      17   // barcode_decode_task – event-driven on i16 queue
 
 
 // IF-05: line position data sent to the Vehicle Controller every 20 ms
@@ -33,7 +33,7 @@ IMPORT ID q_barcode_cmd;
 // IF (MQTT): character-to-movement mapping arriving from WiFi/MQTT. Buddy 1 writes into this queue; Buddy 3 reads from it
 IMPORT ID mbx_char_map;
 
-// IF-08: Safety Monitor event-flag group (owned by Buddy 5). Buddy 3 sets S3_FAULT_BIT on debounced LINE_LOST outside bypass; Safety Monitor reads and clears it — S3 never clears this flag */
+// IF-08: Safety Monitor event-flag group (owned by Buddy 5). Buddy 3 sets S3_FAULT_BIT on debounced LINE_LOST outside bypass; Safety Monitor reads and clears it — S3 never clears this flag
 IMPORT ID flg_fault_i14;
 
 // Bit inside flg_fault_i14 that belongs to S3. (1u << 2) = bit 2; confirm with S5 owner
@@ -43,10 +43,10 @@ IMPORT ID flg_fault_i14;
 typedef uint8_t LINE_DATA_MSG;
 
 #define LINE_ZONE_SHIFT    5u                          // zone occupies bits 7–5
-#define LINE_ZONE_MASK     (0x07u << LINE_ZONE_SHIFT)  // mask to isolate zone    */
-#define LINE_JUNCTION_BIT  (1u << 4)                   // bit 4 = junction flag   */
-#define LINE_LOST_BIT      (1u << 3)                   // bit 3 = line-lost flag  */
-#define LINE_ZONE_CENTRE   4u                          // zone value = "centred"  */
+#define LINE_ZONE_MASK     (0x07u << LINE_ZONE_SHIFT)  // mask to isolate zone
+#define LINE_JUNCTION_BIT  (1u << 4)                   // bit 4 = junction flag
+#define LINE_LOST_BIT      (1u << 3)                   // bit 3 = line-lost flag
+#define LINE_ZONE_CENTRE   4u                          // zone value = "centred"
 
 // Pack zone (0–7), junction flag and line-lost flag into one byte
 static inline LINE_DATA_MSG line_data_pack(uint8_t zone, bool jn, bool lost)
@@ -122,5 +122,28 @@ IMPORT bool subsystem3_run_calibration(void);
 
 // Set/clear the bypass flag. While active, LINE_LOST is suppressed (robot intentionally off-line).
 IMPORT void subsystem3_set_bypass(bool active);
+
+
+/* =====================================================================
+ *  LEGACY TEMPLATE INTERFACE (example "Consumer")
+ *  Subsystem 2 (task_producer.c) and subsystem 4 (task_monitor.c) still
+ *  use these.  Kept only so the whole project builds.  Remove this block
+ *  and task_consumer.c once S2/S4 drop their example code.
+ * ===================================================================== */
+#define S3_PRI_CONSUMER   18    /* legacy consumer task priority          */
+#define S3_BATCH_SIZE     5     /* one summary line to S4 per 5 samples    */
+
+typedef struct {
+    INT  min;           /* smallest sample value seen   */
+    INT  max;           /* largest sample value seen    */
+    W    sum;           /* sum of all values            */
+    UW   received;      /* number of samples received   */
+} APP_STATS;
+
+IMPORT ID        mbx_samples;   /* IF-01: S2 -> S3 sample mailbox      */
+IMPORT ID        mtx_stats;     /* IF-04: guards app_stats             */
+IMPORT APP_STATS app_stats;     /* IF-04: read by S4 under mtx_stats   */
+
+IMPORT void consumer_task(INT stacd, void *exinf);   /* task_consumer.c */
 
 #endif // SUBSYSTEM3_H

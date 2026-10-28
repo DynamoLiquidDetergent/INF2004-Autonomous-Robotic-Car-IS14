@@ -10,6 +10,15 @@
 
 #if APP_TEST
 
+/* INT-01 / INT-02 need line_sensor_task, which arrives in Commit 3.
+   Set to 1 then. */
+#define S3_RUN_INT_TESTS   0
+
+/* TEST_INIT() normally declares the pass/fail counters as locals of one
+   function.  The checks here are split across helper functions, so the
+   counters live at file scope instead (expands to: static INT test_pass_ = 0, ...). */
+static TEST_INIT();
+
 // queue creation is tested by checking that the queue IDs are non-zero after init
 static void test_queues_created(void)
 {
@@ -106,14 +115,14 @@ static void test_char_map_validation(void)
                "char_map: non-letter character rejected");
 }
 
+#if S3_RUN_INT_TESTS
 // Integration test: check that line data flows from line_sensor_task to q_line_data within 100 ms
 static void test_line_data_flow(void)
 {
     LINE_DATA_MSG msg;
 
-    /* tk_rcv_mbf with a 100 ms timeout: if the line sensor task is
-       running and calibration finished, a message must arrive. */
-    INT rc = tk_rcv_mbf(q_line_data, (VP)&msg, sizeof(msg), 100);
+    /* tk_rcv_mbf returns the message size, or a negative error code */
+    INT rc = tk_rcv_mbf(q_line_data, (void *)&msg, 100);
 
     TEST_CHECK("INT-01",
                rc == (INT)sizeof(msg),
@@ -127,17 +136,19 @@ static void test_gp28_flow(void)
 
     /* Wait 10 ms then poll: at 2 ms per sample, several should be queued */
     tk_dly_tsk(10);
-    INT rc = tk_rcv_mbf(q_gp28_samples, (VP)&sample, sizeof(sample), TMO_POL);
+    INT rc = tk_rcv_mbf(q_gp28_samples, (void *)&sample, TMO_POL);
 
     TEST_CHECK("INT-02",
                rc == (INT)sizeof(sample),
                "GP28 samples flow from line_sensor_task to q_gp28_samples within 10 ms");
 }
+#endif /* S3_RUN_INT_TESTS */
 
 // subsystem3_test() runs all unit and integration tests for subsystem 3
 EXPORT void subsystem3_test(void)
 {
-    TEST_INIT();
+    test_pass_ = 0;
+    test_fail_ = 0;
 
     /* Unit tests — no timing dependency */
     test_queues_created();
@@ -145,11 +156,13 @@ EXPORT void subsystem3_test(void)
     test_gp28_pack();
     test_char_map_validation();
 
+#if S3_RUN_INT_TESTS
     /* Integration tests — require tasks to be running and calibrated.
        Allow 500 ms for calibration to complete before checking flows. */
     tk_dly_tsk(500);
     test_line_data_flow();
     test_gp28_flow();
+#endif
 
     TEST_SUMMARY("subsystem3");
 }
