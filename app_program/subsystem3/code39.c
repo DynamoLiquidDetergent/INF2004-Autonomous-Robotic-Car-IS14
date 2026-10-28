@@ -15,7 +15,7 @@ typedef struct {
 static const Code39Entry k_code39[] = {
 
     // The '*' start/stop marker. not a data character but needs to be recognised so we know where a barcode begins and ends. 
-    { '*', 0b010100100 },   // 0x0A4 
+    { '*', 0b010010100 },   // 0x094  N W N N W N W N N 
 
     // Letters A–Z
     { 'A', 0b100001001 },   // 0x109  W N N N N W N N W 
@@ -49,12 +49,15 @@ static const Code39Entry k_code39[] = {
 // Number of entries in the pattern table
 #define N_ENTRIES ((int)(sizeof(k_code39) / sizeof(k_code39[0])))
 
-// The forward and reverse patterns for the start/stop marker. The forward pattern is 0x0A4, and the reverse pattern is 0x04A.
-#define CODE39_STAR_FWD_LOCAL  0x0A4u
-#define CODE39_STAR_REV_LOCAL  0x04Au
+// The forward and reverse patterns for the start/stop marker come from code39.h:
+// forward 0x094 (N W N N W N W N N), reverse 0x052 (N N W N W N N W N).
+// Note 0x052 is also the forward pattern of 'P', which is why the direction is
+// taken from the start marker and confirmed by the stop marker.
+#define CODE39_STAR_FWD_LOCAL  CODE39_STAR_FWD
+#define CODE39_STAR_REV_LOCAL  CODE39_STAR_REV
 
 
-// Reverse the bits of a 9-bit value. For example, 0b010100100 becomes 0b001001010.
+// Reverse the bits of a 9-bit value. For example, 0b010010100 ('*') becomes 0b001010010.
 static uint16_t reverse9(uint16_t v)
 {
     uint16_t r = 0u;  // r will hold the reversed result, starts at 0 
@@ -110,8 +113,9 @@ uint8_t code39_decode_symbol(const BcElem elems[29],
     // if the narrowest element is narrower than the minimum allowed, reject the reading as invalid
     if (min_w < min_narrow_samples) return CODE39_INVALID;
 
-    // calculate the threshold for wide elements. Any element wider than this is considered wide, otherwise narrow.
-    uint32_t wide_thresh = ((uint32_t)min_w * wide_ratio_x10) / 10u;
+    // Threshold for wide elements, kept x10 so the 1.5 ratio is not rounded down
+    // (min_w = 5: threshold 7.5, so a width of 7 is narrow and 8 is wide).
+    uint32_t wide_thresh_x10 = (uint32_t)min_w * wide_ratio_x10;
 
     // convert the 29 elements into three 9-bit patterns: start, data, and stop. 
     uint16_t start_pat = 0u;   // 9-bit pattern for elements [0 - 8]  = start '//' 
@@ -121,19 +125,19 @@ uint8_t code39_decode_symbol(const BcElem elems[29],
     // Start marker: elements 0 to 8 
     for (int i = 0; i < 9; i++) {
         start_pat = (uint16_t)(start_pat << 1u) |
-                    (elems[i].w >= wide_thresh ? 1u : 0u);
+                    ((uint32_t)elems[i].w * 10u >= wide_thresh_x10 ? 1u : 0u);
     }
 
     // Data character: elements 10 to 18  (element 9 is the inter-character gap, which we ignore)
     for (int i = 10; i < 19; i++) {
         data_pat = (uint16_t)(data_pat << 1u) |
-                   (elems[i].w >= wide_thresh ? 1u : 0u);
+                   ((uint32_t)elems[i].w * 10u >= wide_thresh_x10 ? 1u : 0u);
     }
 
     // Stop marker: elements 20 to 28  (element 19 is another inter-character gap) 
     for (int i = 20; i < 29; i++) {
         stop_pat = (uint16_t)(stop_pat << 1u) |
-                   (elems[i].w >= wide_thresh ? 1u : 0u);
+                   ((uint32_t)elems[i].w * 10u >= wide_thresh_x10 ? 1u : 0u);
     }
 
     // determine the scanning direction based on the strt marker

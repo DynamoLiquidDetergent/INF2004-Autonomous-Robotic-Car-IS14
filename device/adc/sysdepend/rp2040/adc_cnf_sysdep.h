@@ -1,4 +1,4 @@
-﻿/*
+/*
  *----------------------------------------------------------------------
  *    Device Driver for μT-Kernel 3.0
  *
@@ -12,14 +12,14 @@
  */
 
 /*
- *	adc_cnf_sysdep.h 
+ *	adc_cnf_sysdep.h
  *	A/D converter device driver configuration file
  *		for RP2040
  */
 #ifndef	__DEV_ADC_CNF_RP2040_H__
 #define	__DEV_ADC_CNF_RP2040_H__
 
-/* 
+/*
  * Release A/DC reset
  *	Enable when not performed in the OS initialization process.
  */
@@ -30,7 +30,7 @@
  */
 #define	ADC_DIV_INI		0	// Clock divider
 
-/* 
+/*
  * Initialize analog input pins
  *	The kernel does not set up any ADC pin at boot.  Set the flag to TRUE
  *	for each channel you use: the driver then makes that pin an analog
@@ -38,10 +38,12 @@
  *	in TEAM.md.
  *	  channel 0 = GP26, channel 1 = GP27, channel 2 = GP28
  *	  channel 3 = GP29 is the Pico W RADIO CLOCK: never set _3 to TRUE.
+ *
+ *	GP26/GP27/GP28: S3 IR line sensors (TEAM.md section 2, ADC owner S3).
  */
-#define	DEVCONF_ADC_PIN_INIT_0	FALSE
-#define	DEVCONF_ADC_PIN_INIT_1	FALSE
-#define	DEVCONF_ADC_PIN_INIT_2	FALSE
+#define	DEVCONF_ADC_PIN_INIT_0	TRUE	/* GP26, S3 IR left   */
+#define	DEVCONF_ADC_PIN_INIT_1	TRUE	/* GP27, S3 IR centre */
+#define	DEVCONF_ADC_PIN_INIT_2	TRUE	/* GP28, S3 IR right / barcode */
 #define	DEVCONF_ADC_PIN_INIT_3	FALSE
 
 /* Interrupt t priority */
