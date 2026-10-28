@@ -81,8 +81,8 @@ Old rows are never deleted or edited to change their meaning / results.
 | 2026-10-28 | S1-U25 | `df23e3a` | Saad | PASS | `logs/2026-10-28_S1-U23-U27.txt` | TEST=1 image |
 | 2026-10-28 | S1-U26 | `df23e3a` | Saad | PASS | `logs/2026-10-28_S1-U23-U27.txt` | TEST=1 image; heartbeat after tests reports 3 rejected (matches U26/U27 inputs) |
 | 2026-10-28 | S1-U27 | `df23e3a` | Saad | PASS | `logs/2026-10-28_S1-U23-U27.txt` | TEST=1 image; U01–U22 re-pass (regression) |
-| 2026-10-28 | S1-U28 | `df23e3a` | Saad | PARTIAL PASS | `logs/2026-10-28_S1-U28a.txt` | telem 500 ms / hb 1000 ms over 18 s. STATE_CHANGE at the 10 s flip captured. Issue: boot event happened before monitor opened (visible in U25) |
-| 2026-10-28 | S1-U28 | `36f0330` | Saad | PASS | `logs/2026-10-28_S1-U28b.txt` | Repeat successful results. STATE_CHANGE at all 4 flips. This test was run AFTER S1-U28's expected result was revised. |
+| 2026-10-28 | S1-U28 | `df23e3a` | Saad | PARTIAL PASS | `logs/2026-10-28_S1-U28.txt` | telem 500 ms / hb 1000 ms over 18 s. STATE_CHANGE at the 10 s flip captured. Issue: boot event happened before monitor opened (visible in U25) |
+| 2026-10-28 | S1-U28 | `36f0330` | Saad | PASS | `logs/2026-10-28_S1-U28-rerun.txt` | Repeat successful results. STATE_CHANGE at all 4 flips. This test was run AFTER S1-U28's expected result was revised. |
 | 2026-10-28 | S1-U29 | `1ee9edc` | Saad | PASS | `logs/2026-10-28_S1-U29-U30.txt` | 5 replayed, 100 ms apart, in order |
 | 2026-10-28 | S1-U30 | `1ee9edc` | Saad | PASS | `logs/2026-10-28_S1-U29-U30.txt` | 20 replayed, 100–103 dropped, 100 ms apart, in order; U01–U27 re-pass |
 | 2026-10-28 | S1-U31 | `1ee9edc` | Saad | PASS | `logs/2026-10-28_S1-U31.txt` | Off ~20 s; 20 kept, oldest dropped. on rejoin 20 kept (hb outage=20), oldest dropped, replayed 1 per 100 ms in order, 5 live frames queued behind. no reset |
