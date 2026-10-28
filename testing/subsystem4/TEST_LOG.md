@@ -71,3 +71,17 @@ The template's placeholder result was not a completed test and is not included i
 ## Evidence copies
 
 The successful board summary and build-log links use explicitly marked redacted copies. Only absolute local path information was removed. The original logs, timestamps, measurements and earlier attempts remain unchanged. The successful board observation was one continuous 600.062-second capture.
+
+## Phase 2 test cases
+
+| ID | What is tested | Method | Expected result |
+|---|---|---|---|
+| S4-U04 | Motion sensor driver configuration, decoding and error handling | Automated portable C mock test | Driver and deadline assertions pass |
+| S4-H01 | Sensor communication, six resting positions and disconnected-sensor response | Guided bench run with timestamped console capture | Fresh successful readings; opposite gravity directions; missing sensor returns errors without stopping output |
+
+### Phase 2 run 2026-10-28_130430
+
+| Date | Test ID | Commit | Tester | Result | Evidence | Notes |
+|---|---|---|---|---|---|---|
+| 2026-10-28 | S4-U04 | `4a779d0` | Bryan | PASS | [Log](logs/2026-10-28_130430_phase2_host.txt) | Portable mock checks only; physical sensor behaviour is recorded separately. |
+| 2026-10-28 | S4-H01 | `4a779d0` | Bryan | PASS | [Console](logs/2026-10-28_130430_phase2_sensor.txt); [Summary](logs/2026-10-28_130430_phase2_summary.json); [Build](logs/2026-10-28_130430_phase2_build.txt) | Communication: PASS; six positions: PASS (functional check); disconnected response: PASS; reconnection: PASS. Functional bring-up only; no calibrated accuracy, timing bound or magnetic-field accuracy is claimed. |
