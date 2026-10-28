@@ -1,0 +1,213 @@
+---- Opened the serial port COM3 ----
+monitor: batch  n=5 last=40 from core 1
+monitor: t=3355771096 ms  samples=5  min=0 max=40 avg=20  free slots=4  free blocks=4
+wifi: joining "Nokia8260" ...
+wifi: link status -> joined AP, waiting for IP (1)
+monitor: batch  n=10 last=90 from core 1
+monitor: t=3355772646 ms  samples=10  min=0 max=90 avg=45  free slots=4  free blocks=4
+monitor: batch  n=15 last=60 from core 1
+monitor: t=3355774196 ms  samples=15  min=0 max=100 avg=56  free slots=4  free blocks=4
+wifi: link status -> joined AP, no IP yet (2)
+wifi: link up, ip=172.20.10.8
+s1: link up, 9 frame(s) to replay
+s1: pub telem t=3355774566 R 41 05 00 01 00 02 08 00 80 13 00 FF FE F3 03
+s1: pub telem t=3355774666 R 41 05 00 01 00 02 08 00 80 13 00 FF FE F3 03
+s1: pub telem t=3355774766 R 41 0A 00 01 00 02 08 00 80 23 00 FF FE F3 03
+s1: pub hb    t=3355774866 - 09 00 71 02
+s1: pub telem t=3355774866 R 41 0F 00 01 00 02 08 00 80 33 00 FF FE F3 03
+s1: pub telem t=3355774966 R 41 14 00 01 00 02 08 00 80 43 00 FF FE F3 03
+s1: pub telem t=3355775066 R 41 19 00 01 00 02 08 00 80 53 00 FF FE F3 03
+s1: pub telem t=3355775166 R 41 1E 00 01 00 02 08 00 80 63 00 FF FE F3 03
+s1: pub telem t=3355775266 R 41 23 00 01 00 02 08 00 80 73 00 FF FE F3 03
+s1: pub telem t=3355775366 R 41 28 00 01 00 02 08 00 80 83 00 FF FE F3 03
+s1: pub telem t=3355775466 R 41 2D 00 01 00 02 08 00 80 93 00 FF FE F3 03
+s1: pub telem t=3355775566 R 41 32 00 01 00 02 08 00 80 A3 10 FF FE F3 03
+monitor: batch  n=20 last=10 from core 1
+monitor: t=3355775746 ms  samples=20  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: pub telem t=3355775866 - 01 37 00 01 00 02 08 00 80 B3 10 FF FE F3 03
+s1: pub hb    t=3355775866 - 09 01 01 02
+s1: pub telem t=3355776366 - 01 3C 00 01 00 02 08 00 80 C3 10 FF FE F3 03
+s1: pub telem t=3355776866 - 01 41 00 01 00 02 08 00 80 D3 10 FF FE F3 03
+s1: pub hb    t=3355776866 - 09 02 01 02
+monitor: batch  n=25 last=40 from core 1
+monitor: t=3355777296 ms  samples=25  min=0 max=100 avg=44  free slots=4  free blocks=4
+s1: pub telem t=3355777366 - 01 46 00 01 00 02 08 00 80 E3 10 FF FE F3 03
+s1: pub telem t=3355777866 - 01 4B 00 01 00 02 08 00 80 F3 10 FF FE F3 03
+s1: pub hb    t=3355777866 - 09 03 01 02
+s1: pub telem t=3355778366 - 01 50 00 01 00 02 08 00 80 03 11 FF FE F3 03
+monitor: batch  n=30 last=90 from core 1
+monitor: t=3355778846 ms  samples=30  min=0 max=100 avg=48  free slots=4  free blocks=4
+monitor: LED task paused, state=WAIT+SUSPEND, pri=23
+s1: pub telem t=3355778866 - 01 55 00 01 00 02 08 00 80 13 11 FF FE F3 03
+s1: pub hb    t=3355778866 - 09 04 01 02
+s1: pub telem t=3355779366 - 01 5A 00 01 00 02 08 00 80 23 11 FF FE F3 03
+s1: pub telem t=3355779866 - 01 5F 00 01 00 02 08 00 80 33 11 FF FE F3 03
+s1: pub hb    t=3355779866 - 09 05 01 02
+s1: pub evt   t=3355780066 - 11 96 00
+s1: pub telem t=3355780366 - 01 64 00 02 00 02 08 00 80 43 21 FF FE F3 03
+monitor: batch  n=35 last=60 from core 1
+monitor: t=3355780396 ms  samples=35  min=0 max=100 avg=52  free slots=4  free blocks=4
+s1: pub telem t=3355780866 - 01 69 00 02 00 02 08 00 80 53 21 FF FE F3 03
+s1: pub hb    t=3355780866 - 09 06 02 02
+s1: pub telem t=3355781366 - 01 6E 00 02 00 02 08 00 80 63 21 FF FE F3 03
+s1: pub telem t=3355781866 - 01 73 00 02 00 02 08 00 80 73 21 FF FE F3 03
+s1: pub hb    t=3355781866 - 09 07 02 02
+monitor: batch  n=40 last=10 from core 1
+monitor: t=3355781946 ms  samples=40  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: pub telem t=3355782366 - 01 78 00 02 00 02 08 00 80 83 21 FF FE F3 03
+s1: pub telem t=3355782866 - 01 7D 00 02 00 02 08 00 80 93 21 FF FE F3 03
+s1: pub hb    t=3355782866 - 09 08 02 02
+s1: pub telem t=3355783366 - 01 82 00 02 00 02 08 00 80 03 20 FF FE F3 03
+monitor: batch  n=45 last=40 from core 1
+monitor: t=3355783496 ms  samples=45  min=0 max=100 avg=46  free slots=4  free blocks=4
+s1: pub telem t=3355783866 - 01 87 00 02 00 02 08 00 80 13 20 FF FE F3 03
+s1: pub hb    t=3355783866 - 09 09 02 02
+s1: pub telem t=3355784366 - 01 8C 00 02 00 02 08 00 80 23 20 FF FE F3 03
+s1: pub telem t=3355784866 - 01 91 00 02 00 02 08 00 80 33 20 FF FE F3 03
+s1: pub hb    t=3355784866 - 09 0A 02 02
+monitor: batch  n=50 last=90 from core 1
+monitor: t=3355785046 ms  samples=50  min=0 max=100 avg=49  free slots=4  free blocks=4
+s1: pub telem t=3355785366 - 01 96 00 02 00 02 08 00 80 43 30 FF FE F3 03
+s1: pub telem t=3355785866 - 01 9B 00 02 00 02 08 00 80 53 30 FF FE F3 03
+s1: pub hb    t=3355785866 - 09 0B 02 02
+s1: pub telem t=3355786366 - 01 A0 00 02 00 02 08 00 80 63 30 FF FE F3 03
+monitor: batch  n=55 last=60 from core 1
+monitor: t=3355786596 ms  samples=55  min=0 max=100 avg=51  free slots=4  free blocks=4
+s1: pub telem t=3355786866 - 01 A5 00 02 00 02 08 00 80 73 30 FF FE F3 03
+s1: pub hb    t=3355786866 - 09 0C 02 02
+s1: pub telem t=3355787366 - 01 AA 00 02 00 02 08 00 80 83 30 FF FE F3 03
+s1: pub telem t=3355787866 - 01 AF 00 02 00 02 08 00 80 93 30 FF FE F3 03
+s1: pub hb    t=3355787866 - 09 0D 02 02
+monitor: batch  n=60 last=10 from core 1
+monitor: t=3355788146 ms  samples=60  min=0 max=100 avg=50  free slots=4  free blocks=4
+monitor: LED task resumed, state=WAIT, pri=22
+s1: pub telem t=3355788366 - 01 B4 00 02 00 02 08 00 80 A3 30 FF FE F3 03
+s1: pub telem t=3355788866 - 01 B9 00 02 00 02 08 00 80 B3 30 FF FE F3 03
+s1: pub hb    t=3355788866 - 09 0E 02 02
+s1: pub telem t=3355789366 - 01 BE 00 02 00 02 08 00 80 C3 30 FF FE F3 03
+wifi: link status -> joined AP, waiting for IP (1)
+s1: link down, buffering telemetry
+monitor: batch  n=65 last=40 from core 1
+monitor: t=3355789696 ms  samples=65  min=0 max=100 avg=47  free slots=4  free blocks=4
+monitor: batch  n=70 last=90 from core 1
+monitor: t=3355791246 ms  samples=70  min=0 max=100 avg=49  free slots=4  free blocks=4
+monitor: batch  n=75 last=60 from core 1
+monitor: t=3355792796 ms  samples=75  min=0 max=100 avg=51  free slots=4  free blocks=4
+monitor: batch  n=80 last=10 from core 1
+monitor: t=3355794346 ms  samples=80  min=0 max=100 avg=50  free slots=4  free blocks=4
+monitor: batch  n=85 last=40 from core 1
+monitor: t=3355795896 ms  samples=85  min=0 max=100 avg=48  free slots=4  free blocks=4
+monitor: batch  n=90 last=90 from core 1
+monitor: t=3355797446 ms  samples=90  min=0 max=100 avg=49  free slots=4  free blocks=4
+monitor: LED task paused, state=WAIT+SUSPEND, pri=23
+monitor: batch  n=95 last=60 from core 1
+monitor: t=3355798996 ms  samples=95  min=0 max=100 avg=51  free slots=4  free blocks=4
+monitor: batch  n=100 last=10 from core 1
+monitor: t=3355800546 ms  samples=100  min=0 max=100 avg=50  free slots=4  free blocks=4
+monitor: batch  n=105 last=40 from core 1
+monitor: t=3355802096 ms  samples=105  min=0 max=100 avg=48  free slots=4  free blocks=4
+monitor: batch  n=110 last=90 from core 1
+monitor: t=3355803646 ms  samples=110  min=0 max=100 avg=49  free slots=4  free blocks=4
+monitor: batch  n=115 last=60 from core 1
+monitor: t=3355805196 ms  samples=115  min=0 max=100 avg=50  free slots=4  free blocks=4
+monitor: batch  n=120 last=10 from core 1
+monitor: t=3355806746 ms  samples=120  min=0 max=100 avg=50  free slots=4  free blocks=4
+monitor: LED task resumed, state=WAIT, pri=22
+monitor: batch  n=125 last=40 from core 1
+monitor: t=3355808296 ms  samples=125  min=0 max=100 avg=48  free slots=4  free blocks=4
+wifi: link up, ip=172.20.10.8
+s1: link up, 20 frame(s) to replay
+s1: pub telem t=3355808766 R 41 18 01 01 00 02 08 00 80 43 50 FF FE F3 03
+s1: pub hb    t=3355808866 - 09 0F 42 03
+s1: pub telem t=3355808866 R 41 1D 01 01 00 02 08 00 80 53 50 FF FE F3 03
+s1: pub telem t=3355808966 R 41 22 01 01 00 02 08 00 80 63 50 FF FE F3 03
+s1: pub telem t=3355809066 R 41 27 01 01 00 02 08 00 80 73 50 FF FE F3 03
+s1: pub telem t=3355809166 R 41 2C 01 02 00 02 08 00 80 83 60 FF FE F3 03
+s1: pub telem t=3355809266 R 41 31 01 02 00 02 08 00 80 93 60 FF FE F3 03
+s1: pub telem t=3355809366 R 41 36 01 02 00 02 08 00 80 A3 60 FF FE F3 03
+s1: pub telem t=3355809466 R 41 3B 01 02 00 02 08 00 80 B3 60 FF FE F3 03
+s1: pub telem t=3355809566 R 41 40 01 02 00 02 08 00 80 C3 60 FF FE F3 03
+s1: pub telem t=3355809666 R 41 45 01 02 00 02 08 00 80 D3 60 FF FE F3 03
+s1: pub telem t=3355809766 R 41 4A 01 02 00 02 08 00 80 E3 60 FF FE F3 03
+monitor: batch  n=130 last=90 from core 1
+monitor: t=3355809846 ms  samples=130  min=0 max=100 avg=49  free slots=4  free blocks=4
+s1: pub hb    t=3355809866 - 09 10 C2 02
+s1: pub telem t=3355809866 R 41 4F 01 02 00 02 08 00 80 F3 60 FF FE F3 03
+s1: pub telem t=3355809966 R 41 54 01 02 00 02 08 00 80 03 61 FF FE F3 03
+s1: pub telem t=3355810066 R 41 59 01 02 00 02 08 00 80 13 61 FF FE F3 03
+s1: pub telem t=3355810166 R 41 5E 01 02 00 02 08 00 80 23 71 FF FE F3 03
+s1: pub telem t=3355810266 R 41 63 01 02 00 02 08 00 80 33 71 FF FE F3 03
+s1: pub telem t=3355810366 R 41 68 01 02 00 02 08 00 80 43 71 FF FE F3 03
+s1: pub telem t=3355810466 R 41 6D 01 02 00 02 08 00 80 53 71 FF FE F3 03
+s1: pub telem t=3355810566 R 41 72 01 02 00 02 08 00 80 63 71 FF FE F3 03
+s1: pub evt   t=3355810666 - 11 0E 01
+s1: pub telem t=3355810666 R 41 77 01 02 00 02 08 00 80 73 71 FF FE F3 03
+s1: pub telem t=3355810766 R 41 7C 01 02 00 02 08 00 80 83 71 FF FE F3 03
+s1: pub hb    t=3355810866 - 09 11 41 02
+s1: pub telem t=3355810866 R 41 81 01 02 00 02 08 00 80 93 71 FF FE F3 03
+s1: pub telem t=3355810966 R 41 86 01 02 00 02 08 00 80 03 70 FF FE F3 03
+s1: pub telem t=3355811066 R 41 8B 01 02 00 02 08 00 80 13 70 FF FE F3 03
+s1: pub telem t=3355811166 R 41 90 01 01 00 02 08 00 80 23 80 FF FE F3 03
+s1: pub telem t=3355811366 - 01 95 01 01 00 02 08 00 80 33 80 FF FE F3 03
+monitor: batch  n=135 last=60 from core 1
+monitor: t=3355811396 ms  samples=135  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: pub telem t=3355811866 - 01 9A 01 01 00 02 08 00 80 43 80 FF FE F3 03
+s1: pub hb    t=3355811866 - 09 12 01 02
+s1: pub telem t=3355812366 - 01 9F 01 01 00 02 08 00 80 53 80 FF FE F3 03
+s1: pub telem t=3355812866 - 01 A4 01 01 00 02 08 00 80 63 80 FF FE F3 03
+s1: pub hb    t=3355812866 - 09 13 01 02
+monitor: batch  n=140 last=10 from core 1
+monitor: t=3355812946 ms  samples=140  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: pub telem t=3355813366 - 01 A9 01 01 00 02 08 00 80 73 80 FF FE F3 03
+s1: pub telem t=3355813866 - 01 AE 01 01 00 02 08 00 80 83 80 FF FE F3 03
+s1: pub hb    t=3355813866 - 09 14 01 02
+s1: pub telem t=3355814366 - 01 B3 01 01 00 02 08 00 80 93 80 FF FE F3 03
+monitor: batch  n=145 last=40 from core 1
+monitor: t=3355814496 ms  samples=145  min=0 max=100 avg=48  free slots=4  free blocks=4
+s1: pub telem t=3355814866 - 01 B8 01 01 00 02 08 00 80 A3 80 FF FE F3 03
+s1: pub hb    t=3355814866 - 09 15 01 02
+s1: pub telem t=3355815366 - 01 BD 01 01 00 02 08 00 80 B3 80 FF FE F3 03
+s1: pub telem t=3355815866 - 01 C2 01 01 00 02 08 00 80 C3 90 FF FE F3 03
+s1: pub hb    t=3355815866 - 09 16 01 02
+monitor: batch  n=150 last=90 from core 1
+monitor: t=3355816046 ms  samples=150  min=0 max=100 avg=49  free slots=4  free blocks=4
+monitor: LED task paused, state=WAIT+SUSPEND, pri=23
+s1: pub telem t=3355816366 - 01 C7 01 01 00 02 08 00 80 D3 90 FF FE F3 03
+s1: pub telem t=3355816866 - 01 CC 01 01 00 02 08 00 80 E3 90 FF FE F3 03
+s1: pub hb    t=3355816866 - 09 17 01 02
+s1: pub telem t=3355817366 - 01 D1 01 01 00 02 08 00 80 F3 90 FF FE F3 03
+monitor: batch  n=155 last=60 from core 1
+monitor: t=3355817596 ms  samples=155  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: pub telem t=3355817866 - 01 D6 01 01 00 02 08 00 80 03 91 FF FE F3 03
+s1: pub hb    t=3355817866 - 09 18 01 02
+s1: pub telem t=3355818366 - 01 DB 01 01 00 02 08 00 80 13 91 FF FE F3 03
+s1: pub telem t=3355818866 - 01 E0 01 01 00 02 08 00 80 23 91 FF FE F3 03
+s1: pub hb    t=3355818866 - 09 19 01 02
+monitor: batch  n=160 last=10 from core 1
+monitor: t=3355819146 ms  samples=160  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: pub telem t=3355819366 - 01 E5 01 01 00 02 08 00 80 33 91 FF FE F3 03
+s1: pub telem t=3355819866 - 01 EA 01 01 00 02 08 00 80 43 91 FF FE F3 03
+s1: pub hb    t=3355819866 - 09 1A 01 02
+s1: pub telem t=3355820366 - 01 EF 01 01 00 02 08 00 80 53 91 FF FE F3 03
+monitor: batch  n=165 last=40 from core 1
+monitor: t=3355820696 ms  samples=165  min=0 max=100 avg=49  free slots=4  free blocks=4
+s1: pub evt   t=3355820866 - 11 96 00
+s1: pub telem t=3355820866 - 01 F4 01 02 00 02 08 00 80 63 A1 FF FE F3 03
+s1: pub hb    t=3355820866 - 09 1B 02 02
+s1: pub telem t=3355821366 - 01 F9 01 02 00 02 08 00 80 73 A1 FF FE F3 03
+s1: pub telem t=3355821866 - 01 F9 01 02 00 02 08 00 80 73 A1 FF FE F3 03
+s1: pub hb    t=3355821866 - 09 1C 02 02
+monitor: batch  n=170 last=90 from core 1
+monitor: t=3355822246 ms  samples=170  min=0 max=100 avg=49  free slots=4  free blocks=4
+s1: pub telem t=3355822366 - 01 FE 01 02 00 02 08 00 80 83 A1 FF FE F3 03
+s1: pub telem t=3355822866 - 01 03 02 02 00 02 08 00 80 93 A1 FF FE F3 03
+s1: pub hb    t=3355822866 - 09 1D 02 02
+s1: pub telem t=3355823366 - 01 08 02 02 00 02 08 00 80 03 A0 FF FE F3 03
+monitor: batch  n=175 last=60 from core 1
+monitor: t=3355823796 ms  samples=175  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: pub telem t=3355823866 - 01 0D 02 02 00 02 08 00 80 13 A0 FF FE F3 03
+s1: pub hb    t=3355823866 - 09 1E 02 02
+s1: pub telem t=3355824366 - 01 12 02 02 00 02 08 00 80 23 A0 FF FE F3 03
+s1: pub telem t=3355824866 - 01 17 02 02 00 02 08 00 80 33 A0 FF FE F3 03
+s1: pub hb    t=3355824866 - 09 1F 02 02
+---- Closed serial port COM3 due to disconnection from the machine ----
