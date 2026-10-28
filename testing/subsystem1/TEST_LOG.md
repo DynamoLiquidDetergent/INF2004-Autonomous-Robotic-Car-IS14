@@ -27,6 +27,11 @@ Define a test here before running it. Test IDs never change.
 | S1-U15 | Event is 3 B; type & data round-trip at limits; type > 7 or data > 13 bits refused | CR1, IF-15 TX | auto | make TEST=1, flash, read console | `[TEST] S1-U15 PASS` |
 | S1-U16 | Header carries version & type; replayed bit set without changing anything else; NULL or too-small buffer refused, nothing written; wrong frame type refused on unpack | CR1, IF-15 TX | auto | make TEST=1, flash, read console | `[TEST] S1-U16 PASS` |
 | S1-U17 | Network baseline with template code (no S1 changes to mqtt_utk.c): Pico joins 2.4 GHz hotspot, connects to laptop Mosquitto broker; heartbeat reaches mosquitto_sub; messages from mosquitto_pub reach the Pico; s1 task timing unaffected by WiFi | IF-15 (baseline before change), NFR4 | manual | build `WIFI=cyw43 NET=lwip MQTT=1`; `mosquitto -c test.conf -v`; `mosquitto_sub -h localhost -t "#" -v`; `mosquitto_pub -h localhost -t mtk3smp-pico/heartbeat -m hello` | Pico: `connected`, `subscribed`, TX/RX `hb N`, RX `hello`; mosquitto_sub: `hb N` and `hello`; `s1: alive` stays 1000 ms apart |
+| S1-U18 | Valid map (F=K, U=D, L=A, R=Z; bytes 6A 80 0C) accepted; stored word = frame + valid bit; lookup K/D/A/Z gives F/U/L/R; unmapped letter B and an invalid map give nothing | Prof mapping req., FR7, IF-18 | auto | make TEST=1, flash, read console | `[TEST] S1-U18 PASS` |
+| S1-U19 | NULL and 0/2/4-byte map frames rejected and counted; word left at 0 | FR8, IF-15 RX | auto | make TEST=1, flash, read console | `[TEST] S1-U19 PASS` |
+| S1-U20 | Letter code 26 (FORWARD) or 31 (RIGHT), or a spare bit set, rejected | FR8 | auto | make TEST=1, flash, read console | `[TEST] S1-U20 PASS` |
+| S1-U21 | Same letter used twice rejected; valid map outside READY rejected; each rejection maps to the right MAP_ACK reason | FR8, IF-18 | auto | make TEST=1, flash, read console | `[TEST] S1-U21 PASS` |
+| S1-U22 | IF-18: no valid map at boot; stored word reads back unchanged; s1_nav_lookup uses it; store cleared after the test | IF-18, CR1 (single store) | auto | make TEST=1, flash, read console | `[TEST] S1-U22 PASS` |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).
@@ -54,3 +59,8 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-10-27 | S1-U15 | `<2be9391>` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image |
 | 2026-10-27 | S1-U16 | `<2be9391>` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image; U01–U10 re-passed old tests, U04–U07 with outage frames cut ~ 32 -> 15 B |
 | 2026-10-28 | S1-U17 | `<9900c3b>` | Saad | PASS | `logs/2026-10-28_S1-U17a.txt`, `logs/2026-10-28_S1-U17b.png` | Phone hotspot, broker 172.20.10.3, Pico 172.20.10.7. hb 0–6 seen on laptop; "hello" and "hello2" received by Pico; s1 alive ticks 20–260 exactly 1000 ms apart through WiFi join |
+| 2026-10-28 | S1-U18 | `<f071606>` | Saad | PASS | `logs/2026-10-28_S1-U18-U22.txt` | TEST=1 image |
+| 2026-10-28 | S1-U19 | `<f071606>` | Saad | PASS | `logs/2026-10-28_S1-U18-U22.txt` | TEST=1 image |
+| 2026-10-28 | S1-U20 | `<f071606>` | Saad | PASS | `logs/2026-10-28_S1-U18-U22.txt` | TEST=1 image |
+| 2026-10-28 | S1-U21 | `<f071606>` | Saad | PASS | `logs/2026-10-28_S1-U18-U22.txt` | TEST=1 image |
+| 2026-10-28 | S1-U22 | `<f071606>` | Saad | PASS | `logs/2026-10-28_S1-U18-U22.txt` | TEST=1 image; U01–U16 re-pass (regression) |
