@@ -87,13 +87,36 @@ The successful board summary and build-log links use explicitly marked redacted 
 | 2026-10-28 | S4-H01 | `4a779d0` | Bryan | PASS | [Console](logs/2026-10-28_130430_phase2_sensor.txt); [Summary](logs/2026-10-28_130430_phase2_summary.json); [Build](logs/2026-10-28_130430_phase2_build.txt) | Communication: PASS; six positions: PASS (functional check); disconnected response: PASS; reconnection: PASS. Functional bring-up only; no calibrated accuracy, timing bound or magnetic-field accuracy is claimed. |
 
 
-## Phase 3 - calibration and orientation
+## Phase 3 - Calibration and Tilt Direction
 
-Code checkpoint being introduced: automatic level calibration, filtered tilt/orientation and gated magnetic-heading estimation. Existing Phase 1 and Phase 2 evidence above remains unchanged.
+**Latest run: 2026-10-28_180316. Functional result: PASS.**
+
+Scope: level calibration, pitch/roll direction and startup movement rejection/recovery on the bench. PASS applies to these functional checks; numerical measurement accuracy and other features are outside this record's scope. 
+
+### Test cases
 
 | ID | What is tested | Method | Expected result |
 |---|---|---|---|
-| S4-U05 | Angle arithmetic, stable calibration, movement rejection and heading validity gates | Portable C synthetic-input tests | Arithmetic/error bounds and invalid-input assertions pass |
-| S4-H02 | Physical mounting, known tilt angles and magnetic interference/calibration | Board bench run | Nose-up sign checked; tilt error measured; heading enabled only after measured magnetic validation |
+| S4-U05 | Driver, processing/math and deadline regression checks | Automated portable C assertions | Assertions pass; synthetic checks do not establish physical accuracy |
+| S4-H02 | Level calibration, pitch/roll direction and startup movement rejection/recovery | Guided bench run with saved console output and operator-confirmed steady poses | Calibration completes while level; front-up/down and left/right signs match; calibration waits during startup movement and completes after resting |
 
-Phase 3 board validation: NOT RUN. Mount the motion sensor in the agreed orientation and keep it level and stationary during startup calibration. Axis mapping/signs require a physical mounting check. Magnetic heading and estimated turn rate remain disabled by default until measured magnetic calibration and interference checks are completed; this sensor has no gyroscope. Numerical defaults are development settings, not measured accuracy claims.
+### Latest results
+
+| Date | Test ID | Commit | Tester | Result | Evidence | Notes |
+|---|---|---|---|---|---|---|
+| 2026-10-28 | S4-U05 | `31a6b57` | Bryan | PASS | [Host](logs/2026-10-28_180316_phase3_host.txt) | Portable assertions executed successfully. |
+| 2026-10-28 | S4-H02 | `31a6b57` | Bryan | PASS (functional scope) | [Console](logs/2026-10-28_180316_phase3_sensor.txt); [Reviewed summary](logs/2026-10-28_180316_phase3_summary.json); [Build](logs/2026-10-28_180316_phase3_build.txt) | Level calibration, both pitch/roll directions and startup movement rejection/recovery passed in the observed bench run. |
+
+### Verified functional checks
+
+| Check | Result | Observation |
+|---|---|---|
+| Level calibration | PASS | Calibration completed with the sensor level. |
+| Pitch direction | PASS | Front-up mean +17.237 degrees; front-down mean -20.909 degrees. Both poses confirmed steady. |
+| Roll direction | PASS | Left-side-up mean +23.206 degrees; right-side-up mean -19.256 degrees. Both poses confirmed steady. |
+| Startup movement rejection | PASS | All 15 captured moving-stage rows remained uncalibrated. |
+| Calibration after movement stops | PASS | Calibration completed after resting; 23 calibrated rows captured. |
+
+Firmware checkpoint: `31a6b57ff01590cfad904c9e6d387c997ab0412c`. All 148 captured paired rows were fresh with read return code zero and missed counter zero. This does not establish worst-case execution time or exact sampling jitter.
+
+
