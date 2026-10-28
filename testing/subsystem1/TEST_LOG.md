@@ -6,7 +6,7 @@ See `testing/README.md` for how to run tests and record results.
 
 ## Test cases
 
-Test IDs are never change.
+Test IDs are never changed.
 
 | ID | What is tested | Requirement / interface | Method | Steps / how | Expected result |
 |---|---|---|---|---|---|
@@ -37,7 +37,7 @@ Test IDs are never change.
 | S1-U25 | An IF-13 status sent as S5 will send it appears in the next telemetry frame; new mission state sends STATE_CHANGE (new READY, old "not known") | IF-13 | auto | make TEST=1, flash, read console | `[TEST] S1-U25 PASS` |
 | S1-U26 | Commands put in mbf_mqtt_rx as mqtt_utk.c will: PAUSE answered CMD_ACK accepted; code 7 and a 2-byte frame answered CMD_ACK rejected | FR7, FR8, IF-15 RX | auto | make TEST=1, flash, read console | `[TEST] S1-U26 PASS` |
 | S1-U27 | Map put in mbf_mqtt_rx while READY: stored in IF-18, MAP_ACK accepted. After state leaves READY the same map gets MAP_ACK reason STATE | Prof mapping req., IF-18, IF-15 RX | auto | make TEST=1, flash, read console | `[TEST] S1-U27 PASS` |
-| S1-U28 | Normal build with temporary fake S5: console shows `s1: tx telem` every 500 ms and `s1: tx hb` every 1000 ms for at least 10 s, and a STATE_CHANGE event at start and when the fake state flips at 10 s | Telemetry 500 ms / heartbeat 1 s, NFR4 | manual | make -j8 (normal image), flash, capture ≥ 12 s | `t=` values step by 500 (telem) and 1000 (hb); 2 `tx evt` lines |
+| S1-U28 | Normal build with temporary fake S5: console shows `s1: tx telem` every 500 ms and `s1: tx hb` every 1000 ms for at least 10 s, and a STATE_CHANGE event at start and when the fake state flips at 10 s | Telemetry 500 ms / heartbeat 1 s, NFR4 | manual | make -j8 (normal image), flash, capture > 12 s | `t=` values step by 500 (telem) and 1000 (hb); 2 `tx evt` lines. *(Revised 2026-10-28: boot STATE_CHANGE happens before Serial monitor can start monitoring, so it can't be seen on the normal image. Covered by S1-U25.)* |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).
@@ -48,9 +48,9 @@ Old rows are never deleted or edited to change their meaning / results.
 
 | Date | Test ID | Commit | Tester | Result | Log / evidence | Notes |
 |---|---|---|---|---|---|---|
-| 2026-10-26 | S1-U01 | `<c27b799>` | Saad | PASS | `logs/2026-10-26_S1-U01-U02.txt` | TEST=1 image |
-| 2026-10-26 | S1-U02 | `<c27b799>` | Saad | PASS | `logs/2026-10-26_S1-U01-U02.txt` | TEST=1 image |
-| 2026-10-26 | S1-U03 | `<c27b799>` | Saad | PASS | `logs/2026-10-26_S1-U03.txt`, `logs/2026-10-26_S1-U01-U02.txt` | 1000 ms ±0 over 10+ ticks; also held during S2 timing tests |
+| 2026-10-26 | S1-U01 | `c27b799` | Saad | PASS | `logs/2026-10-26_S1-U01-U02.txt` | TEST=1 image |
+| 2026-10-26 | S1-U02 | `c27b799` | Saad | PASS | `logs/2026-10-26_S1-U01-U02.txt` | TEST=1 image |
+| 2026-10-26 | S1-U03 | `c27b799` | Saad | PASS | `logs/2026-10-26_S1-U03.txt`, `logs/2026-10-26_S1-U01-U02.txt` | 1000 ms ±0 over 10+ ticks; also held during S2 timing tests |
 | 2026-10-26 | S1-U04 | `609dd97` | Saad | PASS | `logs/2026-10-26_S1-U04-U07.txt` | TEST=1 image |
 | 2026-10-26 | S1-U05 | `609dd97` | Saad | PASS | `logs/2026-10-26_S1-U04-U07.txt` | TEST=1 image |
 | 2026-10-26 | S1-U06 | `609dd97` | Saad | PASS | `logs/2026-10-26_S1-U04-U07.txt` | TEST=1 image |
@@ -64,7 +64,7 @@ Old rows are never deleted or edited to change their meaning / results.
 | 2026-10-27 | S1-U14 | `2be9391` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image |
 | 2026-10-27 | S1-U15 | `2be9391` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image |
 | 2026-10-27 | S1-U16 | `2be9391` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image; U01–U10 re-passed old tests, U04–U07 with outage frames cut ~ 32 -> 15 B |
-| 2026-10-28 | S1-U17 | `9900c3b` | Saad | PASS | `logs/2026-10-28_S1-U17a.txt`, `logs/2026-10-28_S1-U17b.png` | Phone hotspot, broker 172.20.10.3, Pico 172.20.10.7. hb 0–6 seen on laptop; "hello" and "hello2" received by Pico; s1 alive ticks 20–260 exactly 1000 ms apart through WiFi join |
+| 2026-10-28 | S1-U17 | `9900c3b` | Saad | PASS | `logs/2026-10-28_S1-U17a.jpg`, `logs/2026-10-28_S1-U17b.txt` | Phone hotspot, broker 172.20.10.3, Pico 172.20.10.7. hb 0–6 seen on laptop; "hello" and "hello2" received by Pico; s1 alive ticks 20–260 exactly 1000 ms apart through WiFi join |
 | 2026-10-28 | S1-U18 | `f071606` | Saad | PASS | `logs/2026-10-28_S1-U18-U22.txt` | TEST=1 image |
 | 2026-10-28 | S1-U19 | `f071606` | Saad | PASS | `logs/2026-10-28_S1-U18-U22.txt` | TEST=1 image |
 | 2026-10-28 | S1-U20 | `f071606` | Saad | PASS | `logs/2026-10-28_S1-U18-U22.txt` | TEST=1 image |
@@ -75,4 +75,5 @@ Old rows are never deleted or edited to change their meaning / results.
 | 2026-10-28 | S1-U25 | `df23e3a` | Saad | PASS | `logs/2026-10-28_S1-U23-U27.txt` | TEST=1 image |
 | 2026-10-28 | S1-U26 | `df23e3a` | Saad | PASS | `logs/2026-10-28_S1-U23-U27.txt` | TEST=1 image; heartbeat after tests reports 3 rejected (matches U26/U27 inputs) |
 | 2026-10-28 | S1-U27 | `df23e3a` | Saad | PASS | `logs/2026-10-28_S1-U23-U27.txt` | TEST=1 image; U01–U22 re-pass (regression) |
-| 2026-10-28 | S1-U28 | `df23e3a` | Saad | PASS | `logs/2026-10-28_S1-U28.txt` | normal image, fake S5; telem 500 ms / hb 1000 ms over 25 s, STATE_CHANGE at both flips |
+| 2026-10-28 | S1-U28 | `df23e3a` | Saad | PARTIAL PASS | `logs/2026-10-28_S1-U28a.txt` | telem 500 ms / hb 1000 ms over 18 s. STATE_CHANGE at the 10 s flip captured. Issue: boot event happened before monitor opened (visible in U25) |
+| 2026-10-28 | S1-U28 | `36f0330` | Saad | PASS | `logs/2026-10-28_S1-U28b.txt` | Repeat successful results. STATE_CHANGE at all 4 flips. This test was run AFTER S1-U28's expected result was revised. |
