@@ -94,3 +94,4 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-10-28 | S5-H16 | `22b5879` | Chong | PASS | `logs/2026-10-28_host.txt` | PC run |
 | 2026-10-28 | S5-H17 | `22b5879` | Chong | PASS | `logs/2026-10-28_host.txt` | PC run |
 | 2026-10-28 | S5-H18 | `22b5879` | Chong | PASS | `logs/2026-10-28_host.txt` | PC run |
+| 2026-10-28 | S5-M01 | `22b5879` | Chong | PASS | `logs/2026-10-28_S5-M01.txt` | Phase 1, normal image, COM3. `PWM out of reset = 1` on every `alive` line. Nothing wired. Log shows 0 to 30 s and 212 to 221 s; the middle of the capture was not saved |
