@@ -22,6 +22,8 @@ Define a test here before running it. Test IDs never change.
 | S3-U04c | char map: non-letter character rejected | MQTT map `CHAR_MAP_MSG` | auto | `subsystem3_test.c` → `test_char_map_validation()` | `[TEST] S3-U04c PASS` |
 | S3-U05 | Code 39 LUT: `code39_lookup()` returns 'A' (0x109), 'Z' (0x0D0), '*' (0x0A4), 'D' (0x019), `CODE39_INVALID` (0x1FF) | Code 39 decoder (`code39.c`) | auto | `subsystem3_test.c`, after `code39_init()` in `subsystem3_init()` | `[TEST] S3-U05 PASS` |
 | S3-U06 | `code39_decode_symbol()` decodes a hand-built `*A*` element array (narrow 5, wide 12 samples) as 'A' forward and reversed | Code 39 decoder (`code39.c`) | auto | `subsystem3_test.c`, `code39_decode_symbol(elems, 4, 15)` | `[TEST] S3-U06 PASS` |
+| INT-01 | `line_sensor_task` delivers a `LINE_DATA_MSG` on `q_line_data` within 100 ms | IF-05 | auto | `subsystem3_test.c` → `test_line_data_flow()`, after 500 ms calibration | `[TEST] INT-01 PASS` |
+| INT-02 | `line_sensor_task` delivers a `GP28_SAMPLE_MSG` on `q_gp28_samples` within 10 ms | IF-06 | auto | `subsystem3_test.c` → `test_gp28_flow()` | `[TEST] INT-02 PASS` |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).
@@ -38,3 +40,5 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-10-28 | S3-U04 | 0f29374 | Daniel | PASS | `logs/2026-10-28_S3U01-U04.txt` | |
 | 2026-10-28 | S3-U05 | 03f60e1 | Daniel | PASS | `logs/2026-10-28_S3U05-U06.txt` | |
 | 2026-10-28 | S3-U06 | 03f60e1 | Daniel | PASS | `logs/2026-10-28_S3U05-U06.txt` | |
+| 2026-10-28 | S3-INT-01 | f6905f8 | Daniel | PASS | `logs/2026-10-28_S3U05-U06.txt` | |
+| 2026-10-28 | S3-INT-02 | f6905f8 | Daniel | PASS | `logs/2026-10-28_S3U05-U06.txt` | |
