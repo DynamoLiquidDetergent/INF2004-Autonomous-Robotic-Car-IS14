@@ -4,10 +4,29 @@
  */
 
 #include "subsystem1.h"
-#include "telemetry_task.h"
+#include "telemetry.h"
 #include "cmd_parse.h"
+#include "s1_topics.h"
+
+/* Message buffer depths (messages).  The kernel stores each message as a
+   4-byte header plus the message rounded up to 4 bytes. */
+#define S1_MBF_SLOT(msz)     (4U + ((((UW)(msz)) + 3U) & ~3UL))
+#define S1_TX_DEPTH          (8U)   /* ~2.5 s of output at 3 msg/s     */
+#define S1_RX_DEPTH          (4U)   /* commands/maps arrive rarely     */
+#define S1_STATUS_DEPTH      (2U)   /* S1 only needs the newest        */
+
+#define S1_FAKE_PERIOD_MS    (500)    /* IF-13 period                  */
+#define S1_FAKE_PHASE_SENDS  (20U)    /* 10 s READY, then 10 s state 2 */
 
 EXPORT ID g_s1_tid_telem = 0;
+EXPORT ID mbf_telem_status = 0;
+EXPORT ID mbf_mqtt_tx = 0;
+EXPORT ID mbf_mqtt_rx = 0;
+
+static ID s1_create_mbf(INT maxmsz, UW depth);
+#if S1_FAKE_S5 && !APP_TEST
+static void fake_s5_task(INT stacd, void *exinf);
+#endif
 
 /* IF-18 map word.  volatile: S5's task may read it from the other core. */
 static volatile UW s_nav_map = 0U;
@@ -35,9 +54,28 @@ static void if05_stub_task(INT stacd, void *exinf)
 }
 #endif
 
-/* Create kernel objects.  Message buffers are added in step 2. */
+/* Create kernel objects: the IF-13 and IF-15 message buffers. */
 EXPORT ER subsystem1_init(void)
 {
+    mbf_telem_status = s1_create_mbf((INT)sizeof(s1_status_msg_t),
+                                     S1_STATUS_DEPTH);
+    if (mbf_telem_status < E_OK)
+    {
+        return mbf_telem_status;
+    }
+
+    mbf_mqtt_tx = s1_create_mbf((INT)S1_TX_MSG_MAX, S1_TX_DEPTH);
+    if (mbf_mqtt_tx < E_OK)
+    {
+        return mbf_mqtt_tx;
+    }
+
+    mbf_mqtt_rx = s1_create_mbf((INT)S1_RX_MSG_MAX, S1_RX_DEPTH);
+    if (mbf_mqtt_rx < E_OK)
+    {
+        return mbf_mqtt_rx;
+    }
+
     return E_OK;
 }
 
@@ -52,6 +90,18 @@ EXPORT ER subsystem1_start(void)
     {
         er = g_s1_tid_telem;
     }
+
+#if S1_FAKE_S5 && !APP_TEST
+    if (er == E_OK)
+    {
+        ID tid_fake = app_start_task(fake_s5_task, S1_PRI_TELEM, 0,
+                                     "fake_s5");
+        if (tid_fake < E_OK)
+        {
+            er = tid_fake;
+        }
+    }
+#endif
 
 #if S1_IF05_COMPAT
     if (er == E_OK)
@@ -93,3 +143,49 @@ EXPORT void s1_set_nav_map(UW map_word)
 {
     s_nav_map = map_word;
 }
+
+/*
+ * Create one message buffer holding 'depth' messages of up to 'maxmsz'
+ * bytes.  Returns its ID, or a negative error code.
+ */
+static ID s1_create_mbf(INT maxmsz, UW depth)
+{
+    T_CMBF cmbf = {0};
+
+    cmbf.mbfatr = TA_TFIFO;
+    cmbf.maxmsz = maxmsz;
+    cmbf.bufsz  = (SZ)(depth * S1_MBF_SLOT(maxmsz));
+    return tk_cre_mbf(&cmbf);
+}
+
+#if S1_FAKE_S5 && !APP_TEST
+/*
+ * TEMPORARY stand-in for S5's IF-13 sender (normal builds only).
+ * Every 500 ms: mission time counts up, the letter steps A..Z, and the
+ * state alternates READY / 2 every 10 s so STATE_CHANGE events appear.
+ */
+static void fake_s5_task(INT stacd, void *exinf)
+{
+    s1_status_msg_t msg = {0};
+    UW              sends = 0U;
+
+    (void)stacd;
+    (void)exinf;
+
+    msg.obst_dist_cm  = 511U;
+    msg.obst_width_cm = 63U;
+
+    for (;;)
+    {
+        msg.mission_time_ds = (uint16_t)(sends * 5U);
+        msg.mission_state   = (((sends / S1_FAKE_PHASE_SENDS) % 2U) == 0U) ?
+                              (uint8_t)S1_MSTATE_READY : 2U;
+        msg.letter          = (uint8_t)(sends % 26U);
+        msg.barcodes        = (uint8_t)((sends / 10U) % 16U);
+
+        (void)tk_snd_mbf(mbf_telem_status, &msg, (INT)sizeof(msg), TMO_POL);
+        sends++;
+        (void)tk_dly_tsk(S1_FAKE_PERIOD_MS);
+    }
+}
+#endif

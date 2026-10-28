@@ -14,6 +14,7 @@
 #include "outage_buf.h"
 #include "cmd_parse.h"
 #include "telem_pack.h"
+#include "s1_topics.h"
 #include "../test_report.h"
 
 #if APP_TEST
@@ -53,6 +54,18 @@ static bool s1_map_duplicate_state(void);
 static bool s1_map_store(void);
 static bool s1_map_expect(const uint8_t *p_frame, bool b_ready,
                           cmd_result_t want);
+static bool s1_task_objects(void);
+static bool s1_task_timing(void);
+static bool s1_task_status_in(void);
+static bool s1_task_cmd_in(void);
+static bool s1_task_map_in(void);
+static void s1_flush_tx(void);
+static bool s1_wait_tx(uint8_t topic, uint8_t evt_type, INT timeout_ms,
+                       uint8_t *p_frame, uint8_t *p_len, uint16_t *p_data);
+static bool s1_wait_event(uint8_t evt_type, uint16_t want_data);
+static bool s1_send_status(uint8_t state, uint8_t letter);
+static bool s1_send_rx(uint8_t topic, const uint8_t *p_payload, uint8_t len);
+static UW   s1_now_ms(void);
 static bool s1_bytes_equal(const uint8_t *p_a, const uint8_t *p_b,
                            uint8_t len);
 static bool s1_status_equal(const telem_status_t *p_a,
@@ -115,6 +128,18 @@ EXPORT void subsystem1_test(void)
                "duplicate letters or not READY rejected; ack reasons right");
     TEST_CHECK("S1-U22", s1_map_store(),
                "IF-18: no map at boot; stored word read back and looked up");
+
+    /* Task wiring: message buffers, timing, IF-13 in, IF-15 RX/TX */
+    TEST_CHECK("S1-U23", s1_task_objects(),
+               "IF-13 and IF-15 message buffers created, sizes right");
+    TEST_CHECK("S1-U24", s1_task_timing(),
+               "telemetry every 500 ms, heartbeat every 1 s (+/-10 ms), all valid");
+    TEST_CHECK("S1-U25", s1_task_status_in(),
+               "IF-13 status reaches telemetry; STATE_CHANGE event sent");
+    TEST_CHECK("S1-U26", s1_task_cmd_in(),
+               "commands via RX buffer: valid ACKed, junk rejected");
+    TEST_CHECK("S1-U27", s1_task_map_in(),
+               "map via RX buffer: stored when READY, refused otherwise");
 
     TEST_SUMMARY("subsystem1");
 }
@@ -783,6 +808,317 @@ static bool s1_map_store(void)
 
     s1_set_nav_map(0U);
     return b_ok;
+}
+
+/* ---- Task wiring tests ---------------------------------------------- */
+
+#define S1_TEST_TIMING_MS     (2100)  /* capture window for S1-U24      */
+#define S1_TEST_TOL_MS        (10U)   /* allowed timing error           */
+#define S1_TEST_ACK_MS        (300)   /* max wait for an ACK event      */
+#define S1_TEST_TELEM_MS      (700)   /* max wait for a telemetry frame */
+#define S1_TEST_MAX_TIMES     (8U)
+
+/*
+ * S1-U23: the three message buffers exist with the right message sizes.
+ */
+static bool s1_task_objects(void)
+{
+    T_RMBF r;
+
+    return (tk_ref_mbf(mbf_telem_status, &r) == E_OK) &&
+           (r.maxmsz == (INT)sizeof(s1_status_msg_t)) &&
+           (tk_ref_mbf(mbf_mqtt_tx, &r) == E_OK) &&
+           (r.maxmsz == (INT)S1_TX_MSG_MAX) &&
+           (tk_ref_mbf(mbf_mqtt_rx, &r) == E_OK) &&
+           (r.maxmsz == (INT)S1_RX_MSG_MAX);
+}
+
+/*
+ * S1-U24: for about 2 s, take everything the task puts in mbf_mqtt_tx
+ * (standing in for mqtt_utk.c).  Telemetry frames must be 500 ms apart
+ * and heartbeats 1000 ms apart, within S1_TEST_TOL_MS, and every frame
+ * must unpack.  The test runs at priority 1, so it wakes the moment a
+ * frame is sent and the arrival time is the send time.
+ */
+static bool s1_task_timing(void)
+{
+    UW             t_telem[S1_TEST_MAX_TIMES];
+    UW             t_hb[S1_TEST_MAX_TIMES];
+    uint8_t        n_telem = 0U;
+    uint8_t        n_hb = 0U;
+    uint8_t        msg[S1_TX_MSG_MAX];
+    telem_status_t st;
+    telem_hb_t     hb;
+    UW             end_ms;
+    INT            left;
+    INT            len;
+    uint8_t        i;
+
+    s1_flush_tx();
+    end_ms = s1_now_ms() + (UW)S1_TEST_TIMING_MS;
+
+    for (;;)
+    {
+        left = (INT)(end_ms - s1_now_ms());
+        if (left <= 0)
+        {
+            break;
+        }
+        len = tk_rcv_mbf(mbf_mqtt_tx, msg, (TMO)left);
+        if (len < 2)
+        {
+            continue;                       /* timeout: loop ends above */
+        }
+
+        if (msg[0] == S1_TOPIC_TELEM)
+        {
+            if (!telem_unpack_status(&msg[1], (uint8_t)(len - 1), &st))
+            {
+                return false;
+            }
+            if (n_telem < S1_TEST_MAX_TIMES)
+            {
+                t_telem[n_telem++] = s1_now_ms();
+            }
+        }
+        else if (msg[0] == S1_TOPIC_HB)
+        {
+            if (!telem_unpack_hb(&msg[1], (uint8_t)(len - 1), &hb))
+            {
+                return false;
+            }
+            if (n_hb < S1_TEST_MAX_TIMES)
+            {
+                t_hb[n_hb++] = s1_now_ms();
+            }
+        }
+        else
+        {
+            /* events: not timed here */
+        }
+    }
+
+    if ((n_telem < 4U) || (n_hb < 2U))
+    {
+        return false;
+    }
+    for (i = 1U; i < n_telem; i++)
+    {
+        UW gap = t_telem[i] - t_telem[i - 1U];
+        if ((gap < (500U - S1_TEST_TOL_MS)) || (gap > (500U + S1_TEST_TOL_MS)))
+        {
+            return false;
+        }
+    }
+    for (i = 1U; i < n_hb; i++)
+    {
+        UW gap = t_hb[i] - t_hb[i - 1U];
+        if ((gap < (1000U - S1_TEST_TOL_MS)) || (gap > (1000U + S1_TEST_TOL_MS)))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+/*
+ * S1-U25: an IF-13 status sent the way S5 will send it shows up in the
+ * next telemetry frame, and the new mission state sends a STATE_CHANGE
+ * event (new = READY, old = 15 "not known", as nothing was sent before).
+ */
+static bool s1_task_status_in(void)
+{
+    uint8_t        frame[S1_TX_MSG_MAX];
+    uint8_t        len = 0U;
+    telem_status_t st;
+
+    s1_flush_tx();
+    if (!s1_send_status((uint8_t)S1_MSTATE_READY, 16U))   /* 'Q' */
+    {
+        return false;
+    }
+
+    /* STATE_CHANGE data: new state bits 0-3, old state bits 4-7 */
+    if (!s1_wait_event(TELEM_EVT_STATE_CHANGE,
+                       (uint16_t)(S1_MSTATE_READY | (S1_MSTATE_NONE << 4))))
+    {
+        return false;
+    }
+
+    return s1_wait_tx(S1_TOPIC_TELEM, 0xFFU, S1_TEST_TELEM_MS,
+                      frame, &len, NULL) &&
+           telem_unpack_status(frame, len, &st) &&
+           (st.mission_state == S1_MSTATE_READY) &&
+           (st.letter == 16U) &&
+           (st.time_ds == 1234U) &&
+           (st.fault_mask == 2U) &&
+           (st.barcodes == 3U);
+}
+
+/*
+ * S1-U26: commands put in mbf_mqtt_rx (as mqtt_utk.c will) are checked
+ * and answered with CMD_ACK: data = command (bits 0-1) + accepted (bit 2).
+ */
+static bool s1_task_cmd_in(void)
+{
+    const uint8_t pause[1]   = { 0x01U };
+    const uint8_t junk[1]    = { 0x07U };
+    const uint8_t two[2]     = { 0x01U, 0x01U };
+
+    s1_flush_tx();
+    return s1_send_rx(S1_TOPIC_CMD, pause, 1U) &&
+           s1_wait_event(TELEM_EVT_CMD_ACK, 0x05U) &&     /* PAUSE, ok  */
+           s1_send_rx(S1_TOPIC_CMD, junk, 1U) &&
+           s1_wait_event(TELEM_EVT_CMD_ACK, 0x00U) &&     /* rejected   */
+           s1_send_rx(S1_TOPIC_CMD, two, 2U) &&
+           s1_wait_event(TELEM_EVT_CMD_ACK, 0x00U);       /* bad length */
+}
+
+/*
+ * S1-U27: a map put in mbf_mqtt_rx while READY is stored in IF-18 and
+ * acknowledged (MAP_ACK data 1); after the state leaves READY the same
+ * map is refused with reason STATE (data = 3 << 1).  Clears the map after.
+ */
+static bool s1_task_map_in(void)
+{
+    bool b_ok;
+
+    s1_flush_tx();
+    b_ok = s1_send_rx(S1_TOPIC_MAP, s_map_good, CMD_MAP_FRAME_LEN) &&
+           s1_wait_event(TELEM_EVT_MAP_ACK, 0x01U) &&
+           (s1_get_nav_map() == (UW)(0x000C806AUL | S1_NAV_MAP_VALID)) &&
+           s1_send_status(2U, 16U) &&
+           s1_wait_event(TELEM_EVT_STATE_CHANGE,
+                         (uint16_t)(2U | (S1_MSTATE_READY << 4))) &&
+           s1_send_rx(S1_TOPIC_MAP, s_map_good, CMD_MAP_FRAME_LEN) &&
+           s1_wait_event(TELEM_EVT_MAP_ACK,
+                         (uint16_t)(CMD_MAP_REASON_STATE << 1));
+
+    s1_set_nav_map(0U);
+    return b_ok;
+}
+
+/*
+ * Empty mbf_mqtt_tx, so a test only sees frames sent after it starts.
+ */
+static void s1_flush_tx(void)
+{
+    uint8_t msg[S1_TX_MSG_MAX];
+
+    while (tk_rcv_mbf(mbf_mqtt_tx, msg, TMO_POL) > 0)
+    {
+        /* discard */
+    }
+}
+
+/*
+ * Take frames from mbf_mqtt_tx until one on 'topic' arrives (for events,
+ * of type 'evt_type' unless it is 0xFF), or timeout_ms passes.  Copies
+ * the frame out; for events also returns its data.
+ */
+static bool s1_wait_tx(uint8_t topic, uint8_t evt_type, INT timeout_ms,
+                       uint8_t *p_frame, uint8_t *p_len, uint16_t *p_data)
+{
+    uint8_t  msg[S1_TX_MSG_MAX];
+    UW       end_ms = s1_now_ms() + (UW)timeout_ms;
+    INT      left;
+    INT      len;
+    uint8_t  type;
+    uint16_t data;
+    uint8_t  i;
+
+    for (;;)
+    {
+        left = (INT)(end_ms - s1_now_ms());
+        if (left <= 0)
+        {
+            return false;
+        }
+        len = tk_rcv_mbf(mbf_mqtt_tx, msg, (TMO)left);
+        if ((len < 2) || (msg[0] != topic))
+        {
+            continue;
+        }
+        if ((topic == S1_TOPIC_EVT) && (evt_type != 0xFFU))
+        {
+            if (!telem_unpack_event(&msg[1], (uint8_t)(len - 1), &type, &data) ||
+                (type != evt_type))
+            {
+                continue;
+            }
+            if (p_data != NULL)
+            {
+                *p_data = data;
+            }
+        }
+        for (i = 0U; i < (uint8_t)(len - 1); i++)
+        {
+            p_frame[i] = msg[i + 1];
+        }
+        *p_len = (uint8_t)(len - 1);
+        return true;
+    }
+}
+
+/*
+ * Wait up to S1_TEST_ACK_MS for an event of evt_type and check its data.
+ */
+static bool s1_wait_event(uint8_t evt_type, uint16_t want_data)
+{
+    uint8_t  frame[S1_TX_MSG_MAX];
+    uint8_t  len = 0U;
+    uint16_t data = 0xFFFFU;
+
+    return s1_wait_tx(S1_TOPIC_EVT, evt_type, S1_TEST_ACK_MS,
+                      frame, &len, &data) &&
+           (data == want_data);
+}
+
+/*
+ * Send one IF-13 status, as S5 will: fixed test values plus the given
+ * state and letter.
+ */
+static bool s1_send_status(uint8_t state, uint8_t letter)
+{
+    s1_status_msg_t msg = {0};
+
+    msg.mission_time_ds = 1234U;
+    msg.mission_state   = state;
+    msg.fault_mask      = 2U;
+    msg.letter          = letter;
+    msg.barcodes        = 3U;
+    msg.obst_dist_cm    = 511U;
+    msg.obst_width_cm   = 63U;
+
+    return tk_snd_mbf(mbf_telem_status, &msg, (INT)sizeof(msg), TMO_POL) == E_OK;
+}
+
+/*
+ * Put [topic][payload] into mbf_mqtt_rx, as mqtt_utk.c will.
+ */
+static bool s1_send_rx(uint8_t topic, const uint8_t *p_payload, uint8_t len)
+{
+    uint8_t msg[S1_RX_MSG_MAX];
+    uint8_t i;
+
+    if (len > (S1_RX_MSG_MAX - 1U))
+    {
+        return false;
+    }
+    msg[0] = topic;
+    for (i = 0U; i < len; i++)
+    {
+        msg[i + 1U] = p_payload[i];
+    }
+    return tk_snd_mbf(mbf_mqtt_rx, msg, (INT)(len + 1U), TMO_POL) == E_OK;
+}
+
+static UW s1_now_ms(void)
+{
+    SYSTIM now;
+
+    (void)tk_get_tim(&now);
+    return now.lo;
 }
 
 #endif /* APP_TEST */
