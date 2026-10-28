@@ -1,0 +1,21 @@
+[HOST] S5-H01 PASS  echo time to cm (58 us/cm)
+[HOST] S5-H02 PASS  servo pulse 600/1500/2400 us and clamped
+[HOST] S5-H03 PASS  integer square root
+[HOST] S5-H04 PASS  clear scan: not detected, CONTINUE
+[HOST] S5-H05 PASS  cluster 5..7 found, closest 30 cm (tie: lowest index)
+[HOST] S5-H06 PASS  width about 8 cm (expected 7.8)
+[HOST] S5-H07 PASS  symmetric obstacle: equal clearances, tie goes right
+[HOST] S5-H08 PASS  obstacle on the right: left shift smaller, TURN_LEFT
+[HOST] S5-H09 PASS  obstacle on the left: right shift smaller, TURN_RIGHT
+[HOST] S5-H10 PASS  wall across all angles: partial, REVERSE_RETRY
+[HOST] S5-H11 PASS  closer than stop distance: STOP
+[HOST] S5-H12 PASS  single sample: partial, width = beam footprint
+[HOST] S5-H13 PASS  reading above detect_cm ignored
+[HOST] S5-H14a PASS  coarse hit at 6: next to measure are 5 and 7
+[HOST] S5-H14b PASS  index 4 already measured (coarse): right edge known
+[HOST] S5-H14c PASS  index 7 measured, not a hit: left edge known
+[HOST] S5-H15 PASS  obstacle at 0 degrees: no index below 0, next is 1
+[HOST] S5-H16 PASS  pack/unpack round trip at field limits
+[HOST] S5-H17 PASS  unused bits stay zero (31 + 18 bits used)
+[HOST] S5-H18 PASS  seq 16 wraps to 0 in 4 bits
+[HOST] subsystem5 SUMMARY 20 passed, 0 failed
