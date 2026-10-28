@@ -86,3 +86,6 @@ Old rows are never deleted or edited to change their meaning / results.
 | 2026-10-28 | S1-U29 | `1ee9edc` | Saad | PASS | `logs/2026-10-28_S1-U29-U30.txt` | 5 replayed, 100 ms apart, in order |
 | 2026-10-28 | S1-U30 | `1ee9edc` | Saad | PASS | `logs/2026-10-28_S1-U29-U30.txt` | 20 replayed, 100–103 dropped, 100 ms apart, in order; U01–U27 re-pass |
 | 2026-10-28 | S1-U31 | `1ee9edc` | Saad | PASS | `logs/2026-10-28_S1-U31.txt` | Off ~20 s; 20 kept, oldest dropped. on rejoin 20 kept (hb outage=20), oldest dropped, replayed 1 per 100 ms in order, 5 live frames queued behind. no reset |
+| 2026-10-29 | S1-U32 | `235f63e` | Saad | PASS | `logs/2026-10-29_S1-U32.txt` | Telem 500 ms, hb 1 s. 12 boot frames replayed after connect |
+| 2026-10-29 | S1-U33 | `235f63e` | Saad | PASS | `logs/2026-10-29_S1-U33.txt` | All 5 ACKs as expected. Hb reject count 0→3. Map bit kept after rejected map |
+| 2026-10-29 | S1-U34 | `235f63e` | Saad | PASS | `logs/2026-10-29_S1-U34.txt` | Broker off 15 s, reconnect 1 s after restart. 25 replayed in order, hb outage 18→0 |
