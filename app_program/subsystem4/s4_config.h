@@ -1,6 +1,6 @@
 #ifndef S4_CONFIG_H
 #define S4_CONFIG_H
-#define S4_PHASE                 3
+#define S4_PHASE                 4
 #define S4_UNPACKED_BASELINE      0
 #define S4_OUTPUT_MAX_BYTES       32U
 #define S4_PRIORITY              18
