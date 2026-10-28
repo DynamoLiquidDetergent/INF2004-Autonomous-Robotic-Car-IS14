@@ -20,6 +20,8 @@ Define a test here before running it. Test IDs never change.
 | S3-U04a | char map: four distinct A–Z letters accepted | MQTT map `CHAR_MAP_MSG` | auto | `subsystem3_test.c` → `test_char_map_validation()` | `[TEST] S3-U04a PASS` |
 | S3-U04b | char map: duplicate letter rejected | MQTT map `CHAR_MAP_MSG` | auto | `subsystem3_test.c` → `test_char_map_validation()` | `[TEST] S3-U04b PASS` |
 | S3-U04c | char map: non-letter character rejected | MQTT map `CHAR_MAP_MSG` | auto | `subsystem3_test.c` → `test_char_map_validation()` | `[TEST] S3-U04c PASS` |
+| S3-U05 | Code 39 LUT: `code39_lookup()` returns 'A' (0x109), 'Z' (0x0D0), '*' (0x0A4), 'D' (0x019), `CODE39_INVALID` (0x1FF) | Code 39 decoder (`code39.c`) | auto | `subsystem3_test.c`, after `code39_init()` in `subsystem3_init()` | `[TEST] S3-U05 PASS` |
+| S3-U06 | `code39_decode_symbol()` decodes a hand-built `*A*` element array (narrow 5, wide 12 samples) as 'A' forward and reversed | Code 39 decoder (`code39.c`) | auto | `subsystem3_test.c`, `code39_decode_symbol(elems, 4, 15)` | `[TEST] S3-U06 PASS` |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).
@@ -34,3 +36,5 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-10-28 | S3-U02 | 0f29374 | Daniel | PASS | `logs/2026-10-28_S3U01-U04.txt` | |
 | 2026-10-28 | S3-U03 | 0f29374 | Daniel | PASS | `logs/2026-10-28_S3U01-U04.txt` | |
 | 2026-10-28 | S3-U04 | 0f29374 | Daniel | PASS | `logs/2026-10-28_S3U01-U04.txt` | |
+| 2026-10-28 | S3-U05 |  | Daniel | PASS | `logs/2026-10-28_S3U05-U06.txt` | |
+| 2026-10-28 | S3-U06 |  | Daniel | PASS | `logs/2026-10-28_S3U05-U06.txt` | |
