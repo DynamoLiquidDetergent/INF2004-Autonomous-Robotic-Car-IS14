@@ -1,7 +1,7 @@
 #ifndef S4_CONFIG_H
 #define S4_CONFIG_H
 
-#define S4_PHASE                 1
+#define S4_PHASE                 2
 #define S4_PRIORITY              18
 #define S4_PERIOD_MS             20U
 #define S4_KEEP_EXAMPLE_BRIDGE    1
