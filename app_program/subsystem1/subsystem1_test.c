@@ -46,6 +46,13 @@ static bool s1_pack_clamp(void);
 static bool s1_pack_hb(void);
 static bool s1_pack_event(void);
 static bool s1_pack_header(void);
+static bool s1_map_valid(void);
+static bool s1_map_bad_length(void);
+static bool s1_map_bad_letter(void);
+static bool s1_map_duplicate_state(void);
+static bool s1_map_store(void);
+static bool s1_map_expect(const uint8_t *p_frame, bool b_ready,
+                          cmd_result_t want);
 static bool s1_bytes_equal(const uint8_t *p_a, const uint8_t *p_b,
                            uint8_t len);
 static bool s1_status_equal(const telem_status_t *p_a,
@@ -96,6 +103,18 @@ EXPORT void subsystem1_test(void)
                "event 3 B round-trip; bad type/data refused");
     TEST_CHECK("S1-U16", s1_pack_header(),
                "header version/type/replayed; NULL and small buffer refused");
+
+    /* Mapping message (prof requirement: letter-to-movement over MQTT) */
+    TEST_CHECK("S1-U18", s1_map_valid(),
+               "valid map accepted; K/D/A/Z map to F/U/L/R, B not in map");
+    TEST_CHECK("S1-U19", s1_map_bad_length(),
+               "NULL and wrong-length map frames rejected");
+    TEST_CHECK("S1-U20", s1_map_bad_letter(),
+               "letter past Z or spare bits set rejected");
+    TEST_CHECK("S1-U21", s1_map_duplicate_state(),
+               "duplicate letters or not READY rejected; ack reasons right");
+    TEST_CHECK("S1-U22", s1_map_store(),
+               "IF-18: no map at boot; stored word read back and looked up");
 
     TEST_SUMMARY("subsystem1");
 }
@@ -623,6 +642,147 @@ static bool s1_bytes_equal(const uint8_t *p_a, const uint8_t *p_b,
         }
     }
     return true;
+}
+
+/* ---- Mapping tests -------------------------------------------------- */
+
+/* F = K (10), U-TURN = D (3), LEFT = A (0), RIGHT = Z (25).
+   24-bit value 0x0C806A, byte 0 first (worked out separately). */
+static const uint8_t s_map_good[CMD_MAP_FRAME_LEN] = { 0x6AU, 0x80U, 0x0CU };
+
+/*
+ * Parse a map frame with s_test_parser (READY or not) and check the
+ * result.  On CMD_OK also checks the word holds the frame plus the valid
+ * bit; on error, that the word is 0.
+ */
+static bool s1_map_expect(const uint8_t *p_frame, bool b_ready,
+                          cmd_result_t want)
+{
+    uint32_t word = 0xFFFFFFFFUL;
+    uint32_t raw;
+
+    if (cmd_parse_map(&s_test_parser, p_frame, CMD_MAP_FRAME_LEN,
+                      b_ready, &word) != want)
+    {
+        return false;
+    }
+    if (want != CMD_OK)
+    {
+        return (word == 0UL);
+    }
+    raw = (uint32_t)p_frame[0] | ((uint32_t)p_frame[1] << 8) |
+          ((uint32_t)p_frame[2] << 16);
+    return (word == (raw | CMD_MAP_VALID));
+}
+
+/*
+ * S1-U18: a valid map is accepted, and each mapped letter gives its
+ * movement; a letter not in the map gives nothing.
+ */
+static bool s1_map_valid(void)
+{
+    uint32_t word = 0UL;
+    uint8_t  move = 0xFFU;
+
+    cmd_parse_init(&s_test_parser);
+    if ((cmd_parse_map(&s_test_parser, s_map_good, CMD_MAP_FRAME_LEN,
+                       true, &word) != CMD_OK) ||
+        (word != (0x000C806AUL | CMD_MAP_VALID)) ||
+        (cmd_parse_rejected(&s_test_parser) != 0U))
+    {
+        return false;
+    }
+
+    return cmd_map_lookup(word, 10U, &move) && (move == CMD_MOVE_FORWARD) &&
+           cmd_map_lookup(word, 3U, &move)  && (move == CMD_MOVE_UTURN) &&
+           cmd_map_lookup(word, 0U, &move)  && (move == CMD_MOVE_LEFT) &&
+           cmd_map_lookup(word, 25U, &move) && (move == CMD_MOVE_RIGHT) &&
+           !cmd_map_lookup(word, 1U, &move) &&        /* B: not mapped   */
+           !cmd_map_lookup(0UL, 10U, &move);          /* no valid map    */
+}
+
+/*
+ * S1-U19: NULL, 0, 2 and 4-byte frames are rejected and counted.
+ */
+static bool s1_map_bad_length(void)
+{
+    uint8_t  frame[4] = { 0x6AU, 0x80U, 0x0CU, 0x00U };
+    uint32_t word = 1UL;
+
+    cmd_parse_init(&s_test_parser);
+    return (cmd_parse_map(&s_test_parser, NULL, 3U, true, &word) == CMD_ERR_NULL) &&
+           (word == 0UL) &&
+           (cmd_parse_map(&s_test_parser, frame, 0U, true, &word) == CMD_ERR_LEN) &&
+           (cmd_parse_map(&s_test_parser, frame, 2U, true, &word) == CMD_ERR_LEN) &&
+           (cmd_parse_map(&s_test_parser, frame, 4U, true, &word) == CMD_ERR_LEN) &&
+           (cmd_parse_rejected(&s_test_parser) == 4U);
+}
+
+/*
+ * S1-U20: a letter code of 26 or 31 in any position, or a spare bit
+ * set, is rejected.
+ */
+static bool s1_map_bad_letter(void)
+{
+    /* 26 in FORWARD: bits 0-4 = 26, others valid (D, A, Z as above) */
+    const uint8_t fwd_26[CMD_MAP_FRAME_LEN]   = { 0x7AU, 0x80U, 0x0CU };
+    /* 31 in RIGHT: bits 15-19 = 31 */
+    const uint8_t right_31[CMD_MAP_FRAME_LEN] = { 0x6AU, 0x80U, 0x0FU };
+    /* good map with bit 23 set */
+    const uint8_t spare[CMD_MAP_FRAME_LEN]    = { 0x6AU, 0x80U, 0x8CU };
+
+    cmd_parse_init(&s_test_parser);
+    return s1_map_expect(fwd_26,   true, CMD_ERR_LETTER) &&
+           s1_map_expect(right_31, true, CMD_ERR_LETTER) &&
+           s1_map_expect(spare,    true, CMD_ERR_RESERVED) &&
+           (cmd_parse_rejected(&s_test_parser) == 3U) &&
+           s1_map_expect(s_map_good, true, CMD_OK);
+}
+
+/*
+ * S1-U21: the same letter twice is rejected (the map would be
+ * ambiguous); a valid map outside READY is rejected; each rejection maps
+ * to the right MAP_ACK reason.
+ */
+static bool s1_map_duplicate_state(void)
+{
+    /* FORWARD = RIGHT = Z: bits 0-4 = 25 */
+    const uint8_t dup[CMD_MAP_FRAME_LEN] = { 0x79U, 0x80U, 0x0CU };
+
+    cmd_parse_init(&s_test_parser);
+    return s1_map_expect(dup, true, CMD_ERR_DUPLICATE) &&
+           s1_map_expect(s_map_good, false, CMD_ERR_STATE) &&
+           (cmd_parse_rejected(&s_test_parser) == 2U) &&
+           (cmd_map_reason(CMD_ERR_LEN)       == CMD_MAP_REASON_FORMAT) &&
+           (cmd_map_reason(CMD_ERR_RESERVED)  == CMD_MAP_REASON_FORMAT) &&
+           (cmd_map_reason(CMD_ERR_LETTER)    == CMD_MAP_REASON_LETTER) &&
+           (cmd_map_reason(CMD_ERR_DUPLICATE) == CMD_MAP_REASON_DUPLICATE) &&
+           (cmd_map_reason(CMD_ERR_STATE)     == CMD_MAP_REASON_STATE);
+}
+
+/*
+ * S1-U22: IF-18 has no valid map at boot, so S5 can refuse to start; a
+ * stored word reads back unchanged and s1_nav_lookup uses it.  The store
+ * is cleared again afterwards so the test leaves no map behind.
+ */
+static bool s1_map_store(void)
+{
+    UB   move = 0xFFU;
+    bool b_ok;
+
+    b_ok = ((s1_get_nav_map() & S1_NAV_MAP_VALID) == 0UL) &&
+           !s1_nav_lookup(10U, &move);
+    if (!b_ok)
+    {
+        return false;
+    }
+
+    s1_set_nav_map((UW)(0x000C806AUL | CMD_MAP_VALID));
+    b_ok = (s1_get_nav_map() == (UW)(0x000C806AUL | CMD_MAP_VALID)) &&
+           s1_nav_lookup(25U, &move) && (move == S1_MOVE_RIGHT);
+
+    s1_set_nav_map(0U);
+    return b_ok;
 }
 
 #endif /* APP_TEST */

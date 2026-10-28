@@ -5,8 +5,19 @@
 
 #include "subsystem1.h"
 #include "telemetry_task.h"
+#include "cmd_parse.h"
 
 EXPORT ID g_s1_tid_telem = 0;
+
+/* IF-18 map word.  volatile: S5's task may read it from the other core. */
+static volatile UW s_nav_map = 0U;
+
+/* The bit layouts in subsystem1.h and cmd_parse.h must agree */
+typedef char s1_check_map_valid[(S1_NAV_MAP_VALID == CMD_MAP_VALID) ? 1 : -1];
+typedef char s1_check_map_moves[((S1_MOVE_FORWARD == CMD_MOVE_FORWARD) &&
+                                 (S1_MOVE_UTURN == CMD_MOVE_UTURN) &&
+                                 (S1_MOVE_LEFT == CMD_MOVE_LEFT) &&
+                                 (S1_MOVE_RIGHT == CMD_MOVE_RIGHT)) ? 1 : -1];
 
 #if S1_IF05_COMPAT
 EXPORT ID tid_led = 0;
@@ -55,4 +66,30 @@ EXPORT ER subsystem1_start(void)
 #endif
 
     return er;
+}
+
+/* IF-18: read the map word (one 32-bit load). */
+EXPORT UW s1_get_nav_map(void)
+{
+    return s_nav_map;
+}
+
+/* IF-18: movement for a letter, from one snapshot of the map word. */
+EXPORT BOOL s1_nav_lookup(UB letter, UB *p_move)
+{
+    uint8_t move = 0U;
+    BOOL    b_found = FALSE;
+
+    if ((p_move != NULL) && cmd_map_lookup(s_nav_map, letter, &move))
+    {
+        *p_move = move;
+        b_found = TRUE;
+    }
+    return b_found;
+}
+
+/* IF-18: store an accepted map (one 32-bit store). */
+EXPORT void s1_set_nav_map(UW map_word)
+{
+    s_nav_map = map_word;
 }
