@@ -36,5 +36,5 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-10-28 | S3-U02 | 0f29374 | Daniel | PASS | `logs/2026-10-28_S3U01-U04.txt` | |
 | 2026-10-28 | S3-U03 | 0f29374 | Daniel | PASS | `logs/2026-10-28_S3U01-U04.txt` | |
 | 2026-10-28 | S3-U04 | 0f29374 | Daniel | PASS | `logs/2026-10-28_S3U01-U04.txt` | |
-| 2026-10-28 | S3-U05 |  | Daniel | PASS | `logs/2026-10-28_S3U05-U06.txt` | |
-| 2026-10-28 | S3-U06 |  | Daniel | PASS | `logs/2026-10-28_S3U05-U06.txt` | |
+| 2026-10-28 | S3-U05 | 03f60e1 | Daniel | PASS | `logs/2026-10-28_S3U05-U06.txt` | |
+| 2026-10-28 | S3-U06 | 03f60e1 | Daniel | PASS | `logs/2026-10-28_S3U05-U06.txt` | |
