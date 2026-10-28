@@ -122,7 +122,8 @@ cmd_result_t cmd_parse_map(cmd_parser_t *p_parser,
 
     for (i = 0U; i < CMD_MAP_MOVES; i++)
     {
-        code[i] = (uint8_t)((raw >> (i * CMD_MAP_CODE_BITS)) & CMD_MAP_CODE_MASK);
+        code[i] = (uint8_t)((raw >> (i * CMD_MAP_CODE_BITS)) &
+                            CMD_MAP_CODE_MASK);
         if (code[i] > CMD_MAP_LETTER_MAX)
         {
             return cmd_reject(p_parser, CMD_ERR_LETTER);

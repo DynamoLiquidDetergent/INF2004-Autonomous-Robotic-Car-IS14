@@ -38,6 +38,9 @@ Test IDs are never changed.
 | S1-U26 | Commands put in mbf_mqtt_rx as mqtt_utk.c will: PAUSE answered CMD_ACK accepted; code 7 and a 2-byte frame answered CMD_ACK rejected | FR7, FR8, IF-15 RX | auto | make TEST=1, flash, read console | `[TEST] S1-U26 PASS` |
 | S1-U27 | Map put in mbf_mqtt_rx while READY: stored in IF-18, MAP_ACK accepted. After state leaves READY the same map gets MAP_ACK reason STATE | Prof mapping req., IF-18, IF-15 RX | auto | make TEST=1, flash, read console | `[TEST] S1-U27 PASS` |
 | S1-U28 | Normal build with temporary fake S5: console shows `s1: tx telem` every 500 ms and `s1: tx hb` every 1000 ms for at least 10 s, and a STATE_CHANGE event at start and when the fake state flips at 10 s | Telemetry 500 ms / heartbeat 1 s, NFR4 | manual | make -j8 (normal image), flash, capture > 12 s | `t=` values step by 500 (telem) and 1000 (hb); 2 `tx evt` lines. *(Revised 2026-10-28: boot STATE_CHANGE happens before Serial monitor can start monitoring, so it can't be seen on the normal image. Covered by S1-U25.)* |
+| S1-U29 | Link down 3 s, then up: nothing sent while down; kept frames come out marked replayed, in order, 1 per tick | IF-15, NFR4 | auto | make TEST=1, flash, read console | `[TEST] S1-U29 PASS` + `[INFO]` line |
+| S1-U30 | Link down 12 s, then up: only newest 20 kept (oldest dropped); replayed in order, 1 per tick | IF-15 (20, drop-oldest) | auto | make TEST=1, flash, read console | `[TEST] S1-U30 PASS` + `[INFO]` line |
+| S1-U31 | Real WiFi loss: hotspot off ~20 s, then on | IF-15, NFR4 | manual | build `WIFI=cyw43 NET=lwip`, flash, hotspot off/on, capture | `link down`, pub lines stop; `link up, 20 frame(s) to replay`, R frames 100 ms apart, then normal output; no reset |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).

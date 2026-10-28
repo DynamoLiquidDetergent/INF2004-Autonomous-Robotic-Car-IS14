@@ -7,6 +7,8 @@
 #include "telemetry.h"
 #include "cmd_parse.h"
 #include "s1_topics.h"
+#include "telem_layout.h"
+#include "telem_pack.h"
 
 /* Message buffer depths (messages).  The kernel stores each message as a
    4-byte header plus the message rounded up to 4 bytes. */
@@ -28,6 +30,13 @@ static ID s1_create_mbf(INT maxmsz, UW depth);
 static void fake_s5_task(INT stacd, void *exinf);
 #endif
 
+#if S1_TX_SINK && !APP_TEST && !(defined(TM_MQTT) && (TM_MQTT == 1))
+#define S1_USE_TX_SINK       (1)
+static void tx_sink_task(INT stacd, void *exinf);
+#else
+#define S1_USE_TX_SINK       (0)
+#endif
+
 /* IF-18 map word.  volatile: S5's task may read it from the other core. */
 static volatile UW s_nav_map = 0U;
 
@@ -41,7 +50,8 @@ typedef char s1_check_map_moves[((S1_MOVE_FORWARD == CMD_MOVE_FORWARD) &&
 #if S1_IF05_COMPAT
 EXPORT ID tid_led = 0;
 
-/* Stub for S4's IF-05: sleeps forever, safe to suspend/resume. DELETE when S4 removes IF-05 code */
+/* Stub for S4's IF-05: sleeps forever, safe to suspend/resume.
+   DELETE when S4 removes its IF-05 code. */
 static void if05_stub_task(INT stacd, void *exinf)
 {
     (void)stacd;
@@ -99,6 +109,18 @@ EXPORT ER subsystem1_start(void)
         if (tid_fake < E_OK)
         {
             er = tid_fake;
+        }
+    }
+#endif
+
+#if S1_USE_TX_SINK
+    if (er == E_OK)
+    {
+        ID tid_sink = app_start_task(tx_sink_task, S1_PRI_TELEM, 0,
+                                     "tx_sink");
+        if (tid_sink < E_OK)
+        {
+            er = tid_sink;
         }
     }
 #endif
@@ -172,8 +194,8 @@ static void fake_s5_task(INT stacd, void *exinf)
     (void)stacd;
     (void)exinf;
 
-    msg.obst_dist_cm  = 511U;
-    msg.obst_width_cm = 63U;
+    msg.obst_dist_cm  = (uint16_t)TELEM_OBST_DIST_NONE;
+    msg.obst_width_cm = (uint8_t)TELEM_OBST_WIDTH_NONE;
 
     for (;;)
     {
@@ -186,6 +208,54 @@ static void fake_s5_task(INT stacd, void *exinf)
         (void)tk_snd_mbf(mbf_telem_status, &msg, (INT)sizeof(msg), TMO_POL);
         sends++;
         (void)tk_dly_tsk(S1_FAKE_PERIOD_MS);
+    }
+}
+#endif
+
+#if S1_USE_TX_SINK
+/*
+ * TEMPORARY stand-in for mqtt_utk.c: take each message from mbf_mqtt_tx
+ * and print it, e.g. "s1: pub telem t=12345 R 41 D2 04 ...".
+ * R = replayed from the outage buffer.  Hex built by hand: tm_printf may
+ * not support %02X.
+ */
+static void tx_sink_task(INT stacd, void *exinf)
+{
+    static const char hex[] = "0123456789ABCDEF";
+    uint8_t           msg[S1_TX_MSG_MAX];
+    char              line[(S1_TX_MSG_MAX * 3U) + 1U];
+    const char       *p_name;
+    SYSTIM            now;
+    INT               len;
+    INT               i;
+    uint8_t           pos;
+
+    (void)stacd;
+    (void)exinf;
+
+    for (;;)
+    {
+        len = tk_rcv_mbf(mbf_mqtt_tx, msg, TMO_FEVR);
+        if (len < 2)
+        {
+            continue;
+        }
+
+        pos = 0U;
+        for (i = 1; i < len; i++)
+        {
+            line[pos++] = ' ';
+            line[pos++] = hex[(msg[i] >> 4) & 0x0FU];
+            line[pos++] = hex[msg[i] & 0x0FU];
+        }
+        line[pos] = '\0';
+
+        p_name = (msg[0] == S1_TOPIC_TELEM) ? "telem" :
+                 (msg[0] == S1_TOPIC_HB)    ? "hb   " : "evt  ";
+
+        (void)tk_get_tim(&now);
+        tm_printf((UB *)"s1: pub %s t=%u %s%s\n", p_name, now.lo,
+                  telem_is_replayed(&msg[1]) ? "R" : "-", line);
     }
 }
 #endif

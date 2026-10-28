@@ -75,6 +75,14 @@ IMPORT void s1_set_nav_map(UW map_word);
 #define S1_FAKE_S5          (1)
 
 /*
+ * TEMPORARY: stand-in for mqtt_utk.c until it drains mbf_mqtt_tx.
+ * A task takes each message and prints what would be published.
+ * Normal builds without MQTT=1 only (tests drain the buffer themselves).
+ * DELETE once mqtt_utk.c publishes from mbf_mqtt_tx.
+ */
+#define S1_TX_SINK          (1)
+
+/*
  * TEMPORARY: IF-05 compatibility for S4's example monitor, which
  * suspends/resumes tid_led.  tid_led is a stub task that only sleeps.
  * Set to 0 and DELETE once S4 removes IF-05 code.

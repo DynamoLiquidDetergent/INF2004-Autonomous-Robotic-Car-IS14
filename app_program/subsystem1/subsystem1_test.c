@@ -15,6 +15,7 @@
 #include "cmd_parse.h"
 #include "telem_pack.h"
 #include "s1_topics.h"
+#include "telemetry.h"
 #include "../test_report.h"
 
 #if APP_TEST
@@ -28,6 +29,17 @@ static outage_buf_t s_test_buf;
 
 /* Test parser, separate from the one the telemetry task will use */
 static cmd_parser_t s_test_parser;
+
+/* What the outage tests saw of a replay (S1-U29, S1-U30) */
+typedef struct
+{
+    uint8_t  n;          /* replayed outage frames seen               */
+    uint16_t first;      /* mission time of the first one             */
+    uint16_t last;       /* mission time of the last one              */
+    UW       min_gap;    /* shortest time between two of them, ms     */
+    UW       span;       /* first to last arrival, ms                 */
+    bool     b_order;    /* all marked replayed, mission time rising  */
+} s1_replay_result_t;
 
 static INT  s1_count_waiting(void);
 static bool s1_outage_empty(void);
@@ -60,10 +72,19 @@ static bool s1_task_status_in(void);
 static bool s1_task_cmd_in(void);
 static bool s1_task_map_in(void);
 static void s1_flush_tx(void);
+static bool s1_drain_backlog(void);
 static bool s1_wait_tx(uint8_t topic, uint8_t evt_type, INT timeout_ms,
                        uint8_t *p_frame, uint8_t *p_len, uint16_t *p_data);
 static bool s1_wait_event(uint8_t evt_type, uint16_t want_data);
 static bool s1_send_status(uint8_t state, uint8_t letter);
+static bool s1_send_status_t(uint8_t state, uint8_t letter,
+                             uint16_t time_ds);
+static bool s1_outage_replay(void);
+static bool s1_outage_overflow_live(void);
+static bool s1_hold_link_down(uint16_t first_time, uint8_t sends);
+static bool s1_collect_replay(INT window_ms, uint16_t max_time,
+                              s1_replay_result_t *p_res);
+static void s1_print_replay(const char *p_id, const s1_replay_result_t *p_res);
 static bool s1_send_rx(uint8_t topic, const uint8_t *p_payload, uint8_t len);
 static UW   s1_now_ms(void);
 static bool s1_bytes_equal(const uint8_t *p_a, const uint8_t *p_b,
@@ -140,6 +161,12 @@ EXPORT void subsystem1_test(void)
                "commands via RX buffer: valid ACKed, junk rejected");
     TEST_CHECK("S1-U27", s1_task_map_in(),
                "map via RX buffer: stored when READY, refused otherwise");
+
+    /* Link loss: outage buffering and replay (IF-15, NFR4) */
+    TEST_CHECK("S1-U29", s1_outage_replay(),
+               "link down 3 s: nothing sent, frames kept; link up: replayed");
+    TEST_CHECK("S1-U30", s1_outage_overflow_live(),
+               "link down 12 s: 20 newest kept, oldest dropped, 1 per tick");
 
     TEST_SUMMARY("subsystem1");
 }
@@ -817,6 +844,7 @@ static bool s1_map_store(void)
 #define S1_TEST_ACK_MS        (300)   /* max wait for an ACK event      */
 #define S1_TEST_TELEM_MS      (700)   /* max wait for a telemetry frame */
 #define S1_TEST_MAX_TIMES     (8U)
+#define S1_TEST_BACKLOG_MS    (5000)  /* max wait for the backlog to clear */
 
 /*
  * S1-U23: the three message buffers exist with the right message sizes.
@@ -838,7 +866,8 @@ static bool s1_task_objects(void)
  * (standing in for mqtt_utk.c).  Telemetry frames must be 500 ms apart
  * and heartbeats 1000 ms apart, within S1_TEST_TOL_MS, and every frame
  * must unpack.  The test runs at priority 1, so it wakes the moment a
- * frame is sent and the arrival time is the send time.
+ * frame is sent and the arrival time is the send time.  Any backlog from
+ * before the test (TX full, frames queued for replay) is cleared first.
  */
 static bool s1_task_timing(void)
 {
@@ -854,7 +883,13 @@ static bool s1_task_timing(void)
     INT            len;
     uint8_t        i;
 
-    s1_flush_tx();
+    /* Nothing drains mbf_mqtt_tx in a test build, so by now it has been
+       full and frames have queued in the outage buffer.  Let that backlog
+       replay first, then time the live frames. */
+    if (!s1_drain_backlog())
+    {
+        return false;
+    }
     end_ms = s1_now_ms() + (UW)S1_TEST_TIMING_MS;
 
     for (;;)
@@ -1012,6 +1047,39 @@ static void s1_flush_tx(void)
 }
 
 /*
+ * Empty mbf_mqtt_tx (old frames queued before it filled), then take
+ * everything until a live (not replayed) telemetry frame arrives: from
+ * then on the outage buffer is empty and frames go out on their own
+ * schedule.  False if that takes longer than S1_TEST_BACKLOG_MS (a full
+ * backlog of 20 replays in about 2 s).
+ */
+static bool s1_drain_backlog(void)
+{
+    uint8_t msg[S1_TX_MSG_MAX];
+    UW      end_ms;
+    INT     left;
+    INT     len;
+
+    s1_flush_tx();
+    end_ms = s1_now_ms() + (UW)S1_TEST_BACKLOG_MS;
+
+    for (;;)
+    {
+        left = (INT)(end_ms - s1_now_ms());
+        if (left <= 0)
+        {
+            return false;
+        }
+        len = tk_rcv_mbf(mbf_mqtt_tx, msg, (TMO)left);
+        if ((len >= 2) && (msg[0] == S1_TOPIC_TELEM) &&
+            !telem_is_replayed(&msg[1]))
+        {
+            return true;
+        }
+    }
+}
+
+/*
  * Take frames from mbf_mqtt_tx until one on 'topic' arrives (for events,
  * of type 'evt_type' unless it is 0xFF), or timeout_ms passes.  Copies
  * the frame out; for events also returns its data.
@@ -1080,17 +1148,27 @@ static bool s1_wait_event(uint8_t evt_type, uint16_t want_data)
  */
 static bool s1_send_status(uint8_t state, uint8_t letter)
 {
+    return s1_send_status_t(state, letter, 1234U);
+}
+
+/*
+ * Send one IF-13 status, as S5 will, with the given mission time.
+ */
+static bool s1_send_status_t(uint8_t state, uint8_t letter,
+                             uint16_t time_ds)
+{
     s1_status_msg_t msg = {0};
 
-    msg.mission_time_ds = 1234U;
+    msg.mission_time_ds = time_ds;
     msg.mission_state   = state;
     msg.fault_mask      = 2U;
     msg.letter          = letter;
     msg.barcodes        = 3U;
-    msg.obst_dist_cm    = 511U;
-    msg.obst_width_cm   = 63U;
+    msg.obst_dist_cm    = (uint16_t)TELEM_OBST_DIST_NONE;
+    msg.obst_width_cm   = (uint8_t)TELEM_OBST_WIDTH_NONE;
 
-    return tk_snd_mbf(mbf_telem_status, &msg, (INT)sizeof(msg), TMO_POL) == E_OK;
+    return tk_snd_mbf(mbf_telem_status, &msg, (INT)sizeof(msg), TMO_POL) ==
+           E_OK;
 }
 
 /*
@@ -1119,6 +1197,205 @@ static UW s1_now_ms(void)
 
     (void)tk_get_tim(&now);
     return now.lo;
+}
+
+/* ---- Outage tests --------------------------------------------------- */
+
+#define S1_TEST_STATUS_MS     (500)   /* fake S5 period in the tests      */
+#define S1_TEST_SETTLE_MS     (150)   /* > 1 tick: task has seen a change */
+#define S1_TEST_REPLAY_GAP_MS (50U)   /* 2 in one 100 ms tick = too close */
+#define S1_TEST_SPAN_TOL_MS   (30U)   /* tick jitter allowed over a span  */
+
+/*
+ * S1-U29: with the link forced down for 3 s, no telemetry or heartbeat
+ * reaches mbf_mqtt_tx.  When it comes back, the kept frames come out
+ * marked "replayed", oldest first (mission time never goes backwards),
+ * at most 1 per 100 ms tick (no two closer than 50 ms; n frames span at
+ * least (n - 1) x 100 ms, less 30 ms for tick jitter).  The test plays
+ * S5, sending mission time 1, 2, 3 ... every 500 ms, so each kept frame
+ * can be told apart.
+ */
+static bool s1_outage_replay(void)
+{
+    s1_replay_result_t r;
+    bool               b_ok;
+
+    b_ok = s1_hold_link_down(1U, 6U);
+
+    telem_test_force_link(TELEM_LINK_UP);
+    (void)s1_send_status_t((uint8_t)S1_MSTATE_READY, 16U, 500U);
+
+    b_ok = s1_collect_replay(1500, 6U, &r) && b_ok;
+    s1_print_replay("S1-U29", &r);
+
+    telem_test_force_link(TELEM_LINK_AUTO);
+    return b_ok && r.b_order &&
+           (r.n >= 5U) && (r.n <= 7U) &&
+           (r.first <= 2U) && (r.last >= 5U) &&
+           (r.min_gap >= S1_TEST_REPLAY_GAP_MS) &&
+           (r.span + S1_TEST_SPAN_TOL_MS >= ((UW)r.n - 1U) * TELEM_TICK_MS);
+}
+
+/*
+ * S1-U30: with the link down for ~12 s (23-24 frames, mission time
+ * 100..123), only the newest 20 are kept: exactly 20 come back, in order,
+ * at most 1 per tick.  At least 3 of the oldest were dropped, and each
+ * mission time covers at most 2 frames, so the first kept one is >= 102.
+ * New frames made during the replay queue behind it.
+ */
+static bool s1_outage_overflow_live(void)
+{
+    s1_replay_result_t r;
+    bool               b_ok;
+
+    b_ok = s1_hold_link_down(100U, 24U);
+
+    telem_test_force_link(TELEM_LINK_UP);
+    (void)s1_send_status_t((uint8_t)S1_MSTATE_READY, 16U, 500U);
+
+    b_ok = s1_collect_replay(3500, 123U, &r) && b_ok;
+    s1_print_replay("S1-U30", &r);
+
+    telem_test_force_link(TELEM_LINK_AUTO);
+    return b_ok && r.b_order &&
+           (r.n == (uint8_t)OUTAGE_BUF_DEPTH) &&
+           (r.first >= 102U) && (r.last >= 122U) &&
+           (r.min_gap >= S1_TEST_REPLAY_GAP_MS) &&
+           (r.span + S1_TEST_SPAN_TOL_MS >= ((UW)r.n - 1U) * TELEM_TICK_MS);
+}
+
+/*
+ * Send mission time first_time, then force the link down and keep
+ * sending first_time + 1, + 2 ... (sends in all) every 500 ms, playing
+ * S5.  False if any telemetry or heartbeat reaches mbf_mqtt_tx while
+ * the link is down.
+ */
+static bool s1_hold_link_down(uint16_t first_time, uint8_t sends)
+{
+    uint8_t msg[S1_TX_MSG_MAX];
+    UW      end_ms;
+    INT     left;
+    INT     len;
+    uint8_t k;
+
+    (void)s1_send_status_t((uint8_t)S1_MSTATE_READY, 16U, first_time);
+    (void)tk_dly_tsk(S1_TEST_SETTLE_MS);
+    telem_test_force_link(TELEM_LINK_DOWN);
+    (void)tk_dly_tsk(S1_TEST_SETTLE_MS);
+    s1_flush_tx();
+
+    for (k = 1U; k < sends; k++)
+    {
+        (void)s1_send_status_t((uint8_t)S1_MSTATE_READY, 16U,
+                               (uint16_t)(first_time + k));
+        end_ms = s1_now_ms() + (UW)S1_TEST_STATUS_MS;
+
+        for (;;)
+        {
+            left = (INT)(end_ms - s1_now_ms());
+            if (left <= 0)
+            {
+                break;
+            }
+            len = tk_rcv_mbf(mbf_mqtt_tx, msg, (TMO)left);
+            if ((len > 0) &&
+                ((msg[0] == S1_TOPIC_TELEM) || (msg[0] == S1_TOPIC_HB)))
+            {
+                return false;            /* sent while the link was down */
+            }
+        }
+    }
+    return true;
+}
+
+/*
+ * For window_ms, take everything from mbf_mqtt_tx and measure the
+ * replayed outage frames (mission time <= max_time): how many, first and
+ * last mission time, shortest gap and total span between arrivals, and
+ * whether every one was marked replayed with mission time never going
+ * backwards.  False if none arrived.
+ */
+static bool s1_collect_replay(INT window_ms, uint16_t max_time,
+                              s1_replay_result_t *p_res)
+{
+    uint8_t        msg[S1_TX_MSG_MAX];
+    telem_status_t st;
+    UW             end_ms = s1_now_ms() + (UW)window_ms;
+    UW             first_ms = 0U;
+    UW             last_ms = 0U;
+    UW             now_ms;
+    INT            left;
+    INT            len;
+
+    p_res->n       = 0U;
+    p_res->first   = 0U;
+    p_res->last    = 0U;
+    p_res->min_gap = 0xFFFFFFFFUL;
+    p_res->span    = 0U;
+    p_res->b_order = true;
+
+    for (;;)
+    {
+        left = (INT)(end_ms - s1_now_ms());
+        if (left <= 0)
+        {
+            break;
+        }
+        len = tk_rcv_mbf(mbf_mqtt_tx, msg, (TMO)left);
+        if ((len < 2) || (msg[0] != S1_TOPIC_TELEM) ||
+            !telem_unpack_status(&msg[1], (uint8_t)(len - 1), &st) ||
+            (st.time_ds > max_time))
+        {
+            continue;                    /* heartbeat, event or new frame */
+        }
+
+        now_ms = s1_now_ms();
+        if (!telem_is_replayed(&msg[1]))
+        {
+            p_res->b_order = false;
+        }
+        if (p_res->n == 0U)
+        {
+            p_res->first = st.time_ds;
+            first_ms     = now_ms;
+        }
+        else
+        {
+            if (st.time_ds < p_res->last)
+            {
+                p_res->b_order = false;
+            }
+            if ((now_ms - last_ms) < p_res->min_gap)
+            {
+                p_res->min_gap = now_ms - last_ms;
+            }
+        }
+        p_res->last = st.time_ds;
+        last_ms     = now_ms;
+        p_res->span = last_ms - first_ms;
+        if (p_res->n < 0xFFU)
+        {
+            p_res->n++;
+        }
+    }
+
+    if (p_res->n < 2U)
+    {
+        p_res->min_gap = 0U;
+    }
+    return (p_res->n > 0U);
+}
+
+/*
+ * Print what a replay test measured, so a PASS or FAIL can be checked.
+ */
+static void s1_print_replay(const char *p_id, const s1_replay_result_t *p_res)
+{
+    tm_printf((UB *)"[INFO] %s replayed n=%d first=%d last=%d "
+              "min_gap=%d ms span=%d ms order=%s\n",
+              p_id, (INT)p_res->n, (INT)p_res->first, (INT)p_res->last,
+              (INT)p_res->min_gap, (INT)p_res->span,
+              p_res->b_order ? "ok" : "BROKEN");
 }
 
 #endif /* APP_TEST */

@@ -289,7 +289,8 @@ void telem_mark_replayed(uint8_t *p_frame)
 uint8_t telem_frame_type(const uint8_t *p_frame)
 {
     return (p_frame == NULL) ? 0xFFU :
-           (uint8_t)((p_frame[0] >> TELEM_HDR_TYPE_SHIFT) & TELEM_HDR_TYPE_MASK);
+           (uint8_t)((p_frame[0] >> TELEM_HDR_TYPE_SHIFT) &
+                     TELEM_HDR_TYPE_MASK);
 }
 
 uint8_t telem_frame_version(const uint8_t *p_frame)

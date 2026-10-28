@@ -5,9 +5,9 @@
  * While the link is down, telemetry frames are kept here and replayed
  * when it comes back (IF-15: keep 20 messages, drop the oldest).
  *
- * Notes: This is pure C (no kernel calls, no malloc).  Each buffer is a caller-owned
- * outage_buf_t, so the tests use their OWN & never touch the one the
- * telemetry task uses.
+ * Notes: This is pure C (no kernel calls, no malloc).  Each buffer is a
+ * caller-owned outage_buf_t, so the tests use their OWN & never touch the
+ * one the telemetry task uses.
  *
  * Not thread-safe: only one task may use a given buffer.  In S1,
  * telemetry_task is the only task that owns the outage buffer.
