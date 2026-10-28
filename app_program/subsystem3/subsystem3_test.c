@@ -5,7 +5,7 @@
  *	integration results in testing/integration/TEST_LOG.md.
  */
 
-#include "subsystem3.h"
+#include "s3_private.h"
 #include "code39.h"
 #include "../test_report.h"
 
@@ -82,20 +82,9 @@ static void test_gp28_pack(void)
                "gp28_pack: mid ADC and mid slot round-trip");
 }
 
-// char_map validation is tested by checking that valid maps are accepted and invalid maps are rejected
-static bool validate_char_map(const CHAR_MAP_MSG *m)
-{
-    return (m->ch_forward >= 'A' && m->ch_forward <= 'Z') &&
-           (m->ch_uturn   >= 'A' && m->ch_uturn   <= 'Z') &&
-           (m->ch_left    >= 'A' && m->ch_left    <= 'Z') &&
-           (m->ch_right   >= 'A' && m->ch_right   <= 'Z') &&
-           (m->ch_forward != m->ch_uturn)  &&
-           (m->ch_forward != m->ch_left)   &&
-           (m->ch_forward != m->ch_right)  &&
-           (m->ch_uturn   != m->ch_left)   &&
-           (m->ch_uturn   != m->ch_right)  &&
-           (m->ch_left    != m->ch_right);
-}
+// char_map validation: since Commit 4 this tests the REAL function used by
+// barcode_decode_task (s3_char_map_valid), not a copy inside the test.
+#define validate_char_map(m)   s3_char_map_valid(m)
 
 static void test_char_map_validation(void)
 {
@@ -189,30 +178,129 @@ static void test_line_data_flow(void)
                "line data flows from line_sensor_task to q_line_data within 100 ms");
 }
 
-// gp28_flow() is tested by waiting 10 ms and then polling q_gp28_samples for a sample
+// INT-02: GP28 samples are put into q_gp28_samples within 10 ms.
+// Since Commit 4 barcode_decode_task empties the queue immediately, so the
+// test counts successful sends by line_sensor_task instead of polling the
+// queue (polling would race the decoder).
 static void test_gp28_flow(void)
 {
-    GP28_SAMPLE_MSG sample;
+    UW before = line_sensor_gp28_sent();
 
-    /* Wait 10 ms then poll: at 2 ms per sample, several should be queued */
-    tk_dly_tsk(10);
-    INT rc = tk_rcv_mbf(q_gp28_samples, (void *)&sample, TMO_POL);
+    tk_dly_tsk(10);                 /* 2 ms sub-cycle: ~5 samples expected */
 
     TEST_CHECK("INT-02",
-               rc == (INT)sizeof(sample),
+               line_sensor_gp28_sent() > before,
                "GP28 samples flow from line_sensor_task to q_gp28_samples within 10 ms");
 }
 #endif /* S3_RUN_INT_TESTS */
 
+/* ---------------------------------------------------------------------
+ *  S3-U07 / S3-U08: barcode_decode_task end to end, with a hand-made
+ *  barcode injected into q_gp28_samples.  line_sensor_task's own GP28
+ *  samples are paused meanwhile so they cannot mix with the injected ones.
+ * --------------------------------------------------------------------- */
+#define INJ_NARROW   5u     /* samples per narrow element */
+#define INJ_WIDE     12u    /* samples per wide element   */
+#define INJ_QUIET    50u    /* quiet zone, > BC_QUIET_SAMPLES (40) */
+
+static uint8_t inj_slot;
+
+static void inject(bool dark, uint16_t count)
+{
+    uint16_t        i;
+    GP28_SAMPLE_MSG s;
+
+    for (i = 0; i < count; i++) {
+        s = gp28_pack(line_sensor_gp28_test_level(dark), inj_slot);
+        inj_slot = (uint8_t)((inj_slot + 1u) & 0x0Fu);
+        /* wait (up to 100 ms) for room: the decode task is reading */
+        (void)tk_snd_mbf(q_gp28_samples, &s, sizeof(s), 100);
+    }
+}
+
+/* One Code 39 character: 9 elements, bar first, bit 8 = first element */
+static void inject_char(uint16_t pattern9)
+{
+    uint16_t i;
+
+    for (i = 0; i < 9u; i++) {
+        bool wide = (pattern9 & (1u << (8u - i))) != 0u;
+        inject((i % 2u) == 0u, wide ? INJ_WIDE : INJ_NARROW);
+    }
+}
+
+static void drain_u8(ID mbf)
+{
+    uint8_t junk;
+    while (tk_rcv_mbf(mbf, &junk, TMO_POL) > 0) { }
+}
+
+static void drain_gp28(void)
+{
+    GP28_SAMPLE_MSG junk;
+    while (tk_rcv_mbf(q_gp28_samples, &junk, TMO_POL) > 0) { }
+}
+
+// S3-U07: valid map A,B,C,D + injected "*A*" -> BARCODE_CMD_FORWARD within 200 ms
+static void test_barcode_valid_map(void)
+{
+    CHAR_MAP_MSG map = { 'A', 'B', 'C', 'D' };   /* fwd, U-turn, left, right */
+    BARCODE_CMD  cmd = BARCODE_CMD_NONE;
+    INT          rc;
+
+    (void)tk_snd_mbf(mbx_char_map, &map, sizeof(map), 100);
+    tk_dly_tsk(50);                              /* decode task picks it up */
+
+    line_sensor_pause_gp28(true);
+    tk_dly_tsk(20);
+    drain_gp28();
+    drain_u8(q_barcode_cmd);
+    drain_u8(q_decoded_char);
+
+    inj_slot = 0;
+    inject(false, INJ_QUIET);                    /* quiet zone              */
+    inject_char(CODE39_STAR_FWD);                /* start '*'               */
+    inject(false, INJ_NARROW);                   /* inter-character gap     */
+    inject_char(0x109u);                         /* 'A'                     */
+    inject(false, INJ_NARROW);                   /* inter-character gap     */
+    inject_char(CODE39_STAR_FWD);                /* stop '*'                */
+    inject(false, INJ_QUIET);                    /* quiet zone              */
+
+    rc = tk_rcv_mbf(q_barcode_cmd, &cmd, 200);
+
+    TEST_CHECK("S3-U07",
+               rc == (INT)sizeof(cmd) && cmd == BARCODE_CMD_FORWARD,
+               "barcode: valid map + injected *A* gives BARCODE_CMD_FORWARD");
+}
+
+// S3-U08: an invalid map (duplicate letter) is dropped silently: no command appears
+static void test_barcode_invalid_map(void)
+{
+    CHAR_MAP_MSG bad = { 'A', 'A', 'C', 'D' };
+    BARCODE_CMD  cmd;
+    INT          rc;
+
+    drain_u8(q_barcode_cmd);
+    (void)tk_snd_mbf(mbx_char_map, &bad, sizeof(bad), 100);
+    tk_dly_tsk(50);
+
+    rc = tk_rcv_mbf(q_barcode_cmd, &cmd, TMO_POL);
+
+    TEST_CHECK("S3-U08",
+               rc == E_TMOUT,
+               "barcode: invalid map dropped, no command sent");
+
+    line_sensor_pause_gp28(false);               /* back to live samples */
+}
+
 // subsystem3_test() runs all unit and integration tests for subsystem 3
 EXPORT void subsystem3_test(void)
 {
-
     /* USB serial drops on reset: give the PC time to reopen the port
        so the S3 lines reach the log. */
     tk_dly_tsk(5000);
-    tm_printf((UB *)"S3: tests starting\n");
-    
+    tm_printf((UB*)"S3: tests starting\n");
+
     test_pass_ = 0;
     test_fail_ = 0;
 
@@ -237,6 +325,11 @@ EXPORT void subsystem3_test(void)
     test_line_data_flow();
     test_gp28_flow();
 #endif
+
+    /* Barcode decode task (Commit 4) -- after calibration, while the
+       robot stays still */
+    test_barcode_valid_map();      /* S3-U07 */
+    test_barcode_invalid_map();    /* S3-U08 */
 
     TEST_SUMMARY("subsystem3");
 }

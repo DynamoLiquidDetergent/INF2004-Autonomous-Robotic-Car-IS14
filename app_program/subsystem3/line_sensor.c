@@ -20,7 +20,7 @@
  *	           tk_get_tim, tk_cre_flg, tk_set_flg, tk_clr_flg, tk_wai_flg
  */
 
-#include "subsystem3.h"
+#include "s3_private.h"
 
 /* ---------------------------------------------------------------------
  *  Configuration
@@ -68,6 +68,8 @@
  * --------------------------------------------------------------------- */
 LOCAL ID            flg_s3_calib;            /* calibration handshake   */
 LOCAL volatile bool s_bypass = false;        /* IF-09                   */
+LOCAL volatile bool s_gp28_paused = false;   /* tests inject GP28 data  */
+LOCAL volatile UW   s_gp28_sent   = 0;       /* samples put in q_gp28_samples */
 
 /* Calibration range per sensor.  Written only by line_sensor_task. */
 LOCAL UW s_lo[S3_NUM_SENSORS] = { 0u,    0u,    0u    };
@@ -215,7 +217,11 @@ LOCAL void line_sensor_task(INT stacd, void *exinf)
         raw[S3_CH_RIGHT] = adc_read(dd, S3_CH_RIGHT, raw[S3_CH_RIGHT]);
         s    = gp28_pack((uint16_t)raw[S3_CH_RIGHT], slot);
         slot = (uint8_t)((slot + 1u) & 0x0Fu);  /* a gap in slots = dropped sample */
-        (void)tk_snd_mbf(q_gp28_samples, &s, sizeof(s), TMO_POL);  /* drop-newest */
+        if (!s_gp28_paused) {
+            if (tk_snd_mbf(q_gp28_samples, &s, sizeof(s), TMO_POL) == E_OK) {  /* drop-newest */
+                s_gp28_sent++;
+            }
+        }
 
         /* ---- 20 ms line cycle (IF-05) ---- */
         now = now_ms();
@@ -346,4 +352,39 @@ EXPORT bool subsystem3_run_calibration(void)
 EXPORT void subsystem3_set_bypass(bool active)
 {
     s_bypass = active;
+}
+
+/* ---------------------------------------------------------------------
+ *  Shared with barcode_decode.c and the tests (s3_private.h)
+ * --------------------------------------------------------------------- */
+
+/* Dark (bar) or light (space) with hysteresis: becomes dark above 60 %
+   of the calibrated GP28 range, light again below 40 %. */
+#define S3_GP28_DARK_ON    600u
+#define S3_GP28_DARK_OFF   400u
+
+EXPORT bool line_sensor_gp28_dark(uint16_t adc, bool was_dark)
+{
+    UW n = normalise(adc, s_lo[S3_CH_RIGHT], s_hi[S3_CH_RIGHT]);
+    return was_dark ? (n >= S3_GP28_DARK_OFF) : (n >= S3_GP28_DARK_ON);
+}
+
+/* Number of GP28 samples successfully put into q_gp28_samples so far */
+EXPORT UW line_sensor_gp28_sent(void)
+{
+    return s_gp28_sent;
+}
+
+EXPORT void line_sensor_pause_gp28(bool pause)
+{
+    s_gp28_paused = pause;
+}
+
+EXPORT uint16_t line_sensor_gp28_test_level(bool dark)
+{
+#if S3_LINE_IS_HIGH
+    return dark ? 4095u : 0u;
+#else
+    return dark ? 0u : 4095u;
+#endif
 }

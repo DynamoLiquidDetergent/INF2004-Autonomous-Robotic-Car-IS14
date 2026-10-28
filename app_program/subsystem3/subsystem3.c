@@ -2,21 +2,17 @@
  *	subsystem3.c
  *	Subsystem 3 -- IR Perception: creates its kernel objects and starts its tasks.
  *
- *	COMMIT 3:
+ *	COMMIT 4:
  *	  subsystem3_init()   fills the Code 39 table, creates the five S3
  *	                      queues and the line sensor's objects (phase 1).
- *	  subsystem3_start()  starts line_sensor_task and the legacy example
- *	                      consumer (phase 2).  barcode_decode_task: Commit 4.
+ *	  subsystem3_start()  starts line_sensor_task, barcode_decode_task and
+ *	                      the legacy example consumer (phase 2).
  *
  *	APIs used: tk_cre_mbf, tk_cre_mbx, tk_cre_mtx
  */
 
-#include "subsystem3.h"
+#include "s3_private.h"     /* line_sensor_*, barcode_decode_start */
 #include "code39.h"         /* code39_init() -- Code 39 lookup table */
-
-/* line_sensor.c */
-IMPORT ER line_sensor_init(void);
-IMPORT ER line_sensor_start(void);
 
 /* ---- S3 interface objects (declared IMPORT in subsystem3.h) ---- */
 EXPORT ID q_line_data;      /* IF-05 */
@@ -94,6 +90,11 @@ EXPORT ER subsystem3_start(void)
 
     /* Line sensor task: owns the ADC, 20 ms line / 2 ms GP28 cycles */
     er = line_sensor_start();
+    if (er < E_OK) return er;
+
+    /* Barcode decode task: reads q_gp28_samples, writes q_decoded_char /
+       q_barcode_cmd, reads mapping updates from mbx_char_map */
+    er = barcode_decode_start();
     if (er < E_OK) return er;
 
     /* Legacy example consumer, keeps S2/S4 working until they are replaced */
