@@ -51,22 +51,28 @@ Old rows are never deleted or edited to change their meaning / results.
 | 2026-10-26 | S1-U01 | `<c27b799>` | Saad | PASS | `logs/2026-10-26_S1-U01-U02.txt` | TEST=1 image |
 | 2026-10-26 | S1-U02 | `<c27b799>` | Saad | PASS | `logs/2026-10-26_S1-U01-U02.txt` | TEST=1 image |
 | 2026-10-26 | S1-U03 | `<c27b799>` | Saad | PASS | `logs/2026-10-26_S1-U03.txt`, `logs/2026-10-26_S1-U01-U02.txt` | 1000 ms ±0 over 10+ ticks; also held during S2 timing tests |
-| 2026-10-26 | S1-U04 | `<609dd97>` | Saad | PASS | `logs/2026-10-26_S1-U04-U07.txt` | TEST=1 image |
-| 2026-10-26 | S1-U05 | `<609dd97>` | Saad | PASS | `logs/2026-10-26_S1-U04-U07.txt` | TEST=1 image |
-| 2026-10-26 | S1-U06 | `<609dd97>` | Saad | PASS | `logs/2026-10-26_S1-U04-U07.txt` | TEST=1 image |
-| 2026-10-26 | S1-U07 | `<609dd97>` | Saad | PASS | `logs/2026-10-26_S1-U04-U07.txt` | TEST=1 image; U01/U02 also re-pass (regression) |
-| 2026-10-27 | S1-U08 | `<ea7c7fc>` | Saad | PASS | `logs/2026-10-27_S1-U08-U10.txt` | TEST=1 image |
-| 2026-10-27 | S1-U09 | `<ea7c7fc>` | Saad | PASS | `logs/2026-10-27_S1-U08-U10.txt` | TEST=1 image |
-| 2026-10-27 | S1-U10 | `<ea7c7fc>` | Saad | PASS | `logs/2026-10-27_S1-U08-U10.txt` | TEST=1 image; U01–U07 also re-pass (regression) |
-| 2026-10-27 | S1-U11 | `<2be9391>` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image |
-| 2026-10-27 | S1-U12 | `<2be9391>` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image |
-| 2026-10-27 | S1-U13 | `<2be9391>` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image |
-| 2026-10-27 | S1-U14 | `<2be9391>` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image |
-| 2026-10-27 | S1-U15 | `<2be9391>` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image |
-| 2026-10-27 | S1-U16 | `<2be9391>` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image; U01–U10 re-passed old tests, U04–U07 with outage frames cut ~ 32 -> 15 B |
-| 2026-10-28 | S1-U17 | `<9900c3b>` | Saad | PASS | `logs/2026-10-28_S1-U17a.txt`, `logs/2026-10-28_S1-U17b.png` | Phone hotspot, broker 172.20.10.3, Pico 172.20.10.7. hb 0–6 seen on laptop; "hello" and "hello2" received by Pico; s1 alive ticks 20–260 exactly 1000 ms apart through WiFi join |
-| 2026-10-28 | S1-U18 | `<f071606>` | Saad | PASS | `logs/2026-10-28_S1-U18-U22.txt` | TEST=1 image |
-| 2026-10-28 | S1-U19 | `<f071606>` | Saad | PASS | `logs/2026-10-28_S1-U18-U22.txt` | TEST=1 image |
-| 2026-10-28 | S1-U20 | `<f071606>` | Saad | PASS | `logs/2026-10-28_S1-U18-U22.txt` | TEST=1 image |
-| 2026-10-28 | S1-U21 | `<f071606>` | Saad | PASS | `logs/2026-10-28_S1-U18-U22.txt` | TEST=1 image |
-| 2026-10-28 | S1-U22 | `<f071606>` | Saad | PASS | `logs/2026-10-28_S1-U18-U22.txt` | TEST=1 image; U01–U16 re-pass (regression) |
+| 2026-10-26 | S1-U04 | `609dd97` | Saad | PASS | `logs/2026-10-26_S1-U04-U07.txt` | TEST=1 image |
+| 2026-10-26 | S1-U05 | `609dd97` | Saad | PASS | `logs/2026-10-26_S1-U04-U07.txt` | TEST=1 image |
+| 2026-10-26 | S1-U06 | `609dd97` | Saad | PASS | `logs/2026-10-26_S1-U04-U07.txt` | TEST=1 image |
+| 2026-10-26 | S1-U07 | `609dd97` | Saad | PASS | `logs/2026-10-26_S1-U04-U07.txt` | TEST=1 image; U01/U02 also re-pass (regression) |
+| 2026-10-27 | S1-U08 | `ea7c7fc` | Saad | PASS | `logs/2026-10-27_S1-U08-U10.txt` | TEST=1 image |
+| 2026-10-27 | S1-U09 | `ea7c7fc` | Saad | PASS | `logs/2026-10-27_S1-U08-U10.txt` | TEST=1 image |
+| 2026-10-27 | S1-U10 | `ea7c7fc` | Saad | PASS | `logs/2026-10-27_S1-U08-U10.txt` | TEST=1 image; U01–U07 also re-pass (regression) |
+| 2026-10-27 | S1-U11 | `2be9391` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image |
+| 2026-10-27 | S1-U12 | `2be9391` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image |
+| 2026-10-27 | S1-U13 | `2be9391` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image |
+| 2026-10-27 | S1-U14 | `2be9391` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image |
+| 2026-10-27 | S1-U15 | `2be9391` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image |
+| 2026-10-27 | S1-U16 | `2be9391` | Saad | PASS | `logs/2026-10-27_S1-U11-U16.txt` | TEST=1 image; U01–U10 re-passed old tests, U04–U07 with outage frames cut ~ 32 -> 15 B |
+| 2026-10-28 | S1-U17 | `9900c3b` | Saad | PASS | `logs/2026-10-28_S1-U17a.txt`, `logs/2026-10-28_S1-U17b.png` | Phone hotspot, broker 172.20.10.3, Pico 172.20.10.7. hb 0–6 seen on laptop; "hello" and "hello2" received by Pico; s1 alive ticks 20–260 exactly 1000 ms apart through WiFi join |
+| 2026-10-28 | S1-U18 | `f071606` | Saad | PASS | `logs/2026-10-28_S1-U18-U22.txt` | TEST=1 image |
+| 2026-10-28 | S1-U19 | `f071606` | Saad | PASS | `logs/2026-10-28_S1-U18-U22.txt` | TEST=1 image |
+| 2026-10-28 | S1-U20 | `f071606` | Saad | PASS | `logs/2026-10-28_S1-U18-U22.txt` | TEST=1 image |
+| 2026-10-28 | S1-U21 | `f071606` | Saad | PASS | `logs/2026-10-28_S1-U18-U22.txt` | TEST=1 image |
+| 2026-10-28 | S1-U22 | `f071606` | Saad | PASS | `logs/2026-10-28_S1-U18-U22.txt` | TEST=1 image; U01–U16 re-pass (regression) |
+| 2026-10-28 | S1-U23 | `df23e3a` | Saad | PASS | `logs/2026-10-28_S1-U23-U27.txt` | TEST=1 image |
+| 2026-10-28 | S1-U24 | `df23e3a` | Saad | PASS | `logs/2026-10-28_S1-U23-U27.txt` | TEST=1 image |
+| 2026-10-28 | S1-U25 | `df23e3a` | Saad | PASS | `logs/2026-10-28_S1-U23-U27.txt` | TEST=1 image |
+| 2026-10-28 | S1-U26 | `df23e3a` | Saad | PASS | `logs/2026-10-28_S1-U23-U27.txt` | TEST=1 image; heartbeat after tests reports 3 rejected (matches U26/U27 inputs) |
+| 2026-10-28 | S1-U27 | `df23e3a` | Saad | PASS | `logs/2026-10-28_S1-U23-U27.txt` | TEST=1 image; U01–U22 re-pass (regression) |
+| 2026-10-28 | S1-U28 | `df23e3a` | Saad | PASS | `logs/2026-10-28_S1-U28.txt` | normal image, fake S5; telem 500 ms / hb 1000 ms over 25 s, STATE_CHANGE at both flips |

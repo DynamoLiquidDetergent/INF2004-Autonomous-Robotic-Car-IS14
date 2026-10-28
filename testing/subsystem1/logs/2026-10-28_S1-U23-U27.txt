@@ -1,0 +1,113 @@
+---- Opened the serial port COM3 ----
+monitor: batch  n=10 last=90 from core 1
+monitor: t=3355772646 ms  samples=10  min=0 max=90 avg=45  free slots=4  free blocks=4
+s1: tx telem t=3355772866 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: tx hb    t=3355772866 09 02 0F 00
+s1: tx telem t=3355773366 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: tx telem t=3355773866 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: tx hb    t=3355773866 09 03 0F 00
+monitor: batch  n=15 last=60 from core 1
+monitor: t=3355774196 ms  samples=15  min=0 max=100 avg=56  free slots=4  free blocks=4
+s1: tx telem t=3355774366 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+[TEST] S1-U01 PASS  telemetry task created
+s1: tx telem t=3355774866 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: tx hb    t=3355774866 09 04 0F 00
+s1: tx telem t=3355775366 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+monitor: batch  n=20 last=10 from core 1
+monitor: t=3355775746 ms  samples=20  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: tx telem t=3355775866 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: tx hb    t=3355775866 09 05 0F 00
+[TEST] S1-U02 PASS  telemetry task sleeps between ticks
+[TEST] S1-U04 PASS  empty outage buffer: pop fails, count 0
+[TEST] S1-U05 PASS  20 pushes: count 20, 0 dropped, popped 1..20 in order
+[TEST] S1-U06 PASS  25 pushes: oldest 5 dropped, popped 6..25 in order
+[TEST] S1-U07 PASS  bad frames refused; too-small pop keeps the frame
+[TEST] S1-U08 PASS  PAUSE, RESUME, ABORT accepted and decoded
+[TEST] S1-U09 PASS  NULL and wrong-length frames rejected
+[TEST] S1-U10 PASS  codes other than 1..3 (incl. 0, 4, 255, ASCII) rejected
+[TEST] S1-U11 PASS  telemetry, heartbeat, event match independently computed bytes
+[TEST] S1-U12 PASS  telemetry 15 B; every field round-trips at min and max
+[TEST] S1-U13 PASS  out-of-range values clamp; no-data values kept
+[TEST] S1-U14 PASS  heartbeat 4 B round-trip at min and max
+[TEST] S1-U15 PASS  event 3 B round-trip; bad type/data refused
+[TEST] S1-U16 PASS  header version/type/replayed; NULL and small buffer refused
+[TEST] S1-U18 PASS  valid map accepted; K/D/A/Z map to F/U/L/R, B not in map
+[TEST] S1-U19 PASS  NULL and wrong-length map frames rejected
+[TEST] S1-U20 PASS  letter past Z or spare bits set rejected
+[TEST] S1-U21 PASS  duplicate letters or not READY rejected; ack reasons right
+[TEST] S1-U22 PASS  IF-18: no map at boot; stored word read back and looked up
+[TEST] S1-U23 PASS  IF-13 and IF-15 message buffers created, sizes right
+s1: tx telem t=3355776366 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: tx telem t=3355776866 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: tx hb    t=3355776866 09 06 0F 00
+monitor: batch  n=25 last=40 from core 1
+monitor: t=3355777296 ms  samples=25  min=0 max=100 avg=44  free slots=4  free blocks=4
+s1: tx telem t=3355777366 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: tx telem t=3355777866 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: tx hb    t=3355777866 09 07 0F 00
+[TEST] S1-U24 PASS  telemetry every 500 ms, heartbeat every 1 s (+/-10 ms), all valid
+s1: tx evt   t=3355778166 11 8E 07
+s1: tx telem t=3355778366 01 D2 04 21 00 02 08 00 80 03 31 FF FE F3 03
+[TEST] S1-U25 PASS  IF-13 status reaches telemetry; STATE_CHANGE event sent
+s1: tx evt   t=3355778466 11 2B 00
+s1: tx evt   t=3355778466 11 03 00
+s1: tx evt   t=3355778466 11 03 00
+[TEST] S1-U26 PASS  commands via RX buffer: valid ACKed, junk rejected
+s1: tx evt   t=3355778566 11 0A 00
+s1: tx evt   t=3355778666 11 96 00
+s1: tx evt   t=3355778666 11 32 00
+[TEST] S1-U27 PASS  map via RX buffer: stored when READY, refused otherwise
+[TEST] subsystem1 SUMMARY 25 passed, 0 failed
+[TEST] S2-U01 PASS  sample values stay within 0..100
+[TEST] S2-U02 PASS  free slots and free blocks within pool size
+[TEST] subsystem2 SUMMARY 2 passed, 0 failed
+monitor: batch  n=30 last=90 from core 1
+monitor: t=3355778846 ms  samples=30  min=0 max=100 avg=48  free slots=4  free blocks=4
+monitor: LED task paused, state=WAIT+SUSPEND, pri=23
+s1: tx telem t=3355778866 01 D2 04 22 00 02 08 00 80 03 31 FF FE F3 03
+s1: tx hb    t=3355778866 09 08 02 30
+s1: tx telem t=3355779366 01 D2 04 22 00 02 08 00 80 03 31 FF FE F3 03
+s1: tx telem t=3355779866 01 D2 04 22 00 02 08 00 80 03 31 FF FE F3 03
+s1: tx hb    t=3355779866 09 09 02 30
+s1: tx telem t=3355780366 01 D2 04 22 00 02 08 00 80 03 31 FF FE F3 03
+monitor: batch  n=35 last=60 from core 1
+monitor: t=3355780396 ms  samples=35  min=0 max=100 avg=52  free slots=4  free blocks=4
+[TEST] INT-01 PASS  samples flow from subsystem 2 to subsystem 3
+[TEST] S3-U01 PASS  min <= max, both within 0..100
+[TEST] subsystem3 SUMMARY 2 passed, 0 failed
+[TEST] S4-U01 PASS  message buffer max line = S4_SUMMARY_MAX
+s1: tx telem t=3355780866 01 D2 04 22 00 02 08 00 80 03 31 FF FE F3 03
+s1: tx hb    t=3355780866 09 0A 02 30
+s1: tx telem t=3355781366 01 D2 04 22 00 02 08 00 80 03 31 FF FE F3 03
+s1: tx telem t=3355781866 01 D2 04 22 00 02 08 00 80 03 31 FF FE F3 03
+s1: tx hb    t=3355781866 09 0B 02 30
+monitor: batch  n=40 last=10 from core 1
+monitor: t=3355781946 ms  samples=40  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: tx telem t=3355782366 01 D2 04 22 00 02 08 00 80 03 31 FF FE F3 03
+s1: tx telem t=3355782866 01 D2 04 22 00 02 08 00 80 03 31 FF FE F3 03
+s1: tx hb    t=3355782866 09 0C 02 30
+s1: tx telem t=3355783366 01 D2 04 22 00 02 08 00 80 03 31 FF FE F3 03
+monitor: batch  n=45 last=40 from core 1
+monitor: t=3355783496 ms  samples=45  min=0 max=100 avg=46  free slots=4  free blocks=4
+s1: tx telem t=3355783866 01 D2 04 22 00 02 08 00 80 03 31 FF FE F3 03
+s1: tx hb    t=3355783866 09 0D 02 30
+[TEST] INT-02 PASS  summary lines flow from subsystem 3 to subsystem 4
+[TEST] subsystem4 SUMMARY 2 passed, 0 failed
+[TEST] S5-U01 PASS  example: running in a task context
+[TEST] subsystem5 SUMMARY 1 passed, 0 failed
+[TEST] === test run end ===
+s1: tx telem t=3355784366 01 D2 04 22 00 02 08 00 80 03 31 FF FE F3 03
+s1: tx telem t=3355784866 01 D2 04 22 00 02 08 00 80 03 31 FF FE F3 03
+s1: tx hb    t=3355784866 09 0E 02 30
+monitor: batch  n=50 last=90 from core 1
+monitor: t=3355785046 ms  samples=50  min=0 max=100 avg=49  free slots=4  free blocks=4
+s1: tx telem t=3355785366 01 D2 04 22 00 02 08 00 80 03 31 FF FE F3 03
+s1: tx telem t=3355785866 01 D2 04 22 00 02 08 00 80 03 31 FF FE F3 03
+s1: tx hb    t=3355785866 09 0F 02 30
+s1: tx telem t=3355786366 01 D2 04 22 00 02 08 00 80 03 31 FF FE F3 03
+monitor: batch  n=55 last=60 from core 1
+monitor: t=3355786596 ms  samples=55  min=0 max=100 avg=51  free slots=4  free blocks=4
+s1: tx telem t=3355786866 01 D2 04 22 00 02 08 00 80 03 31 FF FE F3 03
+s1: tx hb    t=3355786866 09 10 02 30
+s1: tx telem t=3355787366 01 D2 04 22 00 02 08 00 80 03 31 FF FE F3 03
+---- Closed the serial port COM3 ----
