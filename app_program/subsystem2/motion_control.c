@@ -436,8 +436,11 @@ EXPORT void motion_task(INT stacd, void *exinf)
 		for (w = 0U; w < ENC_COUNT; w++) {
 			encoder_snapshot(w, &snap[w]);
 			travel_um[w] = snap[w].count * S2_UM_PER_PULSE;
+			/* read the time AFTER the snapshot: an edge between t0 and
+			   the snapshot would otherwise give a negative age, which
+			   wraps to a huge UW and reads as speed 0 */
 			speed[w] = motion_speed_mmps(snap[w].period_us,
-						     t0 - snap[w].last_edge_us,
+						     encoder_time_us() - snap[w].last_edge_us,
 						     snap[w].edges,
 						     sign_of(c.sp[w]) != 0 ? sign_of(c.sp[w])
 									   : sign_of(motor_get_duty(w)));
@@ -488,13 +491,18 @@ EXPORT void motion_task(INT stacd, void *exinf)
 			}
 			duty[w] = motion_pi_step(&c.pi[w], c.sp[w], speed[w]);
 
-			/* stall: driven hard, but no new encoder edge */
+			/* stall: driven hard, but the wheel is (almost) not turning.
+			   Judged on the measured speed, not on "no new edge": with
+			   hundreds of edges per turn, a wheel held by hand still
+			   creeps a few edges through the gearbox backlash. */
 			if (((duty[w] >= S2_STALL_DUTY_PERMILLE) || (duty[w] <= -S2_STALL_DUTY_PERMILLE))
 			    && ((c.sp[w] >= S2_STALL_MIN_MMPS) || (c.sp[w] <= -S2_STALL_MIN_MMPS))
-			    && (snap[w].edges == c.last_edges[w])) {
+			    && (speed[w] < S2_STALL_SPEED_MMPS) && (speed[w] > -S2_STALL_SPEED_MMPS)) {
 				c.stall_cnt[w]++;
-			} else {
+			} else if ((c.sp[w] == 0) || (c.stall_cnt[w] == 0U)) {
 				c.stall_cnt[w] = 0U;
+			} else {
+				c.stall_cnt[w]--;	/* one noisy reading only delays it */
 			}
 			c.last_edges[w] = snap[w].edges;
 		}

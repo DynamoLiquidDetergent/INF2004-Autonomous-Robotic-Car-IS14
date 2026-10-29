@@ -33,8 +33,8 @@
  *  and record the final values in testing/subsystem2/TEST_LOG.md.
  * --------------------------------------------------------------------- */
 #define S2_SPEED_TIMEOUT_US	250000U	/* no edge for this long -> speed 0 */
-#define S2_FF_DEADBAND_PERMILLE	250	/* duty where the wheel just starts */
-#define S2_FF_GAIN_MILLI	1250	/* extra permille per (mm/s), x1000 */
+#define S2_FF_DEADBAND_PERMILLE	110	/* duty where the wheel just starts */
+#define S2_FF_GAIN_MILLI	560	/* extra permille per (mm/s), x1000 */
 #define S2_KP_MILLI		800	/* permille per (mm/s) of error, x1000 */
 #define S2_KI_MILLI		60	/* permille per (mm/s * cycle), x1000 */
 #define S2_INTEG_MAX		5000	/* integrator clamp, (mm/s * cycles) */
@@ -43,8 +43,9 @@
 #define S2_HEADING_MAX_MMPS	80	/* cap on straight-line correction */
 #define S2_TURN_DEFAULT_MMPS	150	/* wheel speed for TURN when speed = 0 */
 #define S2_STALL_DUTY_PERMILLE	400	/* duty at or above which a stall is possible */
-#define S2_STALL_TIME_MS	300	/* driven with no edge for this long = stall */
+#define S2_STALL_TIME_MS	300	/* driven hard but not turning this long = stall */
 #define S2_STALL_MIN_MMPS	60	/* below this, edges are too far apart to judge */
+#define S2_STALL_SPEED_MMPS	30	/* measured speed below this while driven hard = stalled */
 
 typedef struct {
 	W	integ;			/* integrator, (mm/s * cycles) */

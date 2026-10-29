@@ -49,9 +49,9 @@
  * --------------------------------------------------------------------- */
 #define S2_MOTOR_L_INVERT	FALSE	/* TRUE if the left wheel runs backwards */
 #define S2_MOTOR_R_INVERT	FALSE
-#define S2_ENC_L_INVERT		FALSE	/* only matters with S2_ENC_QUADRATURE */
+#define S2_ENC_L_INVERT		TRUE	/* only matters with S2_ENC_QUADRATURE */
 #define S2_ENC_R_INVERT		FALSE
-#define S2_ENC_QUADRATURE	0	/* 1 if channel B is a true quadrature output */
+#define S2_ENC_QUADRATURE	1	/* 1 if channel B is a true quadrature output */
 #define S2_ENC_PULL_UP		1	/* pull-ups for open-collector encoder outputs */
 #define S2_ENC_MIN_EDGE_US	500U	/* edges closer than this are noise */
 
@@ -59,7 +59,7 @@
  *  Geometry: MEASURE AND UPDATE (A2).  Distance per pulse is derived.
  * --------------------------------------------------------------------- */
 #define S2_WHEEL_DIAMETER_MM	65	/* wheel diameter */
-#define S2_ENC_PULSES_PER_REV	20	/* rising edges of A per wheel turn */
+#define S2_ENC_PULSES_PER_REV	635	/* rising edges of A per wheel turn */
 #define S2_TRACK_WIDTH_MM	120	/* centre-to-centre distance of the wheels */
 
 /* ---------------------------------------------------------------------

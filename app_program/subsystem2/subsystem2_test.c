@@ -7,6 +7,8 @@
  *	S2-U03..S2-U11  Motion Control.  None of them turns the motors:
  *	                every command sent has speed 0 or is blocked.
  *	S2-M05          optional wheels-up drive test, set S2_TEST_DRIVE to 1.
+ *	S2-M08          optional turn test (+90, -90, +180, -180 deg),
+ *	                set S2_TEST_TURN to 1.
  *
  *	PC unit tests of the same maths: testing/subsystem2/host/.
  */
@@ -29,6 +31,15 @@
 #define T_MAX_EXEC_US		1000U			/* WCET budget 0.3 ms, test 1 ms */
 #define T_DRIVE_MMPS		200
 #define T_DRIVE_MS		2000
+
+/* 1 = also run S2-M08: four turns on the spot, 10 s apart. */
+#ifndef S2_TEST_TURN
+#define S2_TEST_TURN		0
+#endif
+
+#define T_TURN_START_MS		8000	/* time to put the robot down */
+#define T_TURN_GAP_MS		10000	/* time to measure each turn */
+#define T_TURN_MAX_MS		6000	/* give up on one turn after this */
 
 LOCAL UINT next_epoch(void)
 {
@@ -190,6 +201,49 @@ EXPORT void subsystem2_test(void)
 			  s2_status_speed_l(w), s2_status_speed_r(w),
 			  s2_odo_dist_mm(s2_get_odometry()));
 		(void)send_cmd(s2_cmd_pack(S2_MODE_STOP, 0, 0, e));
+	}
+#endif
+
+#if S2_TEST_TURN
+	/* S2-M08: turns on the spot.  + = clockwise (right turn): the left
+	   wheel goes forward, the right wheel backward.  Measure each angle
+	   with a protractor or tape marks; the robot pauses between turns. */
+	{
+		static const INT	deg[] = { 90, -90, 180, -180 };
+		UINT			i;
+		UINT			n;
+		UW			st;
+
+		tm_printf((UB*)"[TEST] S2-M08 first turn in %d s: put the robot down, mark its heading\n",
+			  T_TURN_START_MS / 1000);
+		tk_dly_tsk(T_TURN_START_MS);
+		for (i = 0U; i < (UINT)(sizeof(deg) / sizeof(deg[0])); i++) {
+			e = next_epoch();
+			tm_printf((UB*)"[TEST] S2-M08 turning %d deg (%s)...\n", deg[i],
+				  (deg[i] > 0) ? "right, clockwise" : "left, anticlockwise");
+			st = s2_get_status();
+			for (n = 0U; n < (UINT)(T_TURN_MAX_MS / (S2_CMD_TIMEOUT_MS / 2)); n++) {
+				(void)send_cmd(s2_cmd_pack(S2_MODE_TURN, 0, deg[i], e));
+				tk_dly_tsk(S2_CMD_TIMEOUT_MS / 2);
+				st = s2_get_status();
+				if ((s2_status_epoch(st) == e) && s2_status_done(st)) {
+					break;
+				}
+			}
+			(void)send_cmd(s2_cmd_pack(S2_MODE_STOP, 0, 0, e));
+			if ((s2_status_epoch(st) == e) && s2_status_done(st)) {
+				tm_printf((UB*)"[TEST] S2-M08 turn %d deg done in %u ms\n", deg[i],
+					  (n + 1U) * (UINT)(S2_CMD_TIMEOUT_MS / 2));
+			} else {
+				tm_printf((UB*)"[TEST] S2-M08 turn %d deg NOT finished (state %u)\n",
+					  deg[i], s2_status_state(st));
+			}
+			if ((i + 1U) < (UINT)(sizeof(deg) / sizeof(deg[0]))) {
+				tm_printf((UB*)"[TEST] S2-M08 next turn in %d s\n", T_TURN_GAP_MS / 1000);
+				tk_dly_tsk(T_TURN_GAP_MS);
+			}
+		}
+		tm_printf((UB*)"[TEST] S2-M08 all turns sent\n");
 	}
 #endif
 
