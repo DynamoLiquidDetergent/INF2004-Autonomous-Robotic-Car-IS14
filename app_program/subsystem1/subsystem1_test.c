@@ -162,7 +162,7 @@ EXPORT void subsystem1_test(void)
     TEST_CHECK("S1-U27", s1_task_map_in(),
                "map via RX buffer: stored when READY, refused otherwise");
 
-    /* Link loss: outage buffering and replay (IF-15, NFR4) */
+    /* Link loss: outage buffering and replay (IF-15, FR10, NFR5) */
     TEST_CHECK("S1-U29", s1_outage_replay(),
                "link down 3 s: nothing sent, frames kept; link up: replayed");
     TEST_CHECK("S1-U30", s1_outage_overflow_live(),

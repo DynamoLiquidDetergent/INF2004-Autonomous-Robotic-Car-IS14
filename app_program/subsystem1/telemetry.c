@@ -4,7 +4,8 @@
  * on a schedule.
  *
  * Every 100 ms tick (drift-free: deadlines come from tk_get_tim()):
- *   1. read the link state (WiFi joined with an IP)
+ *   1. read the link state (WiFi joined with an IP, and MQTT
+ *      connected in MQTT=1 builds)
  *   2. take the newest IF-13 status from S5 (TMO_POL); a new mission
  *      state sends a STATE_CHANGE event
  *   3. handle commands and maps waiting in mbf_mqtt_rx (TMO_POL),
@@ -16,7 +17,7 @@
  *   6. link up and frames waiting: replay 1 frame, marked "replayed"
  * Everything goes to mbf_mqtt_tx with TMO_POL.  A heartbeat or event that
  * does not fit is dropped and counted.  The task never waits on anything
- * except its own tick (NFR4).
+ * except its own tick (NFR1).
  */
 
 #include <stdint.h>
@@ -56,7 +57,7 @@ typedef struct
     cmd_parser_t    parser;     /* commands + maps, with reject count  */
     outage_buf_t    outage;     /* telemetry kept while the link is down */
     uint32_t        tick;
-    uint16_t        tx_drops;   /* heartbeats/events lost: TX full     */
+    uint16_t        tx_drops;   /* hb/events lost; debugger only       */
     uint8_t         hb_seq;
     bool            b_link_up;
 } s1_telem_ctx_t;

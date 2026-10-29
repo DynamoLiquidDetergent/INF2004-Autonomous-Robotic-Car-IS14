@@ -260,11 +260,11 @@ static void connection_cb(mqtt_client_t *c, void *arg, mqtt_connection_status_t 
 	} else {
 		mqtt_up = 0;
 
-		/* mqtt_client_connect() reconnects on its own for a dropped
-		 * keepalive; a rejected/never-established connection does not
-		 * retry itself, so do that here -- on a delay, so a broker
-		 * that keeps rejecting (e.g. bad client ID) can't turn this
-		 * into a tight reconnect loop. */
+		/* lwIP's mqtt.c never reconnects on its own, so after any
+		 * failed or dropped connection retry here, on a delay, so a
+		 * broker that keeps rejecting can't cause a tight loop. The
+		 * poll loop in cyw43_utk.c may start an attempt sooner;
+		 * mqtt_utk_start() ignores calls while one is under way. */
 		tm_printf((UB*)"mqtt: connection status %d, retrying in %ds\n",
 			  (int)status, MQTT_UTK_RETRY_MS / 1000);
 		sys_timeout(MQTT_UTK_RETRY_MS, retry_timeout, NULL);

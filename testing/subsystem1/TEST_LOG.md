@@ -11,8 +11,8 @@ Test IDs are never changed.
 | ID | What is tested | Requirement / interface | Method | Steps / how | Expected result |
 |---|---|---|---|---|---|
 | S1-U01 | Telemetry task is created at start-up | TEAM.md sec 4 | auto | `subsystem1_test.c` | `[TEST] S1-U01 PASS` |
-| S1-U02 | Telemetry task sleeps between ticks (not busy-looping) | NFR4 (S1 never delays driving) | auto | `subsystem1_test.c`: sample task state 10 times, 97 ms apart | `[TEST] S1-U02 PASS` (≥ 9 of 10 waiting) |
-| S1-U03 | 100 ms loop does not drift | Telemetry period basis (FR telemetry 500 ms) | manual | 1. Flash normal image. 2. Log console for ~10 s. 3. Check `t=` difference between consecutive `s1: alive` lines | 10 consecutive lines, every difference 1000 ms ± 1 ms |
+| S1-U02 | Telemetry task sleeps between ticks (not busy-looping) | NFR1 (S1 never delays driving) | auto | `subsystem1_test.c`: sample task state 10 times, 97 ms apart | `[TEST] S1-U02 PASS` (≥ 9 of 10 waiting) |
+| S1-U03 | 100 ms loop does not drift | NFR2 (500 ms period basis) | manual | 1. Flash normal image. 2. Log console for ~10 s. 3. Check `t=` difference between consecutive `s1: alive` lines | 10 consecutive lines, every difference 1000 ms ± 1 ms |
 | S1-U04 | Empty outage buffer: pop fails, count 0 | IF-15 | auto | make TEST=1, flash, read console | `[TEST] S1-U04 PASS` |
 | S1-U05 | 20 pushes: count 20, 0 dropped, FIFO order 1...20 | IF-15 (20 frames) | auto | make TEST=1, flash, read console | `[TEST] S1-U05 PASS` |
 | S1-U06 | 25 pushes: oldest 5 dropped, 6...25 kept in order | IF-15 (drop-oldest) | auto | make TEST=1, flash, read console | `[TEST] S1-U06 PASS` |
@@ -26,33 +26,35 @@ Test IDs are never changed.
 | S1-U14 | Heartbeat is 4 B; round-trips at min & max; rejected count stops at 15 | CR1, IF-15 TX | auto | make TEST=1, flash, read console | `[TEST] S1-U14 PASS` |
 | S1-U15 | Event is 3 B; type & data round-trip at limits; type > 7 or data > 13 bits refused | CR1, IF-15 TX | auto | make TEST=1, flash, read console | `[TEST] S1-U15 PASS` |
 | S1-U16 | Header carries version & type; replayed bit set without changing anything else; NULL or too-small buffer refused, nothing written; wrong frame type refused on unpack | CR1, IF-15 TX | auto | make TEST=1, flash, read console | `[TEST] S1-U16 PASS` |
-| S1-U17 | Network baseline with template code (no S1 changes to mqtt_utk.c): Pico joins 2.4 GHz hotspot, connects to laptop Mosquitto broker; heartbeat reaches mosquitto_sub; messages from mosquitto_pub reach the Pico; s1 task timing unaffected by WiFi | IF-15 (baseline before change), NFR4 | manual | build `WIFI=cyw43 NET=lwip MQTT=1`; `mosquitto -c test.conf -v`; `mosquitto_sub -h localhost -t "#" -v`; `mosquitto_pub -h localhost -t mtk3smp-pico/heartbeat -m hello` | Pico: `connected`, `subscribed`, TX/RX `hb N`, RX `hello`; mosquitto_sub: `hb N` and `hello`; `s1: alive` stays 1000 ms apart |
+| S1-U17 | Network baseline with template code (no S1 changes to mqtt_utk.c): Pico joins 2.4 GHz hotspot, connects to laptop Mosquitto broker; heartbeat reaches mosquitto_sub; messages from mosquitto_pub reach the Pico; s1 task timing unaffected by WiFi | FR1, FR2, IF-15 (baseline before change), NFR1 | manual | build `WIFI=cyw43 NET=lwip MQTT=1`; `mosquitto -c test.conf -v`; `mosquitto_sub -h localhost -t "#" -v`; `mosquitto_pub -h localhost -t mtk3smp-pico/heartbeat -m hello` | Pico: `connected`, `subscribed`, TX/RX `hb N`, RX `hello`; mosquitto_sub: `hb N` and `hello`; `s1: alive` stays 1000 ms apart |
 | S1-U18 | Valid map (F=K, U=D, L=A, R=Z; bytes 6A 80 0C) accepted; stored word = frame + valid bit; lookup K/D/A/Z gives F/U/L/R; unmapped letter B and an invalid map give nothing | Prof mapping req., FR7, IF-18 | auto | make TEST=1, flash, read console | `[TEST] S1-U18 PASS` |
 | S1-U19 | NULL and 0/2/4-byte map frames rejected and counted; word left at 0 | FR8, IF-15 RX | auto | make TEST=1, flash, read console | `[TEST] S1-U19 PASS` |
 | S1-U20 | Letter code 26 (FORWARD) or 31 (RIGHT), or a spare bit set, rejected | FR8 | auto | make TEST=1, flash, read console | `[TEST] S1-U20 PASS` |
 | S1-U21 | Same letter used twice rejected; valid map outside READY rejected; each rejection maps to the right MAP_ACK reason | FR8, IF-18 | auto | make TEST=1, flash, read console | `[TEST] S1-U21 PASS` |
 | S1-U22 | IF-18: no valid map at boot; stored word reads back unchanged; s1_nav_lookup uses it; store cleared after the test | IF-18, CR1 (single store) | auto | make TEST=1, flash, read console | `[TEST] S1-U22 PASS` |
 | S1-U23 | IF-13 (mbf_telem_status) and IF-15 (mbf_mqtt_tx, mbf_mqtt_rx) message buffers exist with the right max message sizes | IF-13, IF-15 | auto | make TEST=1, flash, read console | `[TEST] S1-U23 PASS` |
-| S1-U24 | For ~2 s the test drains mbf_mqtt_tx (standing in for mqtt_utk.c): telemetry frames 500 ms apart, heartbeats 1000 ms apart (±10 ms), every frame unpacks | Telemetry 500 ms / heartbeat 1 s, IF-15 TX | auto | make TEST=1, flash, read console | `[TEST] S1-U24 PASS` |
+| S1-U24 | For ~2 s the test drains mbf_mqtt_tx (standing in for mqtt_utk.c): telemetry frames 500 ms apart, heartbeats 1000 ms apart (±10 ms), every frame unpacks | NFR2, NFR6, IF-15 TX | auto | make TEST=1, flash, read console | `[TEST] S1-U24 PASS` |
 | S1-U25 | An IF-13 status sent as S5 will send it appears in the next telemetry frame; new mission state sends STATE_CHANGE (new READY, old "not known") | IF-13 | auto | make TEST=1, flash, read console | `[TEST] S1-U25 PASS` |
 | S1-U26 | Commands put in mbf_mqtt_rx as mqtt_utk.c will: PAUSE answered CMD_ACK accepted; code 7 and a 2-byte frame answered CMD_ACK rejected | FR7, FR8, IF-15 RX | auto | make TEST=1, flash, read console | `[TEST] S1-U26 PASS` |
 | S1-U27 | Map put in mbf_mqtt_rx while READY: stored in IF-18, MAP_ACK accepted. After state leaves READY the same map gets MAP_ACK reason STATE | Prof mapping req., IF-18, IF-15 RX | auto | make TEST=1, flash, read console | `[TEST] S1-U27 PASS` |
-| S1-U28 | Normal build with temporary fake S5: console shows `s1: tx telem` every 500 ms and `s1: tx hb` every 1000 ms for at least 10 s, and a STATE_CHANGE event at start and when the fake state flips at 10 s | Telemetry 500 ms / heartbeat 1 s, NFR4 | manual | make -j8 (normal image), flash, capture > 12 s | `t=` values step by 500 (telem) and 1000 (hb); 2 `tx evt` lines. *(Revised 2026-10-28: boot STATE_CHANGE happens before Serial monitor can start monitoring, so it can't be seen on the normal image. Covered by S1-U25.)* |
-| S1-U29 | Link down 3 s, then up: nothing sent while down; kept frames come out marked replayed, in order, 1 per tick | IF-15, NFR4 | auto | make TEST=1, flash, read console | `[TEST] S1-U29 PASS` + `[INFO]` line |
-| S1-U30 | Link down 12 s, then up: only newest 20 kept (oldest dropped); replayed in order, 1 per tick | IF-15 (20, drop-oldest) | auto | make TEST=1, flash, read console | `[TEST] S1-U30 PASS` + `[INFO]` line |
-| S1-U31 | Real WiFi loss: hotspot off ~20 s, then on | IF-15, NFR4 | manual | build `WIFI=cyw43 NET=lwip`, flash, hotspot off/on, capture | `link down`, pub lines stop; `link up, 20 frame(s) to replay`, R frames 100 ms apart, then normal output; no reset |
-| S1-U32 | Frames reach the broker over MQTT | IF-15 TX | manual | MQTT build, mosquitto_sub on is14/car/# | Telem 15 B every 500 ms and hb 4 B every 1 s. Hb shows WiFi and MQTT up |
-| S1-U33 | Commands and maps from the PC | FR7, FR8, IF-15 RX, IF-18 | manual | mosquitto_pub on cmd and map | PAUSE accepted. Junk and too-long rejected. Map accepted when READY, rejected when not |
-| S1-U34 | Broker stopped ~15 s, then restarted | IF-15, NFR4 | manual | Stop and restart Mosquitto | Link down with one retry line per attempt. Reconnects, then kept frames replay (header 41) ~100 ms apart |
-| S1-U35 | Page decoder and encoders match the car's packer (golden bytes from U11) | CR1 | auto | Open `tools/dashboard/index.html` | 6 `[TEST] S1-U35 PASS` rows in the CSV |
-| S1-U36 | Live data from the board | FR6, IF-15 | manual | Car and broker running, page open, wait 20 s | Telemetry every 0.5 s, heartbeat every 1 s, STATE_CHANGE events, `car online` |
+| S1-U28 | Normal build with temporary fake S5: console shows `s1: tx telem` every 500 ms and `s1: tx hb` every 1000 ms for at least 10 s, and a STATE_CHANGE event at start and when the fake state flips at 10 s | NFR2, NFR6 | manual | make -j8 (normal image), flash, capture > 12 s | `t=` values step by 500 (telem) and 1000 (hb); 2 `tx evt` lines. *(Revised 2026-10-28: boot STATE_CHANGE happens before Serial monitor can start monitoring, so it can't be seen on the normal image. Covered by S1-U25.)* |
+| S1-U29 | Link down 3 s, then up: nothing sent while down; kept frames come out marked replayed, in order, 1 per tick | FR10, NFR5, IF-15 | auto | make TEST=1, flash, read console | `[TEST] S1-U29 PASS` + `[INFO]` line |
+| S1-U30 | Link down 12 s, then up: only newest 20 kept (oldest dropped); replayed in order, 1 per tick | NFR5 (20, drop-oldest), IF-15 | auto | make TEST=1, flash, read console | `[TEST] S1-U30 PASS` + `[INFO]` line |
+| S1-U31 | Real WiFi loss: hotspot off ~20 s, then on | FR10, NFR5, IF-15 | manual | build `WIFI=cyw43 NET=lwip`, flash, hotspot off/on, capture | `link down`, pub lines stop; `link up, 20 frame(s) to replay`, R frames 100 ms apart, then normal output; no reset |
+| S1-U32 | Frames reach the broker over MQTT | FR3, FR4, FR6, IF-15 TX | manual | MQTT build, mosquitto_sub on is14/car/# | Telem 15 B every 500 ms and hb 4 B every 1 s. Hb shows WiFi and MQTT up |
+| S1-U33 | Commands and maps from the PC | FR3, FR7, FR8, IF-15 RX, IF-18 | manual | mosquitto_pub on cmd and map | PAUSE accepted. Junk and too-long rejected. Map accepted when READY, rejected when not |
+| S1-U34 | Broker stopped ~15 s, then restarted | NFR3, NFR5, FR10, IF-15 | manual | Stop and restart Mosquitto | Link down with one retry line per attempt. Reconnects, then kept frames replay (header 41) ~100 ms apart |
+| S1-U35 | Page decoder and encoders match the car's packer (golden bytes from U11) | CR1 | auto | Open `tools/S1_dashboard/index.html` | 6 `[TEST] S1-U35 PASS` rows in the CSV |
+| S1-U36 | Live data from the board | FR4, FR6, IF-15 | manual | Car and broker running, page open, wait 20 s | Telemetry every 0.5 s, heartbeat every 1 s, STATE_CHANGE events, `car online` |
 | S1-U37 | Commands from the page | FR7, FR8 | manual | Click PAUSE, RESUME, ABORT. Send `junk.bin` | Each command shows "accepted". `07` gives "command rejected", rejected count +1 |
 | S1-U38 | Map from the page | FR7, IF-18 | manual | Send KDAZ in READY, then in state 2, then KDAK | Accepted with map ok set. Then rejected (state). KDAK not sent |
-| S1-U39 | Outage shown and replayed | FR9, IF-15 | manual | Stop the broker for about 10 s, then restart it | `car offline` row. After restart, R rows in mission-time order, outage count back to 0 |
-| S1-U40 | CSV export | FR6 | manual | Click Export CSV | Every entry from the run, with meaning and raw hex |
+| S1-U39 | Outage shown and replayed | FR10, NFR5, IF-15 | manual | Stop the broker for about 10 s, then restart it | `car offline` row. After restart, R rows in mission-time order, outage count back to 0 |
+| S1-U40 | CSV export | Test evidence (CSV log) | manual | Click Export CSV | Every entry from the run, with meaning and raw hex |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).
+
+*Requirement IDs corrected 2026-10-29 to the W6 numbering. Results unchanged.*
 
 ## Results
 
@@ -95,9 +97,9 @@ Old rows are never deleted or edited to change their meaning / results.
 | 2026-10-29 | S1-U32 | `235f63e` | Saad | PASS | `logs/2026-10-29_S1-U32.txt` | Telem 500 ms, hb 1 s. 12 boot frames replayed after connect |
 | 2026-10-29 | S1-U33 | `235f63e` | Saad | PASS | `logs/2026-10-29_S1-U33.txt` | All 5 ACKs as expected. Hb reject count 0→3. Map bit kept after rejected map |
 | 2026-10-29 | S1-U34 | `235f63e` | Saad | PASS | `logs/2026-10-29_S1-U34.txt` | Broker off 15 s, reconnect 1 s after restart. 25 replayed in order, hb outage 18→0 |
-| 2026-10-29 | S1-U35 | `43067c2` | | PASS | `logs/2026-10-29_S1-U35-U40.csv` | 6 PASS rows, logged when the page opened |
-| 2026-10-29 | S1-U36 | `43067c2` | | PASS | `logs/2026-10-29_S1-U35-U40.csv` | About 3 min live: telemetry 0.5 s, heartbeat 1 s, state flips every 10 s |
-| 2026-10-29 | S1-U37 | `43067c2` | | PASS | `logs/2026-10-29_S1-U35-U40.csv` | PAUSE, RESUME, ABORT accepted within 0.2 s. `07` rejected, count 0 → 1 |
-| 2026-10-29 | S1-U38 | `43067c2` | | PASS | `logs/2026-10-29_S1-U35-U40.csv` | KDAZ accepted in READY, map ok set. Rejected in state 2 (state). KDAK not sent |
-| 2026-10-29 | S1-U39 | `43067c2` | | PASS | `logs/2026-10-29_S1-U35-U40.csv` | 11 s outage. Offline logged. 112.5 → 124 replayed in order. 110–112 dropped as designed |
-| 2026-10-29 | S1-U40 | `43067c2` | | PASS | `logs/2026-10-29_S1-U35-U40.csv` | 318 rows with meaning and raw hex |
+| 2026-10-29 | S1-U35 | `43067c2` | Saad | PASS | `logs/2026-10-29_S1-U35-U40.csv` | 6 PASS rows, logged when the page opened |
+| 2026-10-29 | S1-U36 | `43067c2` | Saad | PASS | `logs/2026-10-29_S1-U35-U40.csv` | About 3 min live: telemetry 0.5 s, heartbeat 1 s, state flips every 10 s |
+| 2026-10-29 | S1-U37 | `43067c2` | Saad | PASS | `logs/2026-10-29_S1-U35-U40.csv` | PAUSE, RESUME, ABORT accepted within 0.2 s. `07` rejected, count 0 → 1 |
+| 2026-10-29 | S1-U38 | `43067c2` | Saad | PASS | `logs/2026-10-29_S1-U35-U40.csv` | KDAZ accepted in READY, map ok set. Rejected in state 2 (state). KDAK not sent |
+| 2026-10-29 | S1-U39 | `43067c2` | Saad | PASS | `logs/2026-10-29_S1-U35-U40.csv` | 11 s outage. Offline logged. 112.5 → 124 replayed in order. 110–112 dropped as designed |
+| 2026-10-29 | S1-U40 | `43067c2` | Saad | PASS | `logs/2026-10-29_S1-U35-U40.csv` | 318 rows with meaning and raw hex |
