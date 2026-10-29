@@ -50,6 +50,9 @@ Test IDs are never changed.
 | S1-U38 | Map from the page | FR7, IF-18 | manual | Send KDAZ in READY, then in state 2, then KDAK | Accepted with map ok set. Then rejected (state). KDAK not sent |
 | S1-U39 | Outage shown and replayed | FR10, NFR5, IF-15 | manual | Stop the broker for about 10 s, then restart it | `car offline` row. After restart, R rows in mission-time order, outage count back to 0 |
 | S1-U40 | CSV export | Test evidence (CSV log) | manual | Click Export CSV | Every entry from the run, with meaning and raw hex |
+| S1-U41 | Car spots a dead link (no TCP reset) within 10 s and recovers | NFR3, FR10, NFR5, IF-15 | manual | Laptop WiFi off 15 s, then on | Last live mission time to first R frame ≤ 10 s. R frames in order. `car online` again |
+| S1-U42 | Last will and online topic | FR3, FR6, IF-15 | manual | Laptop WiFi off (same run as U41/U43) | `online = 0` row within 10 s of the last heartbeat. `online = 1` row after the car reconnects |
+| S1-U43 | 60 s outage: S1 keeps running and recovers | NFR4 (S1 part), NFR3, FR10, NFR5 | manual | Laptop WiFi off 60 s, then on | Heartbeat seq continues (no reset). 20 newest frames replayed in order. Outage count back to 0. Other subsystems checked at integration |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).

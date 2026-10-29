@@ -305,7 +305,7 @@
            ", map " + (f.map_ok ? "ok" : "none") + ", barcodes " + f.barcodes;
   }
 
-  function onMessage(topic, payload) {
+  function onMessage(topic, payload, packet) {
     var bytes = Array.prototype.slice.call(payload);
     var short = topic.replace("is14/car/", "");
     var e = { pc: pcTime(), topic: short, replayed: false, mt: "",
@@ -319,7 +319,17 @@
       return;
     }
     if (topic === TOPIC.online) {
-      e.text = "online message";
+      /* 1 = car connected to the broker, 0 = broker sent the car's last will */
+      if (bytes.length === 1 && bytes[0] <= 1) {
+        e.text = bytes[0] ? "online = 1: car connected to broker" :
+                 "online = 0: car lost, broker sent its last will";
+      } else {
+        e.kind = "error";
+        e.text = "online: unexpected payload";
+      }
+      if (packet && packet.retain) {
+        e.text += " (retained, from before this page connected)";
+      }
       addLog(e);
       return;
     }
@@ -452,7 +462,8 @@
       carUp = up;
       addLog({ pc: pcTime(), topic: "-", replayed: false, mt: "", hex: "",
                kind: "info", text: up ? "car online" :
-               "car offline (no heartbeat for " + CAR_TIMEOUT_MS / 1000 + " s)" });
+               "car offline (no heartbeat for " + CAR_TIMEOUT_MS / 1000 +
+               " s, or broker down)" });
     }
     $("hAge").textContent = lastHbAt ? "(" + ((now - lastHbAt) / 1000).toFixed(1) + " s ago)" : "";
     $("tAge").textContent = lastTelemAt ? "(" + ((now - lastTelemAt) / 1000).toFixed(1) + " s ago)" : "";

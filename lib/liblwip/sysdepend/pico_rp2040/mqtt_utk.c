@@ -23,6 +23,12 @@
  *	(tk/syslib.h) stops it typedef'ing size_t, leaving the toolchain's
  *	<stddef.h> definition, pulled in first, as the only one lwIP sees --
  *	the same approach as sys_arch.c.
+ *
+ *	Link loss and the "online" topic: see MQTT_UTK_KEEPALIVE_S below.
+ *	The broker holds a last will for this client: if the car goes silent,
+ *	the broker itself publishes online = 0 (retained). On every connect
+ *	this file publishes online = 1 (retained), so any subscriber, at any
+ *	time, sees whether the car is connected.
  */
 
 #define PROHIBIT_DEF_SIZE_T
@@ -36,11 +42,25 @@
 #include "mqtt_utk.h"
 #include "../../../../app_program/subsystem1/s1_topics.h"
 
-#define MQTT_UTK_KEEPALIVE_S    60
+/* Keepalive, seconds. Both ends use it to spot a link that died without
+ * a TCP reset (WiFi or router lost):
+ *   car:    mqtt.c closes the connection once nothing has come back from
+ *           the broker (not even a TCP ACK) for more than 1.5 x keepalive.
+ *           It checks every MQTT_CYCLIC_TIMER_INTERVAL (5 s, lwIP default),
+ *           so with 5 s the car notices within 10 s.
+ *   broker: drops the car, and sends the last will, after 1.5 x keepalive
+ *           (7.5 s) with nothing from the car.
+ * Telemetry goes out every 500 ms, so no extra ping traffic is added. */
+#define MQTT_UTK_KEEPALIVE_S    5
 #define MQTT_UTK_RETRY_MS       3000
 #define MQTT_UTK_TX_POLL_MS     20	/* how often TX is checked     */
 #define MQTT_UTK_TX_PER_POLL    4	/* most messages per check     */
 #define MQTT_UTK_QOS_CMD        1	/* cmd / map subscriptions     */
+#define MQTT_UTK_QOS_ONLINE     1	/* online topic, also retained */
+
+/* online topic payloads: 1 byte */
+static const u8_t	online_yes = 1u;
+static const char	online_no[1] = { 0 };	/* last will */
 
 /* Inbound message staging. A publish arrives as one topic callback followed by
  * one or more data callbacks, so the topic has to be kept until the fragment
@@ -257,6 +277,14 @@ static void connection_cb(mqtt_client_t *c, void *arg, mqtt_connection_status_t 
 		 * a MEMP_SYS_TIMEOUT slot until the pool is exhausted. */
 		sys_untimeout(tx_poll_timeout, NULL);
 		sys_timeout(MQTT_UTK_TX_POLL_MS, tx_poll_timeout, NULL);
+
+		/* Replace the last will's online = 0 with online = 1 */
+		err = mqtt_publish(client, S1_TOPIC_NAME_ONLINE, &online_yes, 1u,
+				   MQTT_UTK_QOS_ONLINE, 1u, NULL, NULL);
+		if(err != ERR_OK) {
+			tm_printf((UB*)"mqtt: publish(online) failed, err=%d\n",
+				  (int)err);
+		}
 	} else {
 		mqtt_up = 0;
 
@@ -296,6 +324,14 @@ void mqtt_utk_start(void)
 
 	client_info.client_id = MQTT_CLIENT_ID;
 	client_info.keep_alive = MQTT_UTK_KEEPALIVE_S;
+
+	/* Last will: the broker publishes online = 0 (retained) if this
+	 * client goes silent. Length given, as the payload is a 0 byte. */
+	client_info.will_topic   = S1_TOPIC_NAME_ONLINE;
+	client_info.will_msg     = online_no;
+	client_info.will_msg_len = 1u;
+	client_info.will_qos     = MQTT_UTK_QOS_ONLINE;
+	client_info.will_retain  = 1u;
 
 	connecting = 1;
 	err = mqtt_client_connect(client, &broker_addr, MQTT_BROKER_PORT,
