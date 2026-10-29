@@ -97,3 +97,10 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-10-28 | S5-M01 | `22b5879` | Min Han | PASS | `logs/2026-10-28_S5-M01.txt` | Phase 1, normal image, COM3. `PWM out of reset = 1` on every `alive` line. Nothing wired. Log shows 0 to 30 s and 212 to 221 s; the middle of the capture was not saved |
 | 2026-10-29 | S5-P01 | `22b5879` | Min Han | PASS | `logs/2026-10-28_S5-M01.txt` | Phase 1, normal image, COM3. `PWM out of reset = 1` on every `alive` line, nothing wired. Same run as the 2026-10-28 S5-M01 row, which used the wrong ID |
 | 2026-10-29 | S5-M01 | `22b5879` | Min Han | VOID | `logs/2026-10-28_S5-M01.txt` | The 2026-10-28 row was logged under the wrong ID (that run was phase 1, S5-P01). The ECHO level test has not been run yet |
+| 2026-10-29 | S5-U01 | `536e549` | Chong | PASS | `logs/2026-10-29_S5-U01-U09.txt` | Test image, S5_PHASE 1, nothing wired, COM3 |
+| 2026-10-29 | S5-U02 | `536e549` | Chong | PASS | `logs/2026-10-29_S5-U01-U09.txt` | Test image, S5_PHASE 1 |
+| 2026-10-29 | S5-U05 | `536e549` | Chong | PASS | `logs/2026-10-29_S5-U01-U09.txt` | Test image, S5_PHASE 1 |
+| 2026-10-29 | S5-U06 | `536e549` | Chong | PASS | `logs/2026-10-29_S5-U01-U09.txt` | Test image, S5_PHASE 1 |
+| 2026-10-29 | S5-U07 | `536e549` | Chong | PASS | `logs/2026-10-29_S5-U01-U09.txt` | Test image, S5_PHASE 1 |
+| 2026-10-29 | S5-U08 | `536e549` | Chong | PASS | `logs/2026-10-29_S5-U01-U09.txt` | Test image, S5_PHASE 1 |
+| 2026-10-29 | S5-U09 | `536e549` | Chong | PASS | `logs/2026-10-29_S5-U01-U09.txt` | Test image, S5_PHASE 1 |
