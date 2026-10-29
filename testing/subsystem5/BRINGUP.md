@@ -11,15 +11,15 @@ Rules that protect the board
 - Commit your code BEFORE you test it, and write the commit hash in the
   Results table of `TEST_LOG.md`.
 
-| Phase | Wired | Pins the firmware touches | Check |
-|---|---|---|---|
-| 0 | nothing (PC only) | none | `sh testing/subsystem5/host/run.sh` prints `20 passed, 0 failed` |
-| 1 | nothing | none | Console shows `s5 phase 1: alive`, `PWM out of reset = 1` |
-| 2 | servo on servo port 1 | GP12 | Servo centres, then sweeps 60 to 120 degrees slowly and smoothly |
-| 3 | + HC-SR04 VCC, GND, TRIG | GP12, GP16 | Console counts triggers; ECHO still NOT connected |
-| 4 | + ECHO through the divider | GP12, GP16, GP17 | `echo` is about 58 us per cm; moving a card changes it |
-| 5 | same wiring | same | Full scan prints `PROFILE ...` lines; log scan time and width error |
-| 6 | later | later | Vehicle Controller drives it |
+| Phase | Wired | Pins the firmware touches | Check | Test IDs (see TEST_LOG.md) |
+|---|---|---|---|---|
+| 0 | nothing (PC only) | none | `sh testing/subsystem5/host/run.sh` prints `20 passed, 0 failed` | S5-H01 to S5-H18 |
+| 1 | nothing | none | Console shows `s5 phase 1: alive`, `PWM out of reset = 1` | S5-P01 (and S5-U01, U02, U05 to U09 with `TEST=1`) |
+| 2 | servo on servo port 1 | GP12 | Servo centres, then sweeps 60 to 120 degrees slowly and smoothly | S5-P02 (and S5-U03, U04) |
+| 3 | + HC-SR04 VCC, GND, TRIG | GP12, GP16 | Console counts triggers; ECHO still NOT connected | S5-M01 (ECHO level), S5-P03 |
+| 4 | + ECHO through the divider | GP12, GP16, GP17 | `echo` is about 58 us per cm; moving a card changes it | S5-P04, S5-M03, M04, M05, M06 |
+| 5 | same wiring | same | Full scan prints `PROFILE ...` lines; log scan time and width error | S5-M02, S5-M07, S5-M08 |
+| 6 | later | later | Vehicle Controller drives it | later |
 
 ## Phase 0: PC only
 
@@ -73,7 +73,7 @@ guess: decide the supply first.
   battery voltage and may be above 5.5 V): ECHO goes up to 5 V, so a
   1k / 2k divider (or a level shifter) is REQUIRED.
 
-Test the divider BEFORE it touches the Pico
+Test the divider BEFORE it touches the Pico (S5-M01 measures the real ECHO level)
 1. Build: ECHO -> 1 kohm -> point P -> 2 kohm -> GND. P goes to GP17.
 2. With the Pico UNPLUGGED, apply 5 V from a bench supply or a USB 5 V
    source to the 1 kohm input only, GND common.
@@ -93,7 +93,7 @@ Steps
    with the divider test result from phase 3.
 2. `S5_PHASE 4`, build, flash.
 3. Hold a flat card at 10, 20, 50, 100 cm. Expect about 580, 1160, 2900,
-   5800 us. Log the table (ruler cm vs reported cm). Test IDs S5-M03, S5-M04.
+   5800 us. Log the table (ruler cm vs reported cm). Test IDs S5-M03, S5-M04 (and S5-P04 for the phase).
 4. Point at open space: note whether you get `status 1` (about 38000 us,
    normal) or `status 2` (no pulse). That decides `S5_NOECHO_FAULT_N`
    (test S5-M06).
@@ -106,26 +106,15 @@ Steps
    `obstacle: PROFILE seq N detected 1 closest .. cm @.. deg, width .. cm, left .., right .., action ..`.
 3. Record scan time (S5-M07) and width error against known objects (S5-M08).
 
-## Git: your own branch
+## Git: your own branch (GitHub Desktop)
 
-See the chat instructions or `git switch -c` below.
+Your branch is `subsystem5`. After each phase passes:
 
-```
-git fetch origin
-git branch -r                     # see how your teammates named theirs
-git switch main
-git pull
-git switch -c s5-obstacle-detection     # use the same style as theirs
-# copy the new files in, then:
-git status
-git add app_program/subsystem5 testing/subsystem5
-git commit -m "S5: obstacle detection driver, scan maths, phased bring-up"
-git push -u origin s5-obstacle-detection
-```
+1. Save the console text to `testing/subsystem5/logs/<date>_<test id>.txt`.
+2. Add a Results row for the test ID to `testing/subsystem5/TEST_LOG.md`.
+   Use the commit hash of the code you tested.
+3. GitHub Desktop: Summary `S5: phase N passed (S5-Pxx)`, Commit to
+   `subsystem5`, then Push origin.
 
-After each phase passes:
-```
-git add testing/subsystem5
-git commit -m "S5: phase N passed (log + results)"
-git push
-```
+If you logged a result under the wrong test ID, do not edit the old row.
+Add a new row that says so (see the S5-M01 / S5-P01 rows in TEST_LOG.md).

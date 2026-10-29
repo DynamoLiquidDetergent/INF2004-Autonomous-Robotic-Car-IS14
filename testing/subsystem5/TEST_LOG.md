@@ -76,22 +76,24 @@ Add a new row for every run. Never edit or delete old rows.
 
 | Date | Test ID | Commit | Tester | Result | Log / evidence | Notes |
 |---|---|---|---|---|---|---|
-| 2026-10-28 | S5-H01 | `22b5879` | Chong | PASS | `logs/2026-10-28_host.txt` | PC run, WSL, with address and undefined-behaviour checks |
-| 2026-10-28 | S5-H02 | `22b5879` | Chong | PASS | `logs/2026-10-28_host.txt` | PC run |
-| 2026-10-28 | S5-H03 | `22b5879` | Chong | PASS | `logs/2026-10-28_host.txt` | PC run |
-| 2026-10-28 | S5-H04 | `22b5879` | Chong | PASS | `logs/2026-10-28_host.txt` | PC run |
-| 2026-10-28 | S5-H05 | `22b5879` | Chong | PASS | `logs/2026-10-28_host.txt` | PC run |
-| 2026-10-28 | S5-H06 | `22b5879` | Chong | PASS | `logs/2026-10-28_host.txt` | PC run |
-| 2026-10-28 | S5-H07 | `22b5879` | Chong | PASS | `logs/2026-10-28_host.txt` | PC run |
-| 2026-10-28 | S5-H08 | `22b5879` | Chong | PASS | `logs/2026-10-28_host.txt` | PC run |
-| 2026-10-28 | S5-H09 | `22b5879` | Chong | PASS | `logs/2026-10-28_host.txt` | PC run |
-| 2026-10-28 | S5-H10 | `22b5879` | Chong | PASS | `logs/2026-10-28_host.txt` | PC run |
-| 2026-10-28 | S5-H11 | `22b5879` | Chong | PASS | `logs/2026-10-28_host.txt` | PC run |
-| 2026-10-28 | S5-H12 | `22b5879` | Chong | PASS | `logs/2026-10-28_host.txt` | PC run |
-| 2026-10-28 | S5-H13 | `22b5879` | Chong | PASS | `logs/2026-10-28_host.txt` | PC run |
-| 2026-10-28 | S5-H14 | `22b5879` | Chong | PASS | `logs/2026-10-28_host.txt` | PC run, checks a, b and c |
-| 2026-10-28 | S5-H15 | `22b5879` | Chong | PASS | `logs/2026-10-28_host.txt` | PC run |
-| 2026-10-28 | S5-H16 | `22b5879` | Chong | PASS | `logs/2026-10-28_host.txt` | PC run |
-| 2026-10-28 | S5-H17 | `22b5879` | Chong | PASS | `logs/2026-10-28_host.txt` | PC run |
-| 2026-10-28 | S5-H18 | `22b5879` | Chong | PASS | `logs/2026-10-28_host.txt` | PC run |
-| 2026-10-28 | S5-M01 | `22b5879` | Chong | PASS | `logs/2026-10-28_S5-M01.txt` | Phase 1, normal image, COM3. `PWM out of reset = 1` on every `alive` line. Nothing wired. Log shows 0 to 30 s and 212 to 221 s; the middle of the capture was not saved |
+| 2026-10-28 | S5-H01 | `22b5879` | Min Han | PASS | `logs/2026-10-28_host.txt` | PC run, WSL, with address and undefined-behaviour checks |
+| 2026-10-28 | S5-H02 | `22b5879` | Min Han | PASS | `logs/2026-10-28_host.txt` | PC run |
+| 2026-10-28 | S5-H03 | `22b5879` | Min Han | PASS | `logs/2026-10-28_host.txt` | PC run |
+| 2026-10-28 | S5-H04 | `22b5879` | Min Han | PASS | `logs/2026-10-28_host.txt` | PC run |
+| 2026-10-28 | S5-H05 | `22b5879` | Min Han | PASS | `logs/2026-10-28_host.txt` | PC run |
+| 2026-10-28 | S5-H06 | `22b5879` | Min Han | PASS | `logs/2026-10-28_host.txt` | PC run |
+| 2026-10-28 | S5-H07 | `22b5879` | Min Han | PASS | `logs/2026-10-28_host.txt` | PC run |
+| 2026-10-28 | S5-H08 | `22b5879` | Min Han | PASS | `logs/2026-10-28_host.txt` | PC run |
+| 2026-10-28 | S5-H09 | `22b5879` | Min Han | PASS | `logs/2026-10-28_host.txt` | PC run |
+| 2026-10-28 | S5-H10 | `22b5879` | Min Han | PASS | `logs/2026-10-28_host.txt` | PC run |
+| 2026-10-28 | S5-H11 | `22b5879` | Min Han | PASS | `logs/2026-10-28_host.txt` | PC run |
+| 2026-10-28 | S5-H12 | `22b5879` | Min Han | PASS | `logs/2026-10-28_host.txt` | PC run |
+| 2026-10-28 | S5-H13 | `22b5879` | Min Han | PASS | `logs/2026-10-28_host.txt` | PC run |
+| 2026-10-28 | S5-H14 | `22b5879` | Min Han | PASS | `logs/2026-10-28_host.txt` | PC run, checks a, b and c |
+| 2026-10-28 | S5-H15 | `22b5879` | Min Han | PASS | `logs/2026-10-28_host.txt` | PC run |
+| 2026-10-28 | S5-H16 | `22b5879` | Min Han | PASS | `logs/2026-10-28_host.txt` | PC run |
+| 2026-10-28 | S5-H17 | `22b5879` | Min Han | PASS | `logs/2026-10-28_host.txt` | PC run |
+| 2026-10-28 | S5-H18 | `22b5879` | Min Han | PASS | `logs/2026-10-28_host.txt` | PC run |
+| 2026-10-28 | S5-M01 | `22b5879` | Min Han | PASS | `logs/2026-10-28_S5-M01.txt` | Phase 1, normal image, COM3. `PWM out of reset = 1` on every `alive` line. Nothing wired. Log shows 0 to 30 s and 212 to 221 s; the middle of the capture was not saved |
+| 2026-10-29 | S5-P01 | `22b5879` | Min Han | PASS | `logs/2026-10-28_S5-M01.txt` | Phase 1, normal image, COM3. `PWM out of reset = 1` on every `alive` line, nothing wired. Same run as the 2026-10-28 S5-M01 row, which used the wrong ID |
+| 2026-10-29 | S5-M01 | `22b5879` | Min Han | VOID | `logs/2026-10-28_S5-M01.txt` | The 2026-10-28 row was logged under the wrong ID (that run was phase 1, S5-P01). The ECHO level test has not been run yet |
