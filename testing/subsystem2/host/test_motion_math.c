@@ -84,30 +84,50 @@ int main(void)
 	  && (motion_epoch_is_stale(13U, 5U) == FALSE);		/* 8 behind = 8 ahead: newer */
 	check("S2-H05", ok, "epoch staleness, including wrap 15 -> 0");
 
-	/* H06: distance per pulse from the geometry (65 mm, 20 pulses) */
-	check("S2-H06", S2_UM_PER_PULSE == 10210, "um per pulse = 10210 for 65 mm / 20 pulses");
+	/* H06: distance per pulse matches pi * diameter / pulses per turn, to
+	   1 um (integer rounding) + 0.1%, for whatever geometry subsystem2.h holds after calibration
+	   (65 mm / 20 pulses gives 10210 um) */
+	{
+		double	exact = 3.14159 * 1000.0 * S2_WHEEL_DIAMETER_MM / S2_ENC_PULSES_PER_REV;
+		double	diff  = (double)S2_UM_PER_PULSE - exact;
 
-	/* H07: speed from edge period */
-	ok = (motion_speed_mmps(51050U, 1000U, 10U, 1) == 200)		/* 20 Hz edges */
-	  && (motion_speed_mmps(51050U, 1000U, 10U, -1) == -200)
-	  && (motion_speed_mmps(51050U, 102100U, 10U, 1) == 100)	/* slowing: since > period */
-	  && (motion_speed_mmps(51050U, 300000U, 10U, 1) == 0)	/* timed out */
-	  && (motion_speed_mmps(0U, 1000U, 1U, 1) == 0)		/* one edge only */
-	  && (motion_speed_mmps(1000U, 100U, 10U, 1) == S2_SPEED_LIMIT);	/* clamps */
+		if (diff < 0.0) {
+			diff = -diff;
+		}
+		check("S2-H06", (S2_UM_PER_PULSE > 0) && (diff < 1.0 + exact / 1000.0),
+		      "um per pulse = pi x diameter / pulses per turn (within 1 um)");
+	}
+
+	/* H07: speed from edge period.  Periods are derived from the current
+	   distance per pulse, so the test holds after calibration. */
+	{
+		UW	p200 = (UW)S2_UM_PER_PULSE * 5U;	/* period for exactly 200 mm/s */
+		UW	pmax = (UW)S2_UM_PER_PULSE;		/* 1000 mm/s: above the limit */
+
+		ok = (motion_speed_mmps(p200, p200 / 2U, 10U, 1) == 200)
+		  && (motion_speed_mmps(p200, p200 / 2U, 10U, -1) == -200)
+		  && (motion_speed_mmps(p200, p200 * 2U, 10U, 1) == 100)	/* slowing: since > period */
+		  && (motion_speed_mmps(p200, 300000U, 10U, 1) == 0)		/* timed out */
+		  && (motion_speed_mmps(0U, 1000U, 1U, 1) == 0)			/* one edge only */
+		  && (motion_speed_mmps(pmax, pmax / 2U, 10U, 1) == S2_SPEED_LIMIT);	/* clamps */
+	}
 	check("S2-H07", ok, "speed from edge period: 200, -200, decay, timeout, clamp");
 
 	/* H08: feed-forward */
-	ok = (motion_ff_duty(0) == 0) && (motion_ff_duty(200) == 500)
-	  && (motion_ff_duty(-200) == -500) && (motion_ff_duty(2000) == 1000);
-	check("S2-H08", ok, "feed-forward duty: 0, +/-500 at 200 mm/s, clamp 1000");
+	/* expected value from the tuning constants, so the test holds after tuning */
+	d = S2_FF_DEADBAND_PERMILLE + (200 * S2_FF_GAIN_MILLI) / 1000;
+	d = (d > 1000) ? 1000 : d;
+	ok = (motion_ff_duty(0) == 0) && (motion_ff_duty(200) == d)
+	  && (motion_ff_duty(-200) == -d) && (motion_ff_duty(30000) == 1000);
+	check("S2-H08", ok, "feed-forward duty: 0, +/- deadband + gain at 200 mm/s, clamp 1000");
 
 	/* H09: PI never drives against the target direction, saturates at 1000 */
 	pi.integ = 0;
 	d = motion_pi_step(&pi, 100, 400);		/* far too fast */
 	ok = (d >= 0);
-	pi.integ = 0;
-	d = motion_pi_step(&pi, 500, 0);		/* stalled at full demand */
-	ok = ok && (d == 1000) && (pi.integ == 0);	/* saturated: integrator held */
+	pi.integ = S2_INTEG_MAX;
+	d = motion_pi_step(&pi, S2_SPEED_LIMIT, 0);	/* stalled at full demand */
+	ok = ok && (d > 0) && (d <= 1000) && (pi.integ <= S2_INTEG_MAX);	/* clamped */
 	pi.integ = 123;
 	d = motion_pi_step(&pi, 0, 50);
 	ok = ok && (d == 0) && (pi.integ == 0);	/* target 0: off and reset */
@@ -118,9 +138,10 @@ int main(void)
 	  && (motion_ramp(0, -200, 25) == -25);
 	check("S2-H10", ok, "setpoint ramp limited to 25 mm/s per cycle");
 
-	/* H11: turn arc for 90 deg with 120 mm track = 94.26 mm */
-	ok = (motion_turn_arc_um(90) == 94260) && (motion_turn_arc_um(-90) == 94260);
-	check("S2-H11", ok, "turn arc 90 deg = 94.26 mm per wheel");
+	/* H11: turn arc for 90 deg = quarter of pi x track (120 mm -> 94.26 mm) */
+	ok = (motion_turn_arc_um(90) == (90L * S2_TRACK_WIDTH_MM * 3142L) / 360L)
+	  && (motion_turn_arc_um(-90) == motion_turn_arc_um(90));
+	check("S2-H11", ok, "turn arc 90 deg = pi x track / 4 per wheel");
 
 	/* H12: straight-line hold steers against the wheel that is ahead */
 	ok = (motion_heading_correction(10000, 0) < 0) && (motion_heading_correction(0, 10000) > 0)

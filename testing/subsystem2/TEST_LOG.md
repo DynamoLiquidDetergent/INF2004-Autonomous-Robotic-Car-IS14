@@ -72,3 +72,38 @@ Add a new row for every run. Never edit or delete old rows.
 | Date | Test ID | Commit | Tester | Result | Log / evidence | Notes |
 |---|---|---|---|---|---|---|
 | YYYY-MM-DD | S2-U03 | `abc1234` | | PASS / FAIL | `logs/YYYY-MM-DD_….txt` | |
+| 2026-10-29 | S2-H01 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_host.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-H02 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_host.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-H03 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_host.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-H04 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_host.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-H05 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_host.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-H06 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_host.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-H07 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_host.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-H08 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_host.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-H09 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_host.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-H10 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_host.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-H11 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_host.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-H12 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_host.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-U01 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_1039_unit.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-U02 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_1039_unit.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-U03 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_1039_unit.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-U04 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_1039_unit.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-U05 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_1039_unit.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-U06 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_1039_unit.txt` | WCET 220 us, jitter 323 us (tested with uncommitted changes) |
+| 2026-10-29 | S2-U07 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_1039_unit.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-U08 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_1039_unit.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-U09 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_1039_unit.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-U10 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_1039_unit.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-U11 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_1039_unit.txt` | (tested with uncommitted changes) |
+| 2026-10-29 | S2-M01 | `d900e4a` | Aaron | PASS | `multimeter` | encoder type: quadrature (A+B) (tested with uncommitted changes) |
+| 2026-10-29 | S2-M02 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_1041_pulses.txt` | 635 pulses/turn (L 634.2, R 635.4), wheel 65 mm (tested with uncommitted changes) |
+| 2026-10-29 | S2-M03 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_1045_drive.txt` | both wheels forward (tested with uncommitted changes) |
+| 2026-10-29 | S2-M05 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_1045_drive.txt` | L 205, R 202 mm/s (target 180-220) (tested with uncommitted changes) |
+| 2026-10-29 | S2-M04 | `d900e4a` | Aaron | FAIL | `logs/2026-10-29_1046_tune.csv` | L settle 1320 ms, overshoot 62%; R settle 1300 ms, overshoot 52%; KP 800 KI 60 FF 1250 (tested with uncommitted changes) |
+| 2026-10-29 | S2-M04 | `d900e4a` | Aaron | FAIL | `logs/2026-10-29_1051_tune.csv` | L settle 160 ms, overshoot 5%; R settle 300 ms, overshoot 1%; KP 800 KI 60 FF 560 (tested with uncommitted changes) |
+| 2026-10-29 | S2-M04 | `d900e4a` | Aaron | FAIL | `logs/2026-10-29_1052_tune.csv` | L settle 160 ms, overshoot 5%; R settle 400 ms, overshoot 1%; KP 800 KI 60 FF 560 (tested with uncommitted changes) |
+| 2026-10-29 | S2-M04 | `d900e4a` | Aaron | FAIL | `logs/2026-10-29_1056_tune.csv` | L settle 160 ms, overshoot 5%; R settle 340 ms, overshoot 0%; KP 800 KI 60 FF 560 (tested with uncommitted changes) |
+| 2026-10-29 | S2-M10 | `d900e4a` | Aaron | FAIL | `logs/2026-10-29_1057_stall.txt` | state STALLED never reached (tested with uncommitted changes) |
+| 2026-10-29 | S2-M03 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_1058_drive.txt` | both wheels forward (tested with uncommitted changes) |
+| 2026-10-29 | S2-M05 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_1058_drive.txt` | L 204, R 201 mm/s (target 180-220) (tested with uncommitted changes) |
+| 2026-10-29 | S2-M08 | `d900e4a` | Aaron | PASS | `logs/2026-10-29_1104_turns.txt` | wheels up: direction only (tested with uncommitted changes) |
