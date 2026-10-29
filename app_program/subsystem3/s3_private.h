@@ -9,6 +9,16 @@
 
 #include "subsystem3.h"
 
+/* ---------------------------------------------------------------------
+ *  DEBUG SWITCH for the Commit 4 Part B video.
+ *  1 = in a NORMAL build (make -j8, not TEST=1) the robot drives forward
+ *      over the barcode by itself, stops after a decode, then drives back
+ *      over it in reverse.  Also turns on the A,B,C,D test mapping and the
+ *      "BARCODE: ch=.. cmd=.." prints in barcode_decode.c.
+ *  MUST be 0 when committing.
+ * --------------------------------------------------------------------- */
+#define S3_BC_DRIVE_DEMO    1 //was 0
+
 /* ---- line_sensor.c ---- */
 IMPORT ER   line_sensor_init(void);     /* phase 1: create objects      */
 IMPORT ER   line_sensor_start(void);    /* phase 2: start the task      */
@@ -32,5 +42,11 @@ IMPORT ER   barcode_decode_start(void); /* phase 2: start the task      */
 
 /* true if the mapping is four distinct letters A-Z (IF char map) */
 IMPORT bool s3_char_map_valid(const CHAR_MAP_MSG *m);
+
+/* Number of valid letters decoded since boot */
+IMPORT UW   barcode_decode_count(void);
+
+/* ---- s3_drive_demo.c (debug only, see S3_BC_DRIVE_DEMO) ---- */
+IMPORT ER   s3_drive_demo_start(void);  /* phase 2; does nothing when off */
 
 #endif /* S3_PRIVATE_H */

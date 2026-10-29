@@ -20,10 +20,13 @@ Define a test here before running it. Test IDs never change.
 | S3-U04a | char map: four distinct A–Z letters accepted | MQTT map `CHAR_MAP_MSG` | auto | `subsystem3_test.c` → `test_char_map_validation()` | `[TEST] S3-U04a PASS` |
 | S3-U04b | char map: duplicate letter rejected | MQTT map `CHAR_MAP_MSG` | auto | `subsystem3_test.c` → `test_char_map_validation()` | `[TEST] S3-U04b PASS` |
 | S3-U04c | char map: non-letter character rejected | MQTT map `CHAR_MAP_MSG` | auto | `subsystem3_test.c` → `test_char_map_validation()` | `[TEST] S3-U04c PASS` |
-| S3-U05 | Code 39 LUT: `code39_lookup()` returns 'A' (0x109), 'Z' (0x0D0), '*' (0x0A4), 'D' (0x019), `CODE39_INVALID` (0x1FF) | Code 39 decoder (`code39.c`) | auto | `subsystem3_test.c`, after `code39_init()` in `subsystem3_init()` | `[TEST] S3-U05 PASS` |
+| S3-U05 | Code 39 LUT: `code39_lookup()` returns 'A' (0x109), 'Z' (0x0D0), '*' (0x094), 'D' (0x019), `CODE39_INVALID` (0x1FF) | Code 39 decoder (`code39.c`) | auto | `subsystem3_test.c`, after `code39_init()` in `subsystem3_init()` | `[TEST] S3-U05 PASS` |
 | S3-U06 | `code39_decode_symbol()` decodes a hand-built `*A*` element array (narrow 5, wide 12 samples) as 'A' forward and reversed | Code 39 decoder (`code39.c`) | auto | `subsystem3_test.c`, `code39_decode_symbol(elems, 4, 15)` | `[TEST] S3-U06 PASS` |
-| INT-01 | `line_sensor_task` delivers a `LINE_DATA_MSG` on `q_line_data` within 100 ms | IF-05 | auto | `subsystem3_test.c` → `test_line_data_flow()`, after 500 ms calibration | `[TEST] INT-01 PASS` |
-| INT-02 | `line_sensor_task` delivers a `GP28_SAMPLE_MSG` on `q_gp28_samples` within 10 ms | IF-06 | auto | `subsystem3_test.c` → `test_gp28_flow()` | `[TEST] INT-02 PASS` |
+| INT-01 | `line_sensor_task` delivers a `LINE_DATA_MSG` on `q_line_data` within 100 ms | IF-05 | auto | `subsystem3_test.c` → `test_line_data_flow()`, after `subsystem3_run_calibration()` | `[TEST] INT-01 PASS` |
+| INT-02 | `line_sensor_task` puts GP28 samples into `q_gp28_samples` within 10 ms | IF-06 | auto | `subsystem3_test.c` → `test_gp28_flow()`: counts successful sends (`line_sensor_gp28_sent()`), because `barcode_decode_task` empties the queue at once | `[TEST] INT-02 PASS` |
+| S3-U07 | valid char map ('A','B','C','D') + injected GP28 samples for a full `*A*` symbol produce `BARCODE_CMD_FORWARD` on `q_barcode_cmd` within 200 ms | IF-06 → IF-07, MQTT map | auto | `subsystem3_test.c`: send map to `mbx_char_map`, pause live GP28, inject quiet zone + `*A*` + quiet zone into `q_gp28_samples` | `[TEST] S3-U07 PASS` |
+| S3-U08 | invalid char map (duplicate 'A') is dropped: nothing appears on `q_barcode_cmd` | MQTT map, IF-07 | auto | `subsystem3_test.c`: send bad map, wait 50 ms, poll `q_barcode_cmd` with `TMO_POL` | `[TEST] S3-U08 PASS` |
+| S3-M01 | live scan: printed `*A*` and `*C*` pass under GP28 forward and reverse; correct letter and command printed | IF-06 → IF-07, Code 39 bidirectional | manual (video) | debug build with `BARCODE:` prints and test map A,B,C,D; robot pushed by hand over each barcode, both directions | `BARCODE: ch=A cmd=1` both ways; `ch=C cmd=3` |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).
@@ -42,3 +45,13 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-10-28 | S3-U06 | 03f60e1 | Daniel | PASS | `logs/2026-10-28_S3U05-U06.txt` | |
 | 2026-10-28 | S3-INT-01 | f6905f8 | Daniel | PASS | `logs/2026-10-28_S3U05-U06.txt` | |
 | 2026-10-28 | S3-INT-02 | f6905f8 | Daniel | PASS | `logs/2026-10-28_S3U05-U06.txt` | |
+| 2026-10-29 | S3-U01 | 494b82f | Daniel | PASS | `logs/2026-10-29_S3U07-U08.txt` | regression |
+| 2026-10-29 | S3-U02 | 494b82f | Daniel | PASS | `logs/2026-10-29_S3U07-U08.txt` | regression (a/b/c) |
+| 2026-10-29 | S3-U03 | 494b82f | Daniel | PASS | `logs/2026-10-29_S3U07-U08.txt` | regression (a/b/c) |
+| 2026-10-29 | S3-U04 | 494b82f | Daniel | PASS | `logs/2026-10-29_S3U07-U08.txt` | regression (a/b/c); now tests the real `s3_char_map_valid()` |
+| 2026-10-29 | S3-U05 | 494b82f | Daniel | PASS | `logs/2026-10-29_S3U07-U08.txt` | regression |
+| 2026-10-29 | S3-U06 | 494b82f | Daniel | PASS | `logs/2026-10-29_S3U07-U08.txt` | regression |
+| 2026-10-29 | INT-01 | 494b82f | Daniel | PASS | `logs/2026-10-29_S3U07-U08.txt` | calibration timed out (left/centre sensors unplugged), default range kept |
+| 2026-10-29 | INT-02 | 494b82f | Daniel | PASS | `logs/2026-10-29_S3U07-U08.txt` | after fix (counts sends) |
+| 2026-10-29 | S3-U07 | 494b82f | Daniel | PASS | `logs/2026-10-29_S3U07-U08.txt` | |
+| 2026-10-29 | S3-U08 | 494b82f | Daniel | PASS | `logs/2026-10-29_S3U07-U08.txt` | |

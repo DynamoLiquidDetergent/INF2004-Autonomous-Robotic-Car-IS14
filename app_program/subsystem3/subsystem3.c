@@ -97,6 +97,11 @@ EXPORT ER subsystem3_start(void)
     er = barcode_decode_start();
     if (er < E_OK) return er;
 
+    /* Debug only: drives the robot over a barcode (S3_BC_DRIVE_DEMO in
+       s3_private.h).  Does nothing when the switch is 0. */
+    er = s3_drive_demo_start();
+    if (er < E_OK) return er;
+
     /* Legacy example consumer, keeps S2/S4 working until they are replaced */
     tid = app_start_task(consumer_task, S3_PRI_CONSUMER, 0, "consumer_task");
     return (tid < E_OK) ? tid : E_OK;

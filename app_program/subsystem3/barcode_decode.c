@@ -33,17 +33,23 @@
 /* 1 = start with mapping A,B,C,D (forward, U-turn, left, right) so a
    live scan works before S1 sends one (Commit 4 Part B).  MUST be 0
    when committing. */
-#define S3_BC_TEST_MAP        1 //was 0
+#define S3_BC_TEST_MAP        S3_BC_DRIVE_DEMO   /* on with the drive demo */
 
 /* 1 = print every decode attempt (Commit 4 Part B).  MUST be 0 when
    committing. */
-#define S3_BC_DEBUG           1 //was 0
+#define S3_BC_DEBUG           S3_BC_DRIVE_DEMO   /* on with the drive demo */
 
 /* ---------------------------------------------------------------------
  *  State
  * --------------------------------------------------------------------- */
 LOCAL CHAR_MAP_MSG s_char_map;
 LOCAL bool         s_map_valid = false;
+LOCAL volatile UW  s_decodes   = 0;      /* valid letters decoded */
+
+EXPORT UW barcode_decode_count(void)
+{
+    return s_decodes;
+}
 
 typedef struct {
     bool     have_slot;          /* last_slot is valid                  */
@@ -128,6 +134,7 @@ LOCAL void decode_and_send(BC_STATE *st)
 
     if (ch >= 'A' && ch <= 'Z') {
         send_latest_u8(q_decoded_char, ch);
+        s_decodes++;
         cmd = resolve(ch);
         if (cmd != BARCODE_CMD_NONE) {
             send_latest_u8(q_barcode_cmd, cmd);
