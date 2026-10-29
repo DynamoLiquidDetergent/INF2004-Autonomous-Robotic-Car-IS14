@@ -95,3 +95,9 @@ Old rows are never deleted or edited to change their meaning / results.
 | 2026-10-29 | S1-U32 | `235f63e` | Saad | PASS | `logs/2026-10-29_S1-U32.txt` | Telem 500 ms, hb 1 s. 12 boot frames replayed after connect |
 | 2026-10-29 | S1-U33 | `235f63e` | Saad | PASS | `logs/2026-10-29_S1-U33.txt` | All 5 ACKs as expected. Hb reject count 0→3. Map bit kept after rejected map |
 | 2026-10-29 | S1-U34 | `235f63e` | Saad | PASS | `logs/2026-10-29_S1-U34.txt` | Broker off 15 s, reconnect 1 s after restart. 25 replayed in order, hb outage 18→0 |
+| 2026-10-29 | S1-U35 | `43067c2` | | PASS | `logs/2026-10-29_S1-U35-U40.csv` | 6 PASS rows, logged when the page opened |
+| 2026-10-29 | S1-U36 | `43067c2` | | PASS | `logs/2026-10-29_S1-U35-U40.csv` | About 3 min live: telemetry 0.5 s, heartbeat 1 s, state flips every 10 s |
+| 2026-10-29 | S1-U37 | `43067c2` | | PASS | `logs/2026-10-29_S1-U35-U40.csv` | PAUSE, RESUME, ABORT accepted within 0.2 s. `07` rejected, count 0 → 1 |
+| 2026-10-29 | S1-U38 | `43067c2` | | PASS | `logs/2026-10-29_S1-U35-U40.csv` | KDAZ accepted in READY, map ok set. Rejected in state 2 (state). KDAK not sent |
+| 2026-10-29 | S1-U39 | `43067c2` | | PASS | `logs/2026-10-29_S1-U35-U40.csv` | 11 s outage. Offline logged. 112.5 → 124 replayed in order. 110–112 dropped as designed |
+| 2026-10-29 | S1-U40 | `43067c2` | | PASS | `logs/2026-10-29_S1-U35-U40.csv` | 318 rows with meaning and raw hex |
