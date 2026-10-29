@@ -1,6 +1,6 @@
 # Subsystem 3 — test log
 
-**Subsystem:** Consumer (example)  ·  **Student ID:** <student ID>  ·  **Code:** `app_program/subsystem3/`
+**Subsystem:** IR Perception: Line Tracking, Junction Detection, Barcode Decode  ·  **Student ID:** 2500172  ·  **Code:** `app_program/subsystem3/`
 
 See `testing/README.md` for how to run tests and record results.
 
@@ -22,11 +22,13 @@ Define a test here before running it. Test IDs never change.
 | S3-U04c | char map: non-letter character rejected | MQTT map `CHAR_MAP_MSG` | auto | `subsystem3_test.c` → `test_char_map_validation()` | `[TEST] S3-U04c PASS` |
 | S3-U05 | Code 39 LUT: `code39_lookup()` returns 'A' (0x109), 'Z' (0x0D0), '*' (0x094), 'D' (0x019), `CODE39_INVALID` (0x1FF) | Code 39 decoder (`code39.c`) | auto | `subsystem3_test.c`, after `code39_init()` in `subsystem3_init()` | `[TEST] S3-U05 PASS` |
 | S3-U06 | `code39_decode_symbol()` decodes a hand-built `*A*` element array (narrow 5, wide 12 samples) as 'A' forward and reversed | Code 39 decoder (`code39.c`) | auto | `subsystem3_test.c`, `code39_decode_symbol(elems, 4, 15)` | `[TEST] S3-U06 PASS` |
-| INT-01 | `line_sensor_task` delivers a `LINE_DATA_MSG` on `q_line_data` within 100 ms | IF-05 | auto | `subsystem3_test.c` → `test_line_data_flow()`, after `subsystem3_run_calibration()` | `[TEST] INT-01 PASS` |
-| INT-02 | `line_sensor_task` puts GP28 samples into `q_gp28_samples` within 10 ms | IF-06 | auto | `subsystem3_test.c` → `test_gp28_flow()`: counts successful sends (`line_sensor_gp28_sent()`), because `barcode_decode_task` empties the queue at once | `[TEST] INT-02 PASS` |
+| INT-01 | **Retired 2026-10-29: ID clashes with team INT-01 in `testing/integration/TEST_LOG.md`. Use S3-I01.** `line_sensor_task` delivers a `LINE_DATA_MSG` on `q_line_data` within 100 ms | IF-05 | auto | `subsystem3_test.c` → `test_line_data_flow()`, after `subsystem3_run_calibration()` | `[TEST] INT-01 PASS` |
+| INT-02 | **Retired 2026-10-29: ID clashes with team INT-02 (S3 → S4 summary lines). Use S3-I02.** `line_sensor_task` puts GP28 samples into `q_gp28_samples` within 10 ms | IF-06 | auto | `subsystem3_test.c` → `test_gp28_flow()`: counts successful sends (`line_sensor_gp28_sent()`), because `barcode_decode_task` empties the queue at once | `[TEST] INT-02 PASS` |
 | S3-U07 | valid char map ('A','B','C','D') + injected GP28 samples for a full `*A*` symbol produce `BARCODE_CMD_FORWARD` on `q_barcode_cmd` within 200 ms | IF-06 → IF-07, MQTT map | auto | `subsystem3_test.c`: send map to `mbx_char_map`, pause live GP28, inject quiet zone + `*A*` + quiet zone into `q_gp28_samples` | `[TEST] S3-U07 PASS` |
 | S3-U08 | invalid char map (duplicate 'A') is dropped: nothing appears on `q_barcode_cmd` | MQTT map, IF-07 | auto | `subsystem3_test.c`: send bad map, wait 50 ms, poll `q_barcode_cmd` with `TMO_POL` | `[TEST] S3-U08 PASS` |
 | S3-M01 | live scan: printed `*A*` and `*C*` pass under GP28 forward and reverse; correct letter and command printed | IF-06 → IF-07, Code 39 bidirectional | manual (video) | debug build with `BARCODE:` prints and test map A,B,C,D; robot pushed by hand over each barcode, both directions | `BARCODE: ch=A cmd=1` both ways; `ch=C cmd=3` |
+| S3-I01 | `line_sensor_task` delivers a `LINE_DATA_MSG` on `q_line_data` within 100 ms (internal to S3; was INT-01) | IF-05 | auto | `subsystem3_test.c` → `test_line_data_flow()`, after `subsystem3_run_calibration()` | `[TEST] S3-I01 PASS` |
+| S3-I02 | `line_sensor_task` puts GP28 samples into `q_gp28_samples` within 10 ms, counted with `line_sensor_gp28_sent()` (internal to S3; was INT-02) | IF-06 | auto | `subsystem3_test.c` → `test_gp28_flow()` | `[TEST] S3-I02 PASS` |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).
@@ -55,3 +57,11 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-10-29 | INT-02 | 494b82f | Daniel | PASS | `logs/2026-10-29_S3U07-U08.txt` | after fix (counts sends) |
 | 2026-10-29 | S3-U07 | 494b82f | Daniel | PASS | `logs/2026-10-29_S3U07-U08.txt` | |
 | 2026-10-29 | S3-U08 | 494b82f | Daniel | PASS | `logs/2026-10-29_S3U07-U08.txt` | |
+| 2026-10-29 | S3-U05 | `03f60e1` | Daniel | PASS | `logs/2026-10-28_S3U1,INT01-02.txt` | CORRECTION of 2026-10-28 S3-U05 row: the log it cites has no S3-U05 line; the PASS line is in this log |
+| 2026-10-29 | S3-U06 | `03f60e1` | Daniel | PASS | `logs/2026-10-28_S3U1,INT01-02.txt` | CORRECTION of 2026-10-28 S3-U06 row: same as above |
+| 2026-10-29 | S3-I01 | `f6905f8` | Daniel | PASS | `logs/2026-10-28_S3U1,INT01-02.txt` | CORRECTION of 2026-10-28 S3-INT-01 row: wrong log cited; printed as `INT-01` before the rename; calibration timed out |
+| 2026-10-29 | S3-I02 | `f6905f8` | Daniel | PASS | `logs/2026-10-28_S3U1,INT01-02.txt` | CORRECTION of 2026-10-28 S3-INT-02 row: wrong log cited (the INT-02 line in that log is subsystem 4's test); printed as `INT-02`; old queue-polling method |
+| 2026-10-29 | S3-U01 | `494b82f` | Daniel | NOT SHOWN | `logs/2026-10-28_S3U07-U08.txt` | CORRECTION of 2026-10-29 S3-U01 row: no `S3-U01` line in the log (start of S3 output lost on reset; SUMMARY says 16 passed); re-run needed |
+| 2026-10-29 | S3-U02 | `494b82f` | Daniel | PASS | `logs/2026-10-28_S3U07-U08.txt` | CORRECTION of log path: the 2026-10-29 rows cite `2026-10-29_S3U07-U08.txt`, the file is named `2026-10-28_S3U07-U08.txt`; applies to U02–U08 rows of that run |
+| 2026-10-29 | S3-I01 | `494b82f` | Daniel | PASS | `logs/2026-10-28_S3U07-U08.txt` | CORRECTION of 2026-10-29 INT-01 row (ID clash + log path); printed as `INT-01`; calibration timed out, left/centre sensors unplugged |
+| 2026-10-29 | S3-I02 | `494b82f` | Daniel | PASS | `logs/2026-10-28_S3U07-U08.txt` | CORRECTION of 2026-10-29 INT-02 row (ID clash + log path); printed as `INT-02`; counts sends |
