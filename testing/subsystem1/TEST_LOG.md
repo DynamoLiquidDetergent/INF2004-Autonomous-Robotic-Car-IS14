@@ -44,6 +44,12 @@ Test IDs are never changed.
 | S1-U32 | Frames reach the broker over MQTT | IF-15 TX | manual | MQTT build, mosquitto_sub on is14/car/# | Telem 15 B every 500 ms and hb 4 B every 1 s. Hb shows WiFi and MQTT up |
 | S1-U33 | Commands and maps from the PC | FR7, FR8, IF-15 RX, IF-18 | manual | mosquitto_pub on cmd and map | PAUSE accepted. Junk and too-long rejected. Map accepted when READY, rejected when not |
 | S1-U34 | Broker stopped ~15 s, then restarted | IF-15, NFR4 | manual | Stop and restart Mosquitto | Link down with one retry line per attempt. Reconnects, then kept frames replay (header 41) ~100 ms apart |
+| S1-U35 | Page decoder and encoders match the car's packer (golden bytes from U11) | CR1 | auto | Open `tools/dashboard/index.html` | 6 `[TEST] S1-U35 PASS` rows in the CSV |
+| S1-U36 | Live data from the board | FR6, IF-15 | manual | Car and broker running, page open, wait 20 s | Telemetry every 0.5 s, heartbeat every 1 s, STATE_CHANGE events, `car online` |
+| S1-U37 | Commands from the page | FR7, FR8 | manual | Click PAUSE, RESUME, ABORT. Send `junk.bin` | Each command shows "accepted". `07` gives "command rejected", rejected count +1 |
+| S1-U38 | Map from the page | FR7, IF-18 | manual | Send KDAZ in READY, then in state 2, then KDAK | Accepted with map ok set. Then rejected (state). KDAK not sent |
+| S1-U39 | Outage shown and replayed | FR9, IF-15 | manual | Stop the broker for about 10 s, then restart it | `car offline` row. After restart, R rows in mission-time order, outage count back to 0 |
+| S1-U40 | CSV export | FR6 | manual | Click Export CSV | Every entry from the run, with meaning and raw hex |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).

@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>S1 Dashboard</title>
+<!--
+  Subsystem 1 PC dashboard. Open this file in a browser (double-click).
+  Needs Mosquitto with a WebSockets listener. Add to the broker's .conf:
+      listener 9001
+      protocol websockets
+  Files: index.html (this), codec.js (decode/encode/self-test),
+         mqtt.min.js (MQTT.js 5.10.4, MIT licence, stored for offline use).
+-->
+<style>
+  :root {
+    --bg: #f4f5f7; --card: #ffffff; --ink: #1c1f24; --muted: #6b7280;
+    --line: #e2e5ea; --ok: #157f3b; --bad: #b42318; --warn: #b54708;
+    --accent: #2457c5; --chip: #eef1f5; --mono: ui-monospace, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121418; --card: #1b1e24; --ink: #e6e8eb; --muted: #9aa1ac;
+      --line: #2c313a; --ok: #4ac26b; --bad: #f97066; --warn: #fdb022;
+      --accent: #7aa2ff; --chip: #252a32;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 14px/1.4 system-ui, "Segoe UI", sans-serif; }
+  header { display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+           padding: 12px 16px; background: var(--card);
+           border-bottom: 1px solid var(--line); }
+  header h1 { font-size: 16px; margin: 0 12px 0 0; }
+  header input { width: 210px; }
+  .pill { padding: 3px 10px; border-radius: 999px; background: var(--chip);
+          font-weight: 600; font-size: 12px; white-space: nowrap; }
+  .pill.ok { color: var(--ok); } .pill.bad { color: var(--bad); }
+  .pill.warn { color: var(--warn); }
+  main { display: grid; gap: 12px; padding: 12px 16px;
+         grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  section { background: var(--card); border: 1px solid var(--line);
+            border-radius: 8px; padding: 12px 14px; min-width: 0; }
+  section h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em;
+               color: var(--muted); margin: 0 0 8px; }
+  .wide { grid-column: 1 / -1; }
+  table { border-collapse: collapse; width: 100%; }
+  td, th { padding: 3px 6px; border-bottom: 1px solid var(--line);
+           text-align: left; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  .kv td:first-child { color: var(--muted); width: 45%; }
+  .kv td:last-child { font-family: var(--mono); }
+  .nodata { color: var(--muted); }
+  input, button { font: inherit; color: var(--ink); background: var(--card);
+                  border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; }
+  button { cursor: pointer; font-weight: 600; }
+  button:hover { border-color: var(--accent); }
+  button:disabled { opacity: .45; cursor: default; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .cmd button { flex: 1; padding: 10px; }
+  .map input { width: 54px; text-align: center; text-transform: uppercase;
+               font-family: var(--mono); font-size: 16px; }
+  .map label { display: flex; flex-direction: column; font-size: 12px;
+               color: var(--muted); gap: 2px; }
+  .result { margin-top: 10px; font-family: var(--mono); min-height: 1.4em; }
+  .result.ok { color: var(--ok); } .result.bad { color: var(--bad); }
+  .result.warn { color: var(--warn); }
+  .hint { color: var(--muted); font-size: 12px; margin-top: 6px; }
+  .logwrap { max-height: 420px; overflow: auto; }
+  #log td { font-family: var(--mono); font-size: 12px; white-space: nowrap; }
+  #log td.text { white-space: normal; }
+  #log tr.replayed td { color: var(--warn); }
+  #log tr.error td { color: var(--bad); }
+  #log tr.sent td { color: var(--accent); }
+  details pre { font-family: var(--mono); font-size: 12px; margin: 6px 0 0;
+                white-space: pre-wrap; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>S1 Dashboard</h1>
+  <input id="url" aria-label="Broker WebSocket URL">
+  <button id="connect">Connect</button>
+  <span id="pBroker" class="pill bad">Broker: off</span>
+  <span id="pCar" class="pill bad">Car: offline</span>
+  <span id="pOutage" class="pill">Outage buffer: -</span>
+  <span id="pSelf" class="pill">Self-test: -</span>
+</header>
+
+<main>
+  <section>
+    <h2>Telemetry <span id="tAge" class="nodata"></span></h2>
+    <table class="kv" id="telem"></table>
+  </section>
+
+  <section>
+    <h2>Heartbeat <span id="hAge" class="nodata"></span></h2>
+    <table class="kv" id="hb"></table>
+    <details>
+      <summary class="hint">Self-test output</summary>
+      <pre id="selftest"></pre>
+    </details>
+  </section>
+
+  <section>
+    <h2>Commands</h2>
+    <div class="row cmd">
+      <button data-cmd="PAUSE">PAUSE</button>
+      <button data-cmd="RESUME">RESUME</button>
+      <button data-cmd="ABORT">ABORT</button>
+    </div>
+    <div id="cmdResult" class="result"></div>
+
+    <h2 style="margin-top:18px">Map</h2>
+    <div class="row map">
+      <label>Forward<input id="mF" maxlength="1"></label>
+      <label>U-turn<input id="mU" maxlength="1"></label>
+      <label>Left<input id="mL" maxlength="1"></label>
+      <label>Right<input id="mR" maxlength="1"></label>
+      <button id="mapSend" style="align-self:flex-end">Send map</button>
+    </div>
+    <div id="mapResult" class="result"></div>
+    <div class="hint">The car accepts a map only in READY.</div>
+  </section>
+
+  <section class="wide">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0">Log</h2>
+      <div class="row">
+        <label><input type="checkbox" id="fTelem"> telem</label>
+        <label><input type="checkbox" id="fHb"> hb</label>
+        <label><input type="checkbox" id="fEvt" checked> evt</label>
+        <label><input type="checkbox" id="fSent" checked> cmd/map</label>
+        <button id="export">Export CSV</button>
+        <button id="clear">Clear</button>
+      </div>
+    </div>
+    <div class="hint">Orange = replayed after an outage. Replayed telemetry is always shown.
+      Export saves every entry, whatever the filters.</div>
+    <div class="logwrap">
+      <table id="log">
+        <thead><tr><th>PC time</th><th>Topic</th><th>R</th><th>Mission t</th>
+          <th>Meaning</th><th>Raw hex</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script src="mqtt.min.js"></script>
+<script src="codec.js"></script>
+<script>
+(function () {
+  "use strict";
+  var C = S1Codec;
+
+  var TOPIC = {
+    telem: "is14/car/telem", hb: "is14/car/hb", evt: "is14/car/evt",
+    online: "is14/car/online", cmd: "is14/car/cmd", map: "is14/car/map"
+  };
+  var CAR_TIMEOUT_MS = 2500;     /* car offline after this long with no heartbeat */
+  var ACK_TIMEOUT_MS = 2000;     /* command / map reply wait */
+  var LOG_MAX = 5000;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var client = null;
+  var lastHbAt = 0, lastTelemAt = 0;
+  var pending = { cmd: null, map: null };
+  var log = [];
+  var brokerUp = false, carUp = false;
+
+  /* ---- Self-test (golden bytes from the car's packer) ---- */
+  var lines = [];
+  var selfOk = C.selfTest(function (l) { lines.push(l); });
+  $("selftest").textContent = lines.join("\n");
+  setPill("pSelf", "Self-test: " + (selfOk ? "PASS" : "FAIL"), selfOk ? "ok" : "bad");
+  lines.forEach(function (l) {          /* also in the CSV, as evidence */
+    addLog({ pc: pcTime(), topic: "selftest", replayed: false, mt: "", hex: "",
+             kind: "info", text: l });
+  });
+
+  /* ---- Helpers ---- */
+  function setPill(id, text, cls) {
+    var el = $(id);
+    el.textContent = text;
+    el.className = "pill" + (cls ? " " + cls : "");
+  }
+  function setResult(id, text, cls) {
+    var el = $(id);
+    el.textContent = text;
+    el.className = "result" + (cls ? " " + cls : "");
+  }
+  function pcTime() {
+    var d = new Date();
+    var p = function (n, w) { return ("00" + n).slice(-(w || 2)); };
+    return p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds()) +
+           "." + p(d.getMilliseconds(), 3);
+  }
+  function yesNo(v) { return v === null ? null : (v ? "yes" : "no"); }
+  function secs(ds) { return ds === null ? null : (ds / 10).toFixed(1) + " s"; }
+  function withUnit(v, u) { return v === null ? null : v + " " + u; }
+
+  /* ---- Field formatting ---- */
+  var TELEM_ROWS = [
+    ["Mission time", function (f) { return secs(f.time_ds); }],
+    ["Mission state", function (f) { return f.mission_state === null ? null : C.stateName(f.mission_state); }],
+    ["Fault mask", function (f) { return "0x" + f.fault_mask.toString(16); }],
+    ["Speed left", function (f) { return withUnit(f.speed_left, "mm/s"); }],
+    ["Speed right", function (f) { return withUnit(f.speed_right, "mm/s"); }],
+    ["Motion state", function (f) { return f.motion_state; }],
+    ["Distance", function (f) { return withUnit(f.dist_mm, "mm"); }],
+    ["Line zone", function (f) { return f.line_zone; }],
+    ["Junction", function (f) { return yesNo(f.junction); }],
+    ["Line lost", function (f) { return yesNo(f.line_lost); }],
+    ["Letter", function (f) { return f.letter === null ? null : C.letterName(f.letter); }],
+    ["Last action", function (f) { return C.MOVE_NAMES[f.last_action]; }],
+    ["Map OK", function (f) { return yesNo(f.map_ok); }],
+    ["Barcodes", function (f) { return f.barcodes; }],
+    ["Hump", function (f) { return withUnit(f.hump_mm, "mm"); }],
+    ["Obstacle", function (f) { return yesNo(f.obstacle); }],
+    ["Obstacle dist", function (f) { return withUnit(f.obst_dist_cm, "cm"); }],
+    ["Obstacle side", function (f) { return C.SIDE_NAMES[f.obst_side]; }],
+    ["Obstacle width", function (f) { return withUnit(f.obst_width_cm, "cm"); }]
+  ];
+  var HB_ROWS = [
+    ["Sequence", function (f) { return f.seq; }],
+    ["Mission state", function (f) { return f.mission_state === null ? null : C.stateName(f.mission_state); }],
+    ["Outage buffer", function (f) { return f.outage_count + " / 20"; }],
+    ["WiFi up", function (f) { return yesNo(f.wifi_up); }],
+    ["MQTT up", function (f) { return yesNo(f.mqtt_up); }],
+    ["Map OK", function (f) { return yesNo(f.map_ok); }],
+    ["Rejected msgs", function (f) { return f.rejected; }]
+  ];
+
+  function drawKv(tableId, rows, f) {
+    var html = "";
+    rows.forEach(function (r) {
+      var v = f ? r[1](f) : null;
+      html += "<tr><td>" + r[0] + "</td><td" + (v === null || v === undefined ?
+              ' class="nodata">&mdash;' : ">" + v) + "</td></tr>";
+    });
+    $(tableId).innerHTML = html;
+  }
+  drawKv("telem", TELEM_ROWS, null);
+  drawKv("hb", HB_ROWS, null);
+
+  /* ---- Log ---- */
+  function addLog(e) {
+    log.push(e);
+    if (log.length > LOG_MAX) { log.shift(); }
+    if (visible(e)) {
+      var tb = document.querySelector("#log tbody");
+      tb.insertBefore(logRow(e), tb.firstChild);
+      while (tb.rows.length > 500) { tb.deleteRow(-1); }
+    }
+  }
+  function visible(e) {
+    if (e.kind === "error" || e.replayed) { return true; }
+    return { telem: $("fTelem").checked, hb: $("fHb").checked,
+             evt: $("fEvt").checked, sent: $("fSent").checked, info: true }[e.kind];
+  }
+  function logRow(e) {
+    var tr = document.createElement("tr");
+    tr.className = e.replayed ? "replayed" : (e.kind === "error" ? "error" :
+                   (e.kind === "sent" ? "sent" : ""));
+    [e.pc, e.topic, e.replayed ? "R" : "", e.mt, e.text, e.hex].forEach(function (v, i) {
+      var td = document.createElement("td");
+      td.textContent = v;
+      if (i === 4) { td.className = "text"; }
+      tr.appendChild(td);
+    });
+    return tr;
+  }
+  function redrawLog() {
+    var tb = document.querySelector("#log tbody");
+    tb.innerHTML = "";
+    var shown = log.filter(visible).slice(-500).reverse();
+    shown.forEach(function (e) { tb.appendChild(logRow(e)); });
+  }
+  ["fTelem", "fHb", "fEvt", "fSent"].forEach(function (id) {
+    $(id).addEventListener("change", redrawLog);
+  });
+  $("clear").addEventListener("click", function () { log = []; redrawLog(); });
+  $("export").addEventListener("click", function () {
+    var csv = "pc_time,topic,replayed,mission_time_s,meaning,raw_hex\n" +
+      log.map(function (e) {
+        return [e.pc, e.topic, e.replayed ? 1 : 0, e.mt, e.text, e.hex].map(function (v) {
+          return '"' + String(v).replace(/"/g, '""') + '"';
+        }).join(",");
+      }).join("\n") + "\n";
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    var d = new Date();
+    a.download = d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" +
+                 ("0" + d.getDate()).slice(-2) + "_S1-dashboard.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  /* ---- Incoming frames ---- */
+  function telemSummary(f) {
+    return "state " + C.stateName(f.mission_state) + ", letter " + C.letterName(f.letter) +
+           ", map " + (f.map_ok ? "ok" : "none") + ", barcodes " + f.barcodes;
+  }
+
+  function onMessage(topic, payload) {
+    var bytes = Array.prototype.slice.call(payload);
+    var short = topic.replace("is14/car/", "");
+    var e = { pc: pcTime(), topic: short, replayed: false, mt: "",
+              hex: C.toHex(bytes), kind: "info", text: "" };
+
+    if (topic === TOPIC.cmd || topic === TOPIC.map) {
+      /* What anyone (this page or a terminal) sent to the car */
+      e.kind = "sent";
+      e.text = "sent to car (" + bytes.length + " B)";
+      addLog(e);
+      return;
+    }
+    if (topic === TOPIC.online) {
+      e.text = "online message";
+      addLog(e);
+      return;
+    }
+
+    var d = C.decodeFrame(bytes);
+    if (!d.ok) {
+      e.kind = "error";
+      e.text = "cannot decode: " + d.error;
+      addLog(e);
+      return;
+    }
+    e.replayed = d.replayed;
+
+    if (d.type === 0) {
+      e.kind = "telem";
+      e.mt = d.fields.time_ds / 10;
+      e.text = telemSummary(d.fields);
+      if (!d.replayed) {           /* panel shows live data only */
+        lastTelemAt = Date.now();
+        drawKv("telem", TELEM_ROWS, d.fields);
+      }
+    } else if (d.type === 1) {
+      e.kind = "hb";
+      e.text = "seq " + d.fields.seq + ", outage " + d.fields.outage_count +
+               ", rejected " + d.fields.rejected;
+      lastHbAt = Date.now();
+      drawKv("hb", HB_ROWS, d.fields);
+      setPill("pOutage", "Outage buffer: " + d.fields.outage_count,
+              d.fields.outage_count > 0 ? "warn" : "ok");
+    } else {
+      e.kind = "evt";
+      e.text = d.evtName + ": " + d.text;
+      if (!d.replayed) { resolveAck(d); }
+    }
+    addLog(e);
+  }
+
+  /* ---- Commands and map ---- */
+  function resolveAck(d) {
+    var which = d.evtName === "CMD_ACK" ? "cmd" : (d.evtName === "MAP_ACK" ? "map" : null);
+    if (!which || !pending[which]) { return; }
+    clearTimeout(pending[which].timer);
+    var ok = which === "cmd" ? ((d.fields.data & 4) !== 0) : ((d.fields.data & 1) !== 0);
+    setResult(which + "Result", pending[which].label + " -> " + d.text, ok ? "ok" : "bad");
+    pending[which] = null;
+  }
+
+  function send(which, topic, bytes, label) {
+    if (!client || !client.connected) {
+      setResult(which + "Result", "not connected to broker", "bad");
+      return;
+    }
+    if (pending[which]) { clearTimeout(pending[which].timer); }
+    client.publish(topic, new Uint8Array(bytes), { qos: 1, retain: false });
+    setResult(which + "Result", label + " sent, waiting for car...", "warn");
+    pending[which] = {
+      label: label,
+      timer: setTimeout(function () {
+        setResult(which + "Result", label + " -> no reply in " +
+                  ACK_TIMEOUT_MS / 1000 + " s", "bad");
+        pending[which] = null;
+      }, ACK_TIMEOUT_MS)
+    };
+  }
+
+  document.querySelectorAll("[data-cmd]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var name = b.getAttribute("data-cmd");
+      send("cmd", TOPIC.cmd, C.encodeCmd(name).bytes, name);
+    });
+  });
+
+  $("mapSend").addEventListener("click", function () {
+    var v = ["mF", "mU", "mL", "mR"].map(function (id) { return $(id).value; });
+    var m = C.encodeMap(v[0], v[1], v[2], v[3]);
+    if (!m.ok) {
+      setResult("mapResult", "not sent: " + m.error, "bad");
+      return;
+    }
+    send("map", TOPIC.map, m.bytes, "map " + v.join("").toUpperCase() +
+         " (" + C.toHex(m.bytes) + ")");
+  });
+
+  /* ---- Connection ---- */
+  var DEFAULT_URL = "ws://localhost:9001";
+  try { $("url").value = localStorage.getItem("s1dash.url") || DEFAULT_URL; }
+  catch (err) { $("url").value = DEFAULT_URL; }
+
+  function connect() {
+    if (client) { client.end(true); }
+    var url = $("url").value.trim();
+    try { localStorage.setItem("s1dash.url", url); } catch (err) { /* ignore */ }
+    setPill("pBroker", "Broker: connecting", "warn");
+    client = mqtt.connect(url, {
+      clientId: "s1dash-" + Math.random().toString(16).slice(2, 8),
+      clean: true, reconnectPeriod: 1000, connectTimeout: 4000
+    });
+    client.on("connect", function () {
+      brokerUp = true;
+      setPill("pBroker", "Broker: connected", "ok");
+      client.subscribe([TOPIC.telem, TOPIC.hb, TOPIC.evt, TOPIC.online,
+                        TOPIC.cmd, TOPIC.map], { qos: 1 });
+      addLog({ pc: pcTime(), topic: "-", replayed: false, mt: "", hex: "",
+               kind: "info", text: "dashboard connected to " + url });
+    });
+    client.on("reconnect", function () { setPill("pBroker", "Broker: reconnecting", "warn"); });
+    client.on("close", function () {
+      if (brokerUp) {
+        addLog({ pc: pcTime(), topic: "-", replayed: false, mt: "", hex: "",
+                 kind: "info", text: "dashboard lost broker connection" });
+      }
+      brokerUp = false;
+      setPill("pBroker", "Broker: off", "bad");
+    });
+    client.on("error", function (err) {
+      setPill("pBroker", "Broker: error", "bad");
+      addLog({ pc: pcTime(), topic: "-", replayed: false, mt: "", hex: "",
+               kind: "error", text: "broker: " + err.message });
+    });
+    client.on("message", onMessage);
+  }
+  $("connect").addEventListener("click", connect);
+
+  /* Car online = heartbeat seen in the last CAR_TIMEOUT_MS */
+  setInterval(function () {
+    var now = Date.now();
+    var up = !!(client && client.connected && lastHbAt && (now - lastHbAt) < CAR_TIMEOUT_MS);
+    setPill("pCar", up ? "Car: online" : "Car: offline", up ? "ok" : "bad");
+    if (up !== carUp) {                 /* log each change, for the CSV */
+      carUp = up;
+      addLog({ pc: pcTime(), topic: "-", replayed: false, mt: "", hex: "",
+               kind: "info", text: up ? "car online" :
+               "car offline (no heartbeat for " + CAR_TIMEOUT_MS / 1000 + " s)" });
+    }
+    $("hAge").textContent = lastHbAt ? "(" + ((now - lastHbAt) / 1000).toFixed(1) + " s ago)" : "";
+    $("tAge").textContent = lastTelemAt ? "(" + ((now - lastTelemAt) / 1000).toFixed(1) + " s ago)" : "";
+  }, 250);
+
+  connect();
+}());
+</script>
+</body>
+</html>
