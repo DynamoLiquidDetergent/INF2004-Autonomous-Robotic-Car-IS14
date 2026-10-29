@@ -106,3 +106,6 @@ Old rows are never deleted or edited to change their meaning / results.
 | 2026-10-29 | S1-U38 | `43067c2` | Saad | PASS | `logs/2026-10-29_S1-U35-U40.csv` | KDAZ accepted in READY, map ok set. Rejected in state 2 (state). KDAK not sent |
 | 2026-10-29 | S1-U39 | `43067c2` | Saad | PASS | `logs/2026-10-29_S1-U35-U40.csv` | 11 s outage. Offline logged. 112.5 → 124 replayed in order. 110–112 dropped as designed |
 | 2026-10-29 | S1-U40 | `43067c2` | Saad | PASS | `logs/2026-10-29_S1-U35-U40.csv` | 318 rows with meaning and raw hex |
+| 2026-10-29 | S1-U41 | `3990070` | Saad | PASS | `logs/2026-10-29_S1-U41-U43.csv` | ~13 s outage. Last live 22 → first R 26.5 = 4.5 s. 26.5 → 37 replayed in order, none dropped. 22.5–23.5 lost before detection (QoS 0). TX-held 24–26 sent without R bit before replays (known issue) |
+| 2026-10-29 | S1-U42 | `3990070` | Saad | PASS | `logs/2026-10-29_S1-U41-U43.csv` | online = 0 7.7 s after the car's last packet, both outages. online = 1 on all 3 connects |
+| 2026-10-29 | S1-U43 | `3990070` | Saad | PASS | `logs/2026-10-29_S1-U41-U43.csv` | ~68 s outage. No reset: mission time and hb seq continue. 118 → 129 replayed in order, oldest dropped as designed, outage 13 → 0. Other subsystems at integration |
