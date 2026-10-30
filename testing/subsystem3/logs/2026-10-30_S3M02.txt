@@ -1,0 +1,25 @@
+---- Opened the serial port COM7 ----
+GP28: min= 155 max= 258   (dark above 840, light below 610)
+monitor: batch  n=10 last=90 from core 1
+monitor: t=3355772565 ms  samples=10  min=0 max=90 avg=45  free slots=4  free blocks=4
+GP28: min= 165 max= 202   (dark above 840, light below 610)
+GP28: min= 168 max= 201   (dark above 840, light below 610)
+monitor: batch  n=15 last=60 from core 1
+monitor: t=3355774070 ms  samples=15  min=0 max=100 avg=56  free slots=4  free blocks=4
+DEMO: driving FORWARD at 100 mm/s, steering 0 -- continuous, will not stop on a barcode
+DEMO: motion state 0
+GP28: min= 169 max= 195   (dark above 840, light below 610)
+DEMO: motion state 1
+monitor: batch  n=20 last=10 from core 1
+monitor: t=3355775575 ms  samples=20  min=0 max=100 avg=50  free slots=4  free blocks=4
+GP28: min= 171 max=2230   (dark above 840, light below 610)
+DEMO: t= 1020 ms  L= 104  R= 102 mm/s  dist=   99 mm  barcodes=0
+BARCODE: ch=A cmd=1   (wide bars, reverse, fit 0.13, ratio 1.99, beat U by 8)
+DEMO: barcode #1 read at t=1429 ms -- still driving
+GP28: min= 166 max=2197   (dark above 840, light below 610)
+DEMO: t= 2041 ms  L= 102  R=  99 mm/s  dist=  202 mm  barcodes=1
+monitor: batch  n=25 last=40 from core 1
+monitor: t=3355777080 ms  samples=25  min=0 max=100 avg=44  free slots=4  free blocks=4
+GP28: min= 173 max= 202   (dark above 840, light below 610)
+DEMO: t= 3061 ms  L=  87  R=  93 mm/s  dist=  301 mm  barcodes=1
+---- Closed the serial port COM7 ----

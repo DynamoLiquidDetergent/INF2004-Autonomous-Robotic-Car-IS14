@@ -51,6 +51,13 @@
    MUST be 0 when committing. */
 #define S3_LINE_DEBUG           0
 
+/* 1 = every second, print the lowest and highest GP28 reading of that
+   second, and the raw levels a reading must cross to count as dark / light.
+   Catches bars that S3_LINE_DEBUG (every 200 ms) would miss.
+   On with the drive demo; MUST be 0 when committing. */
+#define S3_GP28_DEBUG           S3_BC_DRIVE_DEMO
+#define S3_GP28_DEBUG_MS        1000
+
 /* The 2 ms sub-cycle needs a 1 ms system tick (config.h CNF_TIMER_PERIOD).
    With a 10 ms tick, GP28 is sampled only every 10 ms: fine for line
    tracking, too slow for barcode decoding (Commit 4). */
@@ -63,6 +70,24 @@
 #define CALIB_OK      0x2u   /* task -> caller: finished, applied    */
 #define CALIB_FAIL    0x4u   /* task -> caller: timed out            */
 
+/* GP28 range used until a calibration replaces it (raw ADC counts).
+   Measured 2026-10-30 on the robot with the track barcode print:
+     white paper ~150-250, wide bars peak ~1450-2800 (dipping to ~1120
+     inside a bar), narrow bars only ~+50..+80 above white.
+   The 141 mm barcode has narrower wide bars (7.4-9 mm) than the 12 mm
+   test print, which may read a little lower, so the range is set with
+   margin: with 60 % / 40 % below, dark above ~840, light again below
+   ~610.  Every wide bar of both test prints is caught; the narrow-bar
+   bumps (and a partly-seen narrow bar at ~780) are not.
+   Re-measure (S3_GP28_DEBUG) if the sensor height or paper changes. */
+#define S3_GP28_DEFAULT_LO      150u
+#define S3_GP28_DEFAULT_HI      1300u
+
+/* Dark (bar) or light (space) with hysteresis: becomes dark above 60 %
+   of the calibrated GP28 range, light again below 40 %. */
+#define S3_GP28_DARK_ON    600u
+#define S3_GP28_DARK_OFF   400u
+
 /* ---------------------------------------------------------------------
  *  State
  * --------------------------------------------------------------------- */
@@ -72,8 +97,8 @@ LOCAL volatile bool s_gp28_paused = false;   /* tests inject GP28 data  */
 LOCAL volatile UW   s_gp28_sent   = 0;       /* samples put in q_gp28_samples */
 
 /* Calibration range per sensor.  Written only by line_sensor_task. */
-LOCAL UW s_lo[S3_NUM_SENSORS] = { 0u,    0u,    0u    };
-LOCAL UW s_hi[S3_NUM_SENSORS] = { 4095u, 4095u, 4095u };
+LOCAL UW s_lo[S3_NUM_SENSORS] = { 0u,    0u,    S3_GP28_DEFAULT_LO };
+LOCAL UW s_hi[S3_NUM_SENSORS] = { 4095u, 4095u, S3_GP28_DEFAULT_HI };
 
 typedef struct {
     uint8_t zone_last;   /* last zone seen with the line under a sensor */
@@ -116,6 +141,18 @@ LOCAL UW normalise(UW raw, UW lo, UW hi)
 #endif
     return n;
 }
+
+#if S3_GP28_DEBUG
+/* Raw ADC value at a normalised level 0..1000 of the GP28 range */
+LOCAL UW gp28_raw_at(UW norm)
+{
+    UW lo = s_lo[S3_CH_RIGHT], hi = s_hi[S3_CH_RIGHT];
+#if !S3_LINE_IS_HIGH
+    norm = S3_NORM_MAX - norm;
+#endif
+    return lo + (hi - lo) * norm / S3_NORM_MAX;
+}
+#endif
 
 /*
  * compute_line_state
@@ -195,6 +232,9 @@ LOCAL void line_sensor_task(INT stacd, void *exinf)
 #if S3_LINE_DEBUG
     UW          dbg_cycle = 0;
 #endif
+#if S3_GP28_DEBUG
+    UW          gp_min = 4095u, gp_max = 0u, gp_next = 0u;
+#endif
     INT         i;
 
     (void)stacd; (void)exinf;
@@ -209,6 +249,9 @@ LOCAL void line_sensor_task(INT stacd, void *exinf)
     now       = now_ms();
     next_sub  = now;
     next_line = now;
+#if S3_GP28_DEBUG
+    gp_next   = now + S3_GP28_DEBUG_MS;
+#endif
 
     while (1) {
         /* ---- 2 ms sub-cycle: GP28 sample for the barcode decoder (IF-06) ---- */
@@ -222,6 +265,21 @@ LOCAL void line_sensor_task(INT stacd, void *exinf)
                 s_gp28_sent++;
             }
         }
+
+#if S3_GP28_DEBUG
+        if (raw[S3_CH_RIGHT] < gp_min) gp_min = raw[S3_CH_RIGHT];
+        if (raw[S3_CH_RIGHT] > gp_max) gp_max = raw[S3_CH_RIGHT];
+        now = now_ms();
+        if ((W)(now - gp_next) >= 0) {
+            gp_next = now + S3_GP28_DEBUG_MS;
+            tm_printf((UB *)"GP28: min=%4u max=%4u   (dark %s %u, light %s %u)\n",
+                      gp_min, gp_max,
+                      S3_LINE_IS_HIGH ? "above" : "below", gp28_raw_at(S3_GP28_DARK_ON),
+                      S3_LINE_IS_HIGH ? "below" : "above", gp28_raw_at(S3_GP28_DARK_OFF));
+            gp_min = 4095u;
+            gp_max = 0u;
+        }
+#endif
 
         /* ---- 20 ms line cycle (IF-05) ---- */
         now = now_ms();
@@ -357,11 +415,6 @@ EXPORT void subsystem3_set_bypass(bool active)
 /* ---------------------------------------------------------------------
  *  Shared with barcode_decode.c and the tests (s3_private.h)
  * --------------------------------------------------------------------- */
-
-/* Dark (bar) or light (space) with hysteresis: becomes dark above 60 %
-   of the calibrated GP28 range, light again below 40 %. */
-#define S3_GP28_DARK_ON    600u
-#define S3_GP28_DARK_OFF   400u
 
 EXPORT bool line_sensor_gp28_dark(uint16_t adc, bool was_dark)
 {

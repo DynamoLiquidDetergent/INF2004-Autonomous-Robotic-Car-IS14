@@ -60,6 +60,11 @@
 
 #if S3_BC_DRIVE_DEMO && !APP_TEST
 
+/* barcode_decode.c: raw GP28 capture of the first barcode pass */
+IMPORT UW barcode_capture(const uint16_t **buf);
+#define DEMO_CAP_PER_LINE     25     /* values per "CAP" line             */
+#define DEMO_CAP_LINES        4      /* "CAP" lines printed per 50 ms loop */
+
 LOCAL UW demo_now_ms(void)
 {
     SYSTIM t;
@@ -83,6 +88,9 @@ LOCAL void demo_run_forever(UINT epoch)
     UW   seen      = barcode_decode_count();
     UW   count, now, st;
     UINT state, last_state = 0xFFFFu;
+    const uint16_t *cap = 0;
+    UW   cap_n = 0, cap_i = 0, k;
+    bool cap_printed = false;
 
     tm_printf((UB *)"DEMO: driving FORWARD at %d mm/s, steering %d -- "
                     "continuous, will not stop on a barcode\n",
@@ -110,10 +118,37 @@ LOCAL void demo_run_forever(UINT epoch)
         }
 
         if ((now - last_beat) >= DEMO_HEARTBEAT_MS) {
-            tm_printf((UB *)"DEMO: t=%5u ms  L=%4d  R=%4d mm/s  barcodes=%u\n",
+            /* dist = average of both wheels (IF-17).  It must grow by about
+               DEMO_SPEED_MMPS per second; if it stays near 0 one encoder
+               counts backwards (S2_ENC_x_INVERT in subsystem2.h). */
+            tm_printf((UB *)"DEMO: t=%5u ms  L=%4d  R=%4d mm/s  dist=%5u mm  barcodes=%u\n",
                       now - start, s2_status_speed_l(st), s2_status_speed_r(st),
-                      count);
+                      s2_odo_dist_mm(s2_get_odometry()), count);
             last_beat = now;
+        }
+
+        /* Raw GP28 capture: one line per loop, so DRIVE keeps being sent */
+        if (!cap_printed) {
+            if (cap_n == 0U) {
+                cap_n = barcode_capture(&cap);
+                if (cap_n != 0U) {
+                    tm_printf((UB *)"CAP: start, %u GP28 samples, 2 ms apart\n", cap_n);
+                }
+            } else {
+                UW line;
+
+                for (line = 0U; line < (UW)DEMO_CAP_LINES && !cap_printed; line++) {
+                    tm_printf((UB *)"CAP,%u:", cap_i);
+                    for (k = 0U; k < (UW)DEMO_CAP_PER_LINE && cap_i < cap_n; k++, cap_i++) {
+                        tm_printf((UB *)" %u", (unsigned)cap[cap_i]);
+                    }
+                    tm_printf((UB *)"\n");
+                    if (cap_i >= cap_n) {
+                        tm_printf((UB *)"CAP: end\n");
+                        cap_printed = true;
+                    }
+                }
+            }
         }
 
         tk_dly_tsk(DEMO_SEND_MS);

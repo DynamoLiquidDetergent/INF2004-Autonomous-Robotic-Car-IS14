@@ -32,6 +32,29 @@
 #define S2_LOG_EVERY_CYCLES	0
 #endif
 
+/* Straight-line hold (DRIVE with steering 0): where each wheel's distance
+   comes from.
+     1 = integrate the MEASURED SPEED of each wheel (mm/s x ms = um).
+         The speed comes from the time between edges, so it stays right
+         even when one quadrature channel drops out -- which freezes the
+         pulse COUNT (the A edges cancel out) and used to send the hold
+         to its +/-S2_HEADING_MAX_MMPS limit within seconds.
+     0 = use the encoder pulse count (original behaviour).
+   DRIVE_DIST, TURN and the published odometry (IF-17) always use the
+   pulse count. */
+#ifndef S2_HEADING_FROM_SPEED
+#define S2_HEADING_FROM_SPEED	1
+#endif
+
+/* Straight-line trim (S2_HEADING_FROM_SPEED only), in permille of the
+   right wheel's distance.  Corrects small wheel-size / sensor differences.
+     robot veers LEFT  -> make it positive (try +10, then adjust)
+     robot veers RIGHT -> make it negative (try -10, then adjust)
+   Each 10 = 1 %.  Record the final value in testing/subsystem2/TEST_LOG.md. */
+#ifndef S2_HEADING_TRIM_R_PERMILLE
+#define S2_HEADING_TRIM_R_PERMILLE	0
+#endif
+
 #define CMD_BUF_DEPTH		4		/* messages the buffer holds */
 #define CMD_MSG_HEADER		sizeof(INT)	/* kernel's per-message header */
 #define CMD_BUF_SIZE		(CMD_BUF_DEPTH * (sizeof(UW) + CMD_MSG_HEADER))
@@ -72,6 +95,8 @@ typedef struct {
 	UW	last_cmd_ms;
 	W	start_um[ENC_COUNT];	/* wheel travel when the move started */
 	W	ref_um[ENC_COUNT];	/* straight-line reference */
+	W	hold_um[ENC_COUNT];	/* speed-integrated travel since the
+					   reference (S2_HEADING_FROM_SPEED) */
 	INT	hold_sp[ENC_COUNT];	/* setpoints frozen by HOLD */
 	INT	sp[ENC_COUNT];		/* ramped setpoints, mm/s */
 	PI_STATE pi[ENC_COUNT];
@@ -168,6 +193,17 @@ LOCAL void reset_loop(MOTION_CTX *c)
 	}
 }
 
+/* New straight-line reference: both wheels count from here */
+LOCAL void reset_heading_ref(MOTION_CTX *c, const W travel_um[])
+{
+	UINT	w;
+
+	for (w = 0U; w < ENC_COUNT; w++) {
+		c->ref_um[w]  = travel_um[w];
+		c->hold_um[w] = 0;
+	}
+}
+
 /* Stop now and require a newer epoch before moving again */
 LOCAL void latch_stop(MOTION_CTX *c, UINT state)
 {
@@ -202,9 +238,9 @@ LOCAL void start_move(MOTION_CTX *c, UINT mode, const W travel_um[])
 
 	for (w = 0U; w < ENC_COUNT; w++) {
 		c->start_um[w] = travel_um[w];
-		c->ref_um[w]   = travel_um[w];
 		c->hold_sp[w]  = c->sp[w];
 	}
+	reset_heading_ref(c, travel_um);
 	c->done = FALSE;
 	c->mode = mode;
 }
@@ -214,7 +250,6 @@ LOCAL void apply_command(MOTION_CTX *c, UW word, UW t_ms, const W travel_um[])
 	UINT	mode  = s2_cmd_mode(word);
 	UINT	epoch = s2_cmd_epoch(word);
 	BOOL	same  = (word == c->active_word) ? TRUE : FALSE;
-	UINT	w;
 
 	c->have_epoch   = TRUE;
 	c->newest_epoch = epoch;
@@ -229,9 +264,7 @@ LOCAL void apply_command(MOTION_CTX *c, UW word, UW t_ms, const W travel_um[])
 			start_move(c, S2_MODE_DRIVE, travel_um);
 		}
 		if (c->cmd_param != 0) {
-			for (w = 0U; w < ENC_COUNT; w++) {
-				c->ref_um[w] = travel_um[w];	/* new straight-line reference */
-			}
+			reset_heading_ref(c, travel_um);	/* new straight-line reference */
 		}
 		c->state = S2_STATE_DRIVING;
 		break;
@@ -286,9 +319,14 @@ LOCAL void compute_targets(MOTION_CTX *c, const W travel_um[], INT target[])
 	case S2_MODE_DRIVE:
 		steer = c->cmd_param;
 		if (steer == 0) {
+#if S2_HEADING_FROM_SPEED
+			steer = motion_heading_correction(c->hold_um[ENC_LEFT],
+							  c->hold_um[ENC_RIGHT]);
+#else
 			steer = motion_heading_correction(
 				travel_um[ENC_LEFT]  - c->ref_um[ENC_LEFT],
 				travel_um[ENC_RIGHT] - c->ref_um[ENC_RIGHT]);
+#endif
 			if (c->cmd_speed < 0) {
 				steer = -steer;		/* reversing: correction flips */
 			}
@@ -408,6 +446,7 @@ EXPORT void motion_task(INT stacd, void *exinf)
 	INT		n;
 	UINT		w;
 	W		avg_um;
+	W		hold_inc;
 
 	(void)stacd; (void)exinf;
 
@@ -444,6 +483,13 @@ EXPORT void motion_task(INT stacd, void *exinf)
 						     snap[w].edges,
 						     sign_of(c.sp[w]) != 0 ? sign_of(c.sp[w])
 									   : sign_of(motor_get_duty(w)));
+			/* speed-integrated travel for the straight-line hold:
+			   mm/s x ms = um, right wheel trimmed */
+			hold_inc = (W)speed[w] * (W)S2_CYCLE_MS;
+			if (w == ENC_RIGHT) {
+				hold_inc = (hold_inc * (1000L + S2_HEADING_TRIM_R_PERMILLE)) / 1000L;
+			}
+			c.hold_um[w] += hold_inc;
 		}
 
 		/* 1 + 2: inhibit, then the newest acceptable command */

@@ -27,6 +27,7 @@ Define a test here before running it. Test IDs never change.
 | S3-U07 | valid char map ('A','B','C','D') + injected GP28 samples for a full `*A*` symbol produce `BARCODE_CMD_FORWARD` on `q_barcode_cmd` within 200 ms | IF-06 → IF-07, MQTT map | auto | `subsystem3_test.c`: send map to `mbx_char_map`, pause live GP28, inject quiet zone + `*A*` + quiet zone into `q_gp28_samples` | `[TEST] S3-U07 PASS` |
 | S3-U08 | invalid char map (duplicate 'A') is dropped: nothing appears on `q_barcode_cmd` | MQTT map, IF-07 | auto | `subsystem3_test.c`: send bad map, wait 50 ms, poll `q_barcode_cmd` with `TMO_POL` | `[TEST] S3-U08 PASS` |
 | S3-M01 | live scan: printed `*A*` and `*C*` pass under GP28 forward and reverse; correct letter and command printed | IF-06 → IF-07, Code 39 bidirectional | manual (video) | debug build with `BARCODE:` prints and test map A,B,C,D; robot pushed by hand over each barcode, both directions | `BARCODE: ch=A cmd=1` both ways; `ch=C cmd=3` |
+| S3-M02 | driving scan: robot drives straight at 100 mm/s over the 141 mm printed `*A*` without stopping; letter decoded once and printed, robot keeps going | IF-06 → IF-07, Code 39 (wide-bar decoder) | manual | normal build (`make -j8`), `S3_BC_DRIVE_DEMO 1`; robot placed ≥ 10 cm before the barcode, square to the bars; read the serial monitor | `BARCODE: ch=A cmd=1` then `DEMO: barcode #1 read ... still driving`; exactly one read per pass |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).
@@ -55,3 +56,4 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-10-29 | INT-02 | 494b82f | Daniel | PASS | `logs/2026-10-29_S3U07-U08.txt` | after fix (counts sends) |
 | 2026-10-29 | S3-U07 | 494b82f | Daniel | PASS | `logs/2026-10-29_S3U07-U08.txt` | |
 | 2026-10-29 | S3-U08 | 494b82f | Daniel | PASS | `logs/2026-10-29_S3U07-U08.txt` | |
+| 2026-10-30 | S3-M02 |  | Daniel | PASS | `logs/2026-10-30_S3M02.txt` | read in reverse direction; fit 0.13, ratio 1.99, beat U by 8 (min 6) -- thin margin, repeat runs |

@@ -198,10 +198,12 @@ static void test_gp28_flow(void)
  *  S3-U07 / S3-U08: barcode_decode_task end to end, with a hand-made
  *  barcode injected into q_gp28_samples.  line_sensor_task's own GP28
  *  samples are paused meanwhile so they cannot mix with the injected ones.
+ *  (Both decoders see it: the 29-element one and the wide-bar one.  The
+ *  first to read it sends the command; the duplicate is dropped.)
  * --------------------------------------------------------------------- */
 #define INJ_NARROW   5u     /* samples per narrow element */
 #define INJ_WIDE     12u    /* samples per wide element   */
-#define INJ_QUIET    50u    /* quiet zone, > BC_QUIET_SAMPLES (40) */
+#define INJ_QUIET    200u   /* quiet zone, > BC_QUIET_SAMPLES (100) */
 
 static uint8_t inj_slot;
 
