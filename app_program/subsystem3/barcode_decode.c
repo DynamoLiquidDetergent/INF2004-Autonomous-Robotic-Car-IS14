@@ -18,11 +18,15 @@
  *	  - more than BC_MAX_WINDOW_SAMPLES samples pass before 29 elements.
  *
  *	A second decoder (code39_wide.c, S3_BC_WIDE_DECODER) runs on the same
- *	samples.  It reads the letter from the positions of the 6 WIDE bars
- *	only, for prints where GP28 cannot see the narrow bars (the track
- *	barcode: narrow bars read only +50..+80 above white).  Whichever
- *	decoder reads the barcode first reports it; the same letter again
- *	within BC_DEDUP_SAMPLES is ignored, so one barcode = one report.
+ *	samples.  It finds the letter from the positions of the 6 WIDE bars,
+ *	for prints where GP28 cannot threshold the narrow bars (the track
+ *	barcode: the sensor spot is wider than a narrow bar).  Look-alike
+ *	letters (same wide bars) are told apart by the BLURRED shape their
+ *	narrow bars give the reading (see code39_wide.h).  A read that is not
+ *	clear-cut is reported "unsure" and NOT sent.  Once a mapping arrives,
+ *	only its 4 letters are considered (only those can be on the track).  Whichever decoder reads the barcode first reports it; the
+ *	same letter again within BC_DEDUP_SAMPLES is ignored, so one barcode =
+ *	one report.
  *
  *	APIs used: tk_rcv_mbf, tk_snd_mbf
  */
@@ -176,7 +180,13 @@ EXPORT bool s3_char_map_valid(const CHAR_MAP_MSG *m)
            (m->ch_left    != m->ch_right);
 }
 
-/* Take the newest mapping, if any.  Invalid ones are dropped silently. */
+#if S3_BC_WIDE_DECODER
+LOCAL void wide_use_map(const CHAR_MAP_MSG *m);   /* below */
+#endif
+
+/* Take the newest mapping, if any.  Invalid ones are dropped silently.
+   Only the 4 mapped letters can appear on the track, so the wide-bar
+   decoder is told to consider just those 4. */
 LOCAL void poll_char_map(void)
 {
     CHAR_MAP_MSG m;
@@ -185,6 +195,9 @@ LOCAL void poll_char_map(void)
         if (s3_char_map_valid(&m)) {
             s_char_map  = m;
             s_map_valid = true;
+#if S3_BC_WIDE_DECODER
+            wide_use_map(&m);
+#endif
         }
     }
 }
@@ -245,6 +258,21 @@ LOCAL bool report_letter(uint8_t ch, BARCODE_CMD *cmd)
 LOCAL C39W_STATE s_wb;              /* 4 KB: static, not on the task stack */
 LOCAL bool       s_wb_dark = false;
 
+/* Only the mapped letters can be on the track: the wide-bar decoder then
+   never mistakes one of them for a look-alike that is not there. */
+LOCAL void wide_use_map(const CHAR_MAP_MSG *m)
+{
+    c39w_set_letters(&s_wb, (1ul << (m->ch_forward - 'A')) |
+                            (1ul << (m->ch_uturn   - 'A')) |
+                            (1ul << (m->ch_left    - 'A')) |
+                            (1ul << (m->ch_right   - 'A')));
+#if S3_BC_DEBUG
+    tm_printf((UB *)"BARCODE: mapping %c %c %c %c -- only these letters are read\n",
+              (char)m->ch_forward, (char)m->ch_uturn,
+              (char)m->ch_left, (char)m->ch_right);
+#endif
+}
+
 LOCAL void wide_sample(uint16_t adc)
 {
     C39W_RESULT r;
@@ -265,8 +293,12 @@ LOCAL void wide_sample(uint16_t adc)
                       r.err_x100 / 100u, r.err_x100 % 100u,
                       r.ratio_x100 / 100u, r.ratio_x100 % 100u);
             if (r.ntied > 1u && r.ch2 != C39W_NONE) {
-                tm_printf((UB *)", beat %c by %d", (char)r.ch2,
-                          (int)r.contrast - (int)r.contrast2);
+                /* blurred narrow-bar shape: error of the winner vs the
+                   runner-up (ADC rms), how clearly it won, narrow-bar lift */
+                tm_printf((UB *)", beat %c: error %u.%u vs %u.%u, evidence %u, narrow +%d",
+                          (char)r.ch2, r.rms_x10 / 10u, r.rms_x10 % 10u,
+                          r.rms2_x10 / 10u, r.rms2_x10 % 10u,
+                          (unsigned)r.evidence, (int)r.narrow);
             }
             tm_printf((UB *)")\n");
         }
@@ -275,9 +307,14 @@ LOCAL void wide_sample(uint16_t adc)
 #endif
     }
 #if S3_BC_DEBUG
-    else if (r.ch != C39W_NONE) {
-        tm_printf((UB *)"BARCODE: unsure, %c or %c (narrow bars %d vs %d) -- not sent\n",
-                  (char)r.ch, (char)r.ch2, (int)r.contrast, (int)r.contrast2);
+    else if (r.ch != C39W_NONE && r.ch2 != C39W_NONE) {
+        tm_printf((UB *)"BARCODE: unsure, %c or %c (error %u.%u vs %u.%u, evidence %u, narrow %d, %u samples) -- not sent\n",
+                  (char)r.ch, (char)r.ch2, r.rms_x10 / 10u, r.rms_x10 % 10u,
+                  r.rms2_x10 / 10u, r.rms2_x10 % 10u, (unsigned)r.evidence,
+                  (int)r.narrow, (unsigned)r.nsamp);
+    } else if (r.ch != C39W_NONE) {
+        tm_printf((UB *)"BARCODE: unsure, %c (narrow-bar shape not usable) -- not sent\n",
+                  (char)r.ch);
     } else {
         tm_printf((UB *)"BARCODE: 6 wide bars, no letter fits (error %u.%02u)\n",
                   r.err_x100 / 100u, r.err_x100 % 100u);
@@ -418,8 +455,11 @@ LOCAL void barcode_decode_task(INT stacd, void *exinf)
     (void)stacd; (void)exinf;
 
 #if S3_BC_TEST_MAP
-    s_char_map  = (CHAR_MAP_MSG){ 'A', 'B', 'C', 'D' };
+    s_char_map  = (CHAR_MAP_MSG){ 'A', 'Z', 'C', 'D' };
     s_map_valid = true;
+#if S3_BC_WIDE_DECODER
+    wide_use_map(&s_char_map);
+#endif
 #endif
 
     while (1) {

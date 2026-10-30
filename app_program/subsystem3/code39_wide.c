@@ -18,14 +18,13 @@ static const uint16_t k_pat[26] = {
 };
 
 #define NELEM      29u
-#define DATA_FIRST 10u      /* elements 10..18 = the data character */
-#define DATA_LAST  18u
 
-/* Wide/narrow ratio search range.  The ratio is measured ONCE per symbol
+/* Wide/narrow ratio search range (the track print measures ~3.7-4.2:
+   it was cut off at 3.4 before).  The ratio is measured ONCE per symbol
    from the 4 wide bars of the start and stop '*' (identical for every
    letter), so a wrong letter cannot "fit" by choosing its own ratio. */
 #define RATIO_MIN   1.8f
-#define RATIO_MAX   3.4f
+#define RATIO_MAX   4.4f
 #define RATIO_STEP  0.02f
 
 /* Wide flags of "*X*" (29 elements), optionally reversed */
@@ -98,52 +97,93 @@ static float fit(const float *x, const float *t, unsigned n, float *a, float *s)
     }
 }
 
-/* Mean raw value over the middle half of [u0,u1) (narrow units).
-   base = absolute sample index that x = 0 refers to.  Returns false if
-   the samples are no longer in the ring buffer. */
-static bool mean_mid(const C39W_STATE *st, uint32_t base, float a, float s,
-                     float u0, float u1, float *mean)
+/* Square root without libm (a few Newton steps) */
+static float isqrt_f(float e)
 {
-    float    m = 0.5f * (u0 + u1), h = 0.25f * (u1 - u0);
-    int32_t  i0 = (int32_t)(a + s * (m - h));
-    int32_t  i1 = (int32_t)(a + s * (m + h));
-    uint32_t sum = 0, cnt = 0, abs_i;
-    int32_t  i;
-
-    if (i1 < i0) i1 = i0;
-    for (i = i0; i <= i1; i++) {
-        abs_i = base + (uint32_t)i;
-        if ((st->idx - abs_i) == 0u || (st->idx - abs_i) > C39W_BUF_LEN) {
-            return false;               /* future, or already overwritten */
-        }
-        sum += st->buf[abs_i & (C39W_BUF_LEN - 1u)];
-        cnt++;
-    }
-    *mean = (float)sum / (float)cnt;
-    return true;
+    float g = (e > 1.0f) ? e : 1.0f;
+    int   k;
+    if (e <= 0.0f) return 0.0f;
+    for (k = 0; k < 20; k++) g = 0.5f * (g + e / g);
+    return g;
 }
 
 typedef struct {
-    float err, a, s, r;
-    int   rev;
+    float err, a, s;
     bool  ok;
 } FIT;
 
+/* One candidate (a letter in one scan direction), laid out for the
+   tie-break.  Bars are in sample positions x16 relative to 'base'. */
+#define NBARS  15u                              /* bars in "*X*"           */
+typedef struct {
+    int     L, rev;
+    float   err;
+    uint8_t fl[NELEM];
+    float   edge[NELEM + 1u];
+    float   a, s;
+    int32_t blo[NBARS], bhi[NBARS];             /* bar edges, samples x16  */
+    uint8_t bwide[NBARS];
+    int32_t hn, hw;                             /* template half-windows   */
+    /* least-squares sums over the samples used */
+    int64_t s1, s2, s11, s22, s12, sy1, sy2;
+    float   rss, amp;
+    bool    solved;
+} CAND;
+
+/* Fits of every letter in both directions, and the tied candidates (best
+   fits first).  Static: together ~3 KB, too big for the 2 KB task stack.
+   Only the barcode decode task calls c39w_decode, so this is safe. */
+static FIT  s_fits[26][2];
+static CAND s_cand[C39W_MAX_TIED];
+
+/* Length of the overlap of [lo,hi) and [a,b) */
+static int32_t overlap(int32_t lo, int32_t hi, int32_t a, int32_t b)
+{
+    int32_t l = (lo > a) ? lo : a;
+    int32_t h = (hi < b) ? hi : b;
+    return (h > l) ? (h - l) : 0;
+}
+
+/* Least squares  y = k0 + k1*f1 + k2*f2  from the sums, in double (few
+   operations, once per candidate).  Sets c->rss (sum of squared errors)
+   and c->amp (k1 x full window = ADC counts a narrow bar adds when it
+   fills the template window). */
+static void solve(CAND *c, double n, double sy, double syy)
+{
+    double m00 = n,              m01 = (double)c->s1,  m02 = (double)c->s2;
+    double m11 = (double)c->s11, m12 = (double)c->s12, m22 = (double)c->s22;
+    double b0 = sy, b1 = (double)c->sy1, b2 = (double)c->sy2;
+    double c00 = m11 * m22 - m12 * m12;
+    double c01 = m02 * m12 - m01 * m22;
+    double c02 = m01 * m12 - m02 * m11;
+    double det = m00 * c00 + m01 * c01 + m02 * c02;
+    double k0, k1, k2;
+
+    c->solved = false;
+    if (det <= 1e-9 * (m00 * m11 * m22 + 1.0)) return;    /* degenerate */
+    k0 = (c00 * b0 + c01 * b1 + c02 * b2) / det;
+    k1 = (c01 * b0 + (m00 * m22 - m02 * m02) * b1 + (m02 * m01 - m00 * m12) * b2) / det;
+    k2 = (c02 * b0 + (m01 * m02 - m00 * m12) * b1 + (m00 * m11 - m01 * m01) * b2) / det;
+    c->rss    = (float)(syy - (k0 * b0 + k1 * b1 + k2 * b2));
+    c->amp    = (float)(k1 * 2.0 * (double)c->hn);
+    c->solved = true;
+}
+
 void c39w_decode(const C39W_STATE *st, C39W_RESULT *res)
 {
-    FIT      best[26];
+    FIT    (*fits)[2] = s_fits;
     float    x[C39W_NWIDE], t[C39W_NWIDE], edge[NELEM + 1u], a = 0, s = 0, e;
     float    gx[4], gt[4], r, ratio = 2.5f, gerr = 1e9f;
     uint8_t  fl[NELEM];
     uint32_t base = st->cx2[0] / 2u;
     float    best_err = 1e9f;
-    int      L, rev, k;
-    float    c1 = -1e9f, c2 = -1e9f;
-    int      w1 = -1, w2 = -1, ntied = 0;
+    int      L, rev, k, c;
+    int      ncand = 0, nletters = 0;
+    CAND    *cand = s_cand;
 
     memset(res, 0, sizeof(*res));
-    res->ch  = C39W_NONE;
-    res->ch2 = C39W_NONE;
+    res->ch    = C39W_NONE;
+    res->ch2   = C39W_NONE;
 
     /* centres in samples relative to 'base' (keeps floats small and exact) */
     for (k = 0; k < (int)C39W_NWIDE; k++) {
@@ -169,85 +209,206 @@ void c39w_decode(const C39W_STATE *st, C39W_RESULT *res)
         return;                                   /* guards are not '*' */
     }
 
-    /* 2. with that ratio, fit all 6 wide bars for every letter and
-          both directions */
+    /* 2. with that ratio, fit all 6 wide bars for every letter in BOTH
+          directions.  Both are kept: a letter scanned backwards can have
+          exactly the wide bars of another letter scanned forwards
+          (N backwards = D forwards), so the direction must not be decided
+          from the wide bars alone. */
     for (L = 0; L < 26; L++) {
-        best[L].ok = false;
-        best[L].err = 1e9f;
         for (rev = 0; rev < 2; rev++) {
+            FIT *f = &fits[L][rev];
+            f->ok  = false;
+            if (st->allow != 0u && (st->allow & (1ul << L)) == 0u) {
+                continue;                         /* not on this track */
+            }
             build_flags(k_pat[L], rev, fl);
             if (layout(fl, ratio, edge, t) != C39W_NWIDE) continue;
-            e = fit(x, t, C39W_NWIDE, &a, &s);
-            if (s < 2.0f || s > 100.0f) continue;  /* implausible scale */
-            if (e < best[L].err) {
-                best[L].err = e; best[L].a = a; best[L].s = s;
-                best[L].r = ratio; best[L].rev = rev; best[L].ok = true;
-            }
+            f->err = fit(x, t, C39W_NWIDE, &f->a, &f->s);
+            if (f->s < 2.0f || f->s > 100.0f) continue;  /* implausible scale */
+            f->ok = true;
+            if (f->err < best_err) best_err = f->err;
         }
-        if (best[L].ok && best[L].err < best_err) best_err = best[L].err;
     }
     if (best_err * 100.0f > (float)C39W_MAX_ERR_X100) {
         res->err_x100 = (best_err < 99.0f) ? (uint16_t)(best_err * 100.0f) : 9999u;
         return;                                   /* nothing fits */
     }
 
-    /* 3. tie group: letters that fit (almost) as well as the best one.
-          Score each by narrow-bar contrast in the data character. */
+    /* 3. tie group: every letter+direction that fits (almost) as well as
+          the best one, best fits first, at most C39W_MAX_TIED */
     for (L = 0; L < 26; L++) {
-        float sb = 0, ss = 0, m = 0, sc;
-        int   nb = 0;
-        bool  ok = true;
+        for (rev = 0; rev < 2; rev++) {
+            const FIT *f = &fits[L][rev];
+            int        pos;
+            if (!f->ok) continue;
+            if ((f->err - best_err) * 100.0f > (float)C39W_TIE_ERR_X100) continue;
+            if (f->err * 100.0f > (float)C39W_MAX_ERR_X100) continue;
+            pos = ncand;                          /* insert sorted by err */
+            while (pos > 0 && cand[pos - 1].err > f->err) pos--;
+            if (pos >= (int)C39W_MAX_TIED) continue;
+            for (k = (ncand < (int)C39W_MAX_TIED ? ncand : (int)C39W_MAX_TIED - 1); k > pos; k--) {
+                cand[k] = cand[k - 1];
+            }
+            if (ncand < (int)C39W_MAX_TIED) ncand++;
+            cand[pos].L     = L;
+            cand[pos].rev   = rev;
+            cand[pos].err   = f->err;
+            cand[pos].a     = f->a;
+            cand[pos].s     = f->s;
+            build_flags(k_pat[L], rev, cand[pos].fl);
+            (void)layout(cand[pos].fl, ratio, cand[pos].edge, t);
+        }
+    }
+    for (c = 0; c < ncand; c++) {                 /* distinct letters */
+        for (k = 0; k < c && cand[k].L != cand[c].L; k++) { }
+        if (k == c) nletters++;
+    }
+
+    /* 4. look-alikes: compare the BLURRED shape.  GP28's spot is wider
+          than a narrow bar, so the narrow bars never show as separate
+          bumps -- they only lift the reading a little where they are
+          crowded together.  For each candidate, predict that lift: at
+          every sample, how much of its narrow bars falls inside a window
+          C39W_TPL_W_X10 / 10 narrow units wide (and, as a second term, how
+          much of its wide bars falls in a window twice that, for their
+          blurred edges).  Fit  reading = k0 + k1*narrow + k2*wide  by least
+          squares over the samples away from the wide bars.  The letter
+          whose prediction leaves the smallest error wins. */
+    {
+        int32_t  j, j0 = 0x7FFFFFFF, j1 = -0x7FFFFFFF;
+        int      w1 = 0, w2 = -1;
+        int64_t  n = 0, sy = 0, syy = 0;
         unsigned i;
 
-        if (!best[L].ok) continue;
-        if ((best[L].err - best_err) * 100.0f > (float)C39W_TIE_ERR_X100) continue;
-        if (best[L].err * 100.0f > (float)C39W_MAX_ERR_X100) continue;
-        ntied++;
+        res->ch       = (uint8_t)('A' + cand[0].L);
+        res->ntied    = (uint8_t)nletters;
 
-        /* Each narrow bar of the data character against the white right
-           next to it (the spaces either side), so slow drift of the white
-           level cancels out. */
-        build_flags(k_pat[L], best[L].rev, fl);
-        (void)layout(fl, best[L].r, edge, t);
-        for (i = DATA_FIRST; i <= DATA_LAST && ok; i += 2u) {
-            float ml = 0, mr = 0, ref = 0;
-            int   nref = 0;
-            if (fl[i]) continue;                  /* narrow bars only */
-            ok = mean_mid(st, base, best[L].a, best[L].s, edge[i], edge[i + 1u], &m);
-            /* reference white: a neighbouring narrow space that does not
-               touch a wide bar (a wide bar's blurred edge spills into it) */
-            if (ok && !fl[i - 2u]) {
-                ok = mean_mid(st, base, best[L].a, best[L].s, edge[i - 1u], edge[i], &ml);
-                ref += ml; nref++;
+        if (nletters > 1) {
+            for (c = 0; c < ncand; c++) {
+                CAND *q = &cand[c];
+                float hw = (float)C39W_TPL_W_X10 / 20.0f;  /* half window, units */
+                int   nb = 0;
+                for (i = 0; i < NELEM; i += 2u) {
+                    q->blo[nb]   = (int32_t)(16.0f * (q->a + q->s * q->edge[i]));
+                    q->bhi[nb]   = (int32_t)(16.0f * (q->a + q->s * q->edge[i + 1u]));
+                    q->bwide[nb] = q->fl[i];
+                    nb++;
+                }
+                q->hn = (int32_t)(16.0f * q->s * hw);
+                q->hw = 2 * q->hn;
+                q->s1 = q->s2 = q->s11 = q->s22 = q->s12 = q->sy1 = q->sy2 = 0;
+                {
+                    int32_t lo = (int32_t)(q->a + q->s * (q->edge[0] - (float)C39W_TPL_MARGIN));
+                    int32_t hi = (int32_t)(q->a + q->s * (q->edge[NELEM] + (float)C39W_TPL_MARGIN)) + 1;
+                    if (lo < j0) j0 = lo;
+                    if (hi > j1) j1 = hi;
+                }
             }
-            if (ok && !fl[i + 2u]) {
-                ok = mean_mid(st, base, best[L].a, best[L].s, edge[i + 1u], edge[i + 2u], &mr);
-                ref += mr; nref++;
+
+            for (j = j0; j <= j1; j++) {
+                uint32_t abs_i = base + (uint32_t)j;
+                int32_t  x16 = 16 * j, y;
+                bool     use = true;
+
+                if ((st->idx - abs_i) == 0u || (st->idx - abs_i) > C39W_BUF_LEN) {
+                    continue;                   /* not (or no longer) stored */
+                }
+                /* skip samples near ANY candidate's wide bar: the same set
+                   for every candidate, so their errors compare fairly */
+                for (c = 0; c < ncand && use; c++) {
+                    int32_t ex = (int32_t)(1.6f * cand[c].s * (float)C39W_TPL_EXCL_X10);
+                    for (i = 0; i < NBARS; i++) {
+                        if (cand[c].bwide[i] &&
+                            x16 > cand[c].blo[i] - ex && x16 < cand[c].bhi[i] + ex) {
+                            use = false;
+                            break;
+                        }
+                    }
+                }
+                if (!use) continue;
+
+                y = (int32_t)st->buf[abs_i & (C39W_BUF_LEN - 1u)];
+                n++;
+                sy  += y;
+                syy += (int64_t)y * y;
+                for (c = 0; c < ncand; c++) {
+                    CAND   *q = &cand[c];
+                    int32_t f1 = 0, f2 = 0;
+                    for (i = 0; i < NBARS; i++) {
+                        if (q->bwide[i]) f2 += overlap(q->blo[i], q->bhi[i], x16 - q->hw, x16 + q->hw);
+                        else             f1 += overlap(q->blo[i], q->bhi[i], x16 - q->hn, x16 + q->hn);
+                    }
+                    q->s1  += f1;
+                    q->s2  += f2;
+                    q->s11 += (int64_t)f1 * f1;
+                    q->s22 += (int64_t)f2 * f2;
+                    q->s12 += (int64_t)f1 * f2;
+                    q->sy1 += (int64_t)f1 * y;
+                    q->sy2 += (int64_t)f2 * y;
+                }
             }
-            if (!ok || nref == 0) continue;
-            sb += m;
-            ss += ref / (float)nref;
-            nb++;
+
+            for (c = 0; c < ncand; c++) {
+                solve(&cand[c], (double)n, (double)sy, (double)syy);
+            }
+            w1 = -1;
+            for (c = 0; c < ncand; c++) {
+                if (cand[c].solved && (w1 < 0 || cand[c].rss < cand[w1].rss)) w1 = c;
+            }
+            if (w1 < 0) {                           /* nothing could be fitted */
+                w1 = 0;
+                res->uncertain = true;
+            }
+            for (c = 0; c < ncand; c++) {
+                if (cand[c].solved && cand[c].L != cand[w1].L &&
+                    (w2 < 0 || cand[c].rss < cand[w2].rss)) w2 = c;
+            }
         }
-        sc = (ok && nb) ? (sb - ss) / (float)nb : -1e9f;
 
-        if (sc > c1)      { c2 = c1; w2 = w1; c1 = sc; w1 = L; }
-        else if (sc > c2) { c2 = sc; w2 = L; }
+        res->ch         = (uint8_t)('A' + cand[w1].L);
+        res->reversed   = (uint8_t)cand[w1].rev;
+        res->err_x100   = (uint16_t)(cand[w1].err * 100.0f);
+        res->ratio_x100 = (uint16_t)(ratio * 100.0f);
+        /* a ratio stuck at the end of the search range means the guard
+           bars were measured badly: do not trust anything that follows */
+        if (ratio < RATIO_MIN + 0.1f || ratio > RATIO_MAX - 0.1f) {
+            res->uncertain = true;
+        }
+        res->unit_x10   = (uint16_t)(cand[w1].s * 10.0f);
+        if (nletters > 1 && cand[w1].solved && n > 0) {
+            float rms1 = isqrt_f(cand[w1].rss / (float)n);
+            res->rms_x10   = (uint16_t)(rms1 * 10.0f);
+            res->narrow    = (int16_t)cand[w1].amp;
+            res->nsamp     = (uint16_t)n;
+            res->uncertain = res->uncertain ||
+                ((float)n < (float)C39W_TPL_MIN_UNITS * cand[w1].s) ||
+                (cand[w1].amp < (float)C39W_MIN_NARROW);
+            if (w2 >= 0) {
+                float rms2 = isqrt_f(cand[w2].rss / (float)n);
+                res->ch2       = (uint8_t)('A' + cand[w2].L);
+                res->rms2_x10  = (uint16_t)(rms2 * 10.0f);
+                /* evidence: the runner-up's extra error, measured in units
+                   of the winner's noise level (= n * (rss2 - rss1) / rss1).
+                   Needs to be large: a wrong letter only leaves a little
+                   more error than the right one when GP28 is blurred. */
+                {
+                    float ev = (cand[w1].rss > 0.0f)
+                             ? (float)n * (cand[w2].rss - cand[w1].rss) / cand[w1].rss
+                             : 65535.0f;
+                    res->evidence  = (ev > 65535.0f) ? 65535u : (uint16_t)ev;
+                    res->uncertain = res->uncertain ||
+                                     (ev < (float)C39W_MIN_EVIDENCE);
+                }
+            }
+        } else if (nletters > 1) {
+            res->uncertain = true;
+        }
     }
-    if (w1 < 0 || c1 <= -1e8f) return;
+}
 
-    res->ch         = (uint8_t)('A' + w1);
-    res->reversed   = (uint8_t)best[w1].rev;
-    res->err_x100   = (uint16_t)(best[w1].err * 100.0f);
-    res->ratio_x100 = (uint16_t)(best[w1].r * 100.0f);
-    res->unit_x10   = (uint16_t)(best[w1].s * 10.0f);
-    res->ntied      = (uint8_t)ntied;
-    res->contrast   = (int16_t)c1;
-    if (w2 >= 0 && c2 > -1e8f) {
-        res->ch2       = (uint8_t)('A' + w2);
-        res->contrast2 = (int16_t)c2;
-        res->uncertain = (c1 - c2) < (float)C39W_MIN_MARGIN;
-    }
+void c39w_set_letters(C39W_STATE *st, uint32_t allow)
+{
+    st->allow = allow & 0x03FFFFFFul;
 }
 
 void c39w_reset(C39W_STATE *st)
@@ -265,14 +426,36 @@ bool c39w_feed(C39W_STATE *st, uint16_t adc, bool dark, C39W_RESULT *res)
     st->buf[cur & (C39W_BUF_LEN - 1u)] = adc;
     st->idx++;
 
+    /* Two wide bars with a narrow space between them: the blur fills the
+       space, so the reading may only dip to ~650-760 and never get below
+       the caller's "light" level.  So a pulse also ends when the reading
+       falls below C39W_SPLIT_PCT % of its own peak, and the next one only
+       starts once the reading has risen C39W_SPLIT_RISE above the dip. */
+    if (st->dark) {
+        if (adc > st->peak) st->peak = adc;
+        if ((uint32_t)adc * 100u < (uint32_t)st->peak * C39W_SPLIT_PCT) {
+            dark = false;                        /* dip between two bars */
+        }
+    } else {
+        if (adc < st->valley) st->valley = adc;
+        if ((uint32_t)adc < (uint32_t)st->valley + C39W_SPLIT_RISE) {
+            dark = false;                        /* not risen enough yet */
+        }
+    }
+
     if (dark && !st->dark) {                     /* pulse starts */
         st->dark  = true;
         st->start = cur;
+        st->peak  = adc;
         return false;
     }
-    if (dark || !st->dark) {
+    if (!dark && !st->dark) {
         return false;
     }
+    if (dark) {
+        return false;                            /* pulse continues */
+    }
+    st->valley = adc;                            /* pulse ends: track the dip */
 
     /* pulse ends at 'cur' (first light sample) */
     st->dark = false;
