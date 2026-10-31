@@ -112,3 +112,4 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-11-01 | S5-U07 | `536e549` | Min Han | PASS | `logs/2026-11-01_S5-P01-U01-U09.txt` | Robo Pico, test image, S5_PHASE 1 |
 | 2026-11-01 | S5-U08 | `536e549` | Min Han | PASS | `logs/2026-11-01_S5-P01-U01-U09.txt` | Robo Pico, test image, S5_PHASE 1 |
 | 2026-11-01 | S5-U09 | `536e549` | Min Han | PASS | `logs/2026-11-01_S5-P01-U01-U09.txt` | Robo Pico, test image, S5_PHASE 1 |
+| 2026-11-01 | S5-P02 | `e3b0f8a` | Min han | PASS | `logs/2026-11-01_S5-P02.txt` | Robo Pico, servo on port 1 (GP12), laptop USB power. Holds 90 deg for 5 s, then sweeps 60 to 120 smoothly. High angle = robot's left. Sensor sits off-centre on the horn (teeth steps), so S5_SERVO_TRIM_DEG = -3 makes 90 deg point straight ahead. Pulses 1170 to 1770 us |

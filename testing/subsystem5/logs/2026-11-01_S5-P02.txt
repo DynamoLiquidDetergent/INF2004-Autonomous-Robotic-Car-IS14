@@ -1,0 +1,394 @@
+---- Opened the serial port COM3 ----
+monitor: alarm -- no batch for 2000 ms
+monitor: t=3355771866 ms  samples=4  min=0 max=30 avg=15  free slots=1  free blocks=1
+monitor: alarm -- no batch for 2000 ms
+monitor: t=3355773876 ms  samples=4  min=0 max=30 avg=15  free slots=0  free blocks=0
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2: 105 deg  pulse 1620 us
+monitor: alarm -- no batch for 2000 ms
+monitor: t=3355775886 ms  samples=4  min=0 max=30 avg=15  free slots=0  free blocks=0
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 120 deg  pulse 1770 us
+monitor: batch  n=5 last=40 from core 1
+monitor: t=3355776346 ms  samples=8  min=0 max=70 avg=35  free slots=3  free blocks=4
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 105 deg  pulse 1620 us
+monitor: batch  n=10 last=90 from core 1
+monitor: t=3355776656 ms  samples=10  min=0 max=90 avg=45  free slots=4  free blocks=4
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  80 deg  pulse 1370 us
+monitor: batch  n=15 last=60 from core 1
+monitor: t=3355778206 ms  samples=15  min=0 max=100 avg=56  free slots=4  free blocks=4
+monitor: LED task paused, state=WAIT+SUSPEND, pri=13
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2:  95 deg  pulse 1520 us
+monitor: batch  n=20 last=10 from core 1
+monitor: t=3355779756 ms  samples=20  min=0 max=100 avg=50  free slots=4  free blocks=4
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  90 deg  pulse 1470 us
+monitor: batch  n=25 last=40 from core 1
+monitor: t=3355781306 ms  samples=25  min=0 max=100 avg=44  free slots=4  free blocks=4
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  85 deg  pulse 1420 us
+monitor: batch  n=30 last=90 from core 1
+monitor: t=3355782856 ms  samples=30  min=0 max=100 avg=48  free slots=4  free blocks=4
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2: 100 deg  pulse 1570 us
+monitor: batch  n=35 last=60 from core 1
+monitor: t=3355784406 ms  samples=35  min=0 max=100 avg=52  free slots=4  free blocks=4
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  75 deg  pulse 1320 us
+monitor: batch  n=40 last=10 from core 1
+monitor: t=3355785956 ms  samples=40  min=0 max=100 avg=50  free slots=4  free blocks=4
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 110 deg  pulse 1670 us
+monitor: batch  n=45 last=40 from core 1
+monitor: t=3355787506 ms  samples=45  min=0 max=100 avg=46  free slots=4  free blocks=4
+monitor: LED task resumed, state=RUN, pri=12
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  60 deg  pulse 1170 us
+monitor: batch  n=50 last=90 from core 1
+monitor: t=3355789056 ms  samples=50  min=0 max=100 avg=49  free slots=4  free blocks=4
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 120 deg  pulse 1770 us
+monitor: batch  n=55 last=60 from core 1
+monitor: t=3355790606 ms  samples=55  min=0 max=100 avg=51  free slots=4  free blocks=4
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  65 deg  pulse 1220 us
+monitor: batch  n=60 last=10 from core 1
+monitor: t=3355792156 ms  samples=60  min=0 max=100 avg=50  free slots=4  free blocks=4
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 110 deg  pulse 1670 us
+monitor: batch  n=65 last=40 from core 1
+monitor: t=3355793706 ms  samples=65  min=0 max=100 avg=47  free slots=4  free blocks=4
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  75 deg  pulse 1320 us
+monitor: batch  n=70 last=90 from core 1
+monitor: t=3355795256 ms  samples=70  min=0 max=100 avg=49  free slots=4  free blocks=4
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 100 deg  pulse 1570 us
+monitor: batch  n=75 last=60 from core 1
+monitor: t=3355796806 ms  samples=75  min=0 max=100 avg=51  free slots=4  free blocks=4
+monitor: LED task paused, state=WAIT+SUSPEND, pri=13
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  85 deg  pulse 1420 us
+monitor: batch  n=80 last=10 from core 1
+monitor: t=3355798356 ms  samples=80  min=0 max=100 avg=50  free slots=4  free blocks=4
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2:  90 deg  pulse 1470 us
+monitor: batch  n=85 last=40 from core 1
+monitor: t=3355799906 ms  samples=85  min=0 max=100 avg=48  free slots=4  free blocks=4
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  95 deg  pulse 1520 us
+monitor: batch  n=90 last=90 from core 1
+monitor: t=3355801456 ms  samples=90  min=0 max=100 avg=49  free slots=4  free blocks=4
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  80 deg  pulse 1370 us
+monitor: batch  n=95 last=60 from core 1
+monitor: t=3355803006 ms  samples=95  min=0 max=100 avg=51  free slots=4  free blocks=4
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2: 105 deg  pulse 1620 us
+monitor: batch  n=100 last=10 from core 1
+monitor: t=3355804556 ms  samples=100  min=0 max=100 avg=50  free slots=4  free blocks=4
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  65 deg  pulse 1220 us
+monitor: batch  n=105 last=40 from core 1
+monitor: t=3355806106 ms  samples=105  min=0 max=100 avg=48  free slots=4  free blocks=4
+monitor: LED task resumed, state=RUN, pri=12
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 120 deg  pulse 1770 us
+monitor: batch  n=110 last=90 from core 1
+monitor: t=3355807656 ms  samples=110  min=0 max=100 avg=49  free slots=4  free blocks=4
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  60 deg  pulse 1170 us
+monitor: batch  n=115 last=60 from core 1
+monitor: t=3355809206 ms  samples=115  min=0 max=100 avg=50  free slots=4  free blocks=4
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 115 deg  pulse 1720 us
+monitor: batch  n=120 last=10 from core 1
+monitor: t=3355810756 ms  samples=120  min=0 max=100 avg=50  free slots=4  free blocks=4
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  80 deg  pulse 1370 us
+---- Closed the serial port COM3 ----
