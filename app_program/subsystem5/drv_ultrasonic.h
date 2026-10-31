@@ -28,10 +28,10 @@
 /* The sensor bracket can only be fitted on the servo horn in steps of about
    15 degrees, so it sits a few degrees off the servo's centre. TRIM is added
    to every servo angle so that scan angle 90 points straight ahead.
-   Measured 2026-11-01: straight ahead was at servo angle 85, so -5.
+   Measured 2026-11-01: straight ahead was at servo angle 87, so -3.
    Adjust this one number if the sensor does not look straight ahead at 90. */
 #ifndef S5_SERVO_TRIM_DEG
-#define S5_SERVO_TRIM_DEG	(-5)
+#define S5_SERVO_TRIM_DEG	(-3)
 #endif
 
 #define US_PING_GAP_MS		65	/* HC-SR04: more than 60 ms between pings */
