@@ -25,6 +25,15 @@
 #define S5_SERVO_REVERSED	0
 #endif
 
+/* The sensor bracket can only be fitted on the servo horn in steps of about
+   15 degrees, so it sits a few degrees off the servo's centre. TRIM is added
+   to every servo angle so that scan angle 90 points straight ahead.
+   Measured 2026-11-01: straight ahead was at servo angle 80, so -10.
+   Adjust this one number if the sensor does not look straight ahead at 90. */
+#ifndef S5_SERVO_TRIM_DEG
+#define S5_SERVO_TRIM_DEG	(-10)
+#endif
+
 #define US_PING_GAP_MS		65	/* HC-SR04: more than 60 ms between pings */
 #define US_ECHO_WAIT_MS		45	/* covers the ~38 ms "nothing there" pulse */
 

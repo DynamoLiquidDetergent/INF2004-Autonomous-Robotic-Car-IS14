@@ -44,6 +44,27 @@ EXPORT UW drv_pwm_reset_done(void)
 	return in_w(RESETS_RESET_DONE) & RESETS_RESET_PWM;
 }
 
+/* scan angle (90 = straight ahead) -> angle sent to the servo */
+LOCAL UINT servo_cmd_deg(UINT deg)
+{
+	INT d;
+
+	if (deg > 180u) {
+		deg = 180u;
+	}
+#if S5_SERVO_REVERSED
+	deg = 180u - deg;
+#endif
+	d = (INT)deg + S5_SERVO_TRIM_DEG;
+	if (d < 0) {
+		d = 0;
+	}
+	if (d > 180) {
+		d = 180;
+	}
+	return (UINT)d;
+}
+
 EXPORT UW drv_servo_pulse_us(void)
 {
 	return s_servo_pulse_us;
@@ -91,7 +112,7 @@ EXPORT ER drv_s5_init(UW parts)
 		out_w(SLICE_BASE(SERVO_SLICE) + PWM_CHx_CSR, 0);
 		out_w(SLICE_BASE(SERVO_SLICE) + PWM_CHx_DIV, PWM_DIV_1MHZ);
 		pwm_set_wrap(S5_PIN_SERVO, SERVO_TOP);
-		s_servo_pulse_us = obs_angle_to_pulse_us(90);
+		s_servo_pulse_us = obs_angle_to_pulse_us(servo_cmd_deg(90));
 		pwm_set_cc(S5_PIN_SERVO, s_servo_pulse_us);
 		pwm_set_enabled(S5_PIN_SERVO, TRUE);
 		s_parts |= DRV_PART_SERVO;
@@ -124,13 +145,7 @@ EXPORT void drv_servo_set_deg(UINT deg)
 	if (!(s_parts & DRV_PART_SERVO)) {
 		return;			/* servo not switched on: do not touch it */
 	}
-	if (deg > 180u) {
-		deg = 180u;
-	}
-#if S5_SERVO_REVERSED
-	deg = 180u - deg;
-#endif
-	s_servo_pulse_us = obs_angle_to_pulse_us(deg);
+	s_servo_pulse_us = obs_angle_to_pulse_us(servo_cmd_deg(deg));
 	pwm_set_cc(S5_PIN_SERVO, s_servo_pulse_us);
 }
 
