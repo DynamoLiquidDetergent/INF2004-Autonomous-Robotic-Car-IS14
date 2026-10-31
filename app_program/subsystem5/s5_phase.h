@@ -23,7 +23,7 @@
 #define S5_PHASE_H
 
 #ifndef S5_PHASE
-#define S5_PHASE	1
+#define S5_PHASE	2
 #endif
 
 #endif /* S5_PHASE_H */
