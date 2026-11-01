@@ -113,3 +113,5 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-11-01 | S5-U08 | `536e549` | Min Han | PASS | `logs/2026-11-01_S5-P01-U01-U09.txt` | Robo Pico, test image, S5_PHASE 1 |
 | 2026-11-01 | S5-U09 | `536e549` | Min Han | PASS | `logs/2026-11-01_S5-P01-U01-U09.txt` | Robo Pico, test image, S5_PHASE 1 |
 | 2026-11-01 | S5-P02 | `e3b0f8a` | Min han | PASS | `logs/2026-11-01_S5-P02.txt` | Robo Pico, servo on port 1 (GP12), laptop USB power. Holds 90 deg for 5 s, then sweeps 60 to 120 smoothly. High angle = robot's left. Sensor sits off-centre on the horn (teeth steps), so S5_SERVO_TRIM_DEG = -3 makes 90 deg point straight ahead. Pulses 1170 to 1770 us |
+| 2026-11-02 | S5-U03 | `482279b` | Min Han | PASS | `logs/2026-11-02_S5-U01-U09_phase2_nowifi.txt` | Robo Pico, S5_PHASE 2 test image built with WIFI=none, servo on GP12. INT-01 and INT-02 pass with the Wi-Fi radio off and failed with it on (earlier S5-U03 row), so that stall is the Wi-Fi start-up, not subsystem 5 |
+| 2026-11-02 | S5-U04 | `482279b` | Min Han | PASS | `logs/2026-11-02_S5-U01-U09_phase2_nowifi.txt` | Same run as S5-U03. S5_SERVO_TRIM_DEG = -3 (expected pulse 1470 us) |
