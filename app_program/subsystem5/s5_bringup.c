@@ -40,11 +40,7 @@ EXPORT void s5_bringup_task(INT stacd, void *exinf)
 	drv_servo_set_deg(90);
 	tm_printf((UB*)"s5 phase 2: servo at 90 deg (pulse %d us). Fit the horn now. Sweep starts in 5 s.\n",
 		  (INT)drv_servo_pulse_us());
-	/* hold 90 deg for 5 s, as five 1 s sleeps (one long sleep stalled the
-	   other subsystems' cross-core example in the first phase 2 run) */
-	for (n = 0; n < 5; n++) {
-		tk_dly_tsk(1000);
-	}
+	tk_dly_tsk(5000);
 	for (;;) {
 		for (deg = S5_SWEEP_MIN; deg <= S5_SWEEP_MAX; deg += S5_SWEEP_STEP) {
 			drv_servo_set_deg(deg);
