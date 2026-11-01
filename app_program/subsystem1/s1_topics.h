@@ -17,7 +17,8 @@
 #define S1_TOPIC_TELEM       (0U)
 #define S1_TOPIC_HB          (1U)
 #define S1_TOPIC_EVT         (2U)
-#define S1_TOPIC_ONLINE      (3U)
+#define S1_TOPIC_ONLINE      (3U)   /* reserved: mqtt_utk.c publishes
+                                       the online topic itself */
 
 /* RX topic IDs (broker -> S1) */
 #define S1_TOPIC_CMD         (0x80U)

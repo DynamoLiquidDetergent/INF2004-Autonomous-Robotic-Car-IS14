@@ -18,7 +18,7 @@ IMPORT ID g_s1_tid_telem;           /* telemetry task ID (for tests) */
 /*
  * IF-13: S5 (Vehicle Controller) -> S1, every 500 ms.
  * S5 fills an s1_status_t and calls s1_status_send(): it is packed into
- * two UW (53 bits used, Change Requirement 1) and sent into
+ * two UW (61 bits used, Change Requirement 1) and sent into
  * mbf_telem_status with TMO_POL.  S1 keeps only the newest.
  * PROPOSED: fields and the READY value are still to be confirmed with S5.
  */
@@ -38,6 +38,7 @@ typedef struct
     uint8_t  b_obstacle;        /* 1 = obstacle present                 */
     uint8_t  obst_side;         /* 0 none, 1 left, 2 right              */
     uint8_t  obst_width_cm;     /* 0..62, 63 = unknown                  */
+    uint8_t  hump_peak_mm;      /* highest hump so far 0..254, 255 none */
 } s1_status_t;
 
 /*
@@ -46,10 +47,15 @@ typedef struct
  *      bits 16-19 mission_state        bits  9-10 obst_side
  *      bits 20-23 fault_mask           bits 11-16 obst_width_cm
  *      bits 24-28 letter               bits 17-20 barcodes
- *      bits 29-30 last_action          bits 21-31 spare, always 0
- *      bit  31    b_obstacle
- * Each value is cut to its field's largest value before packing
- * (e.g. barcodes 20 -> 15, letter 40 -> 31 = none).
+ *      bits 29-30 last_action          bits 21-28 hump_peak_mm
+ *      bit  31    b_obstacle              bits 29-31 spare, always 0
+ * Too-large values are capped before packing, as telemetry does (U13):
+ *   - fields with a "no data" value (obstacle distance and width, hump)
+ *     keep that value, and anything else is capped at the largest REAL
+ *     value (distance 600 -> 510, never 511 "none");
+ *   - codes with no larger real value (mission state, letter) and
+ *     counters are capped at the field maximum (letter 40 -> 31 none,
+ *     barcodes 20 -> 15).
  */
 typedef struct
 {

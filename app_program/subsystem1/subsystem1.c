@@ -14,15 +14,15 @@
 #include "mqtt_utk.h"
 #endif
 
-/* Message buffer depths (messages).  The kernel stores each message as a
-   4-byte header plus the message rounded up to 4 bytes. */
-#define S1_MBF_SLOT(msz)     (4U + ((((UW)(msz)) + 3U) & ~3UL))
+/* Message buffer depths (messages).  Cost of each: S1_MBF_SLOT() */
 #define S1_TX_DEPTH          (8U)   /* ~2.5 s of output at 3 msg/s     */
 #define S1_RX_DEPTH          (4U)   /* commands/maps arrive rarely     */
 #define S1_STATUS_DEPTH      (2U)   /* S1 only needs the newest        */
 
 #define S1_FAKE_PERIOD_MS    (500)    /* IF-13 period                  */
 #define S1_FAKE_PHASE_SENDS  (20U)    /* 10 s READY, then 10 s state 2 */
+#define S1_FAKE_HUMP_SENDS   (60U)    /* first hump reported after 30 s */
+#define S1_FAKE_HUMP_MM      (42U)    /* its peak height                */
 
 EXPORT ID g_s1_tid_telem = 0;
 EXPORT ID mbf_telem_status = 0;
@@ -50,11 +50,51 @@ EXPORT ID mbf_mqtt_rx = 0;
 #define S1_ST_WIDTH_W        (6U)
 #define S1_ST_BARC_SH        (17U)
 #define S1_ST_BARC_W         (4U)
+#define S1_ST_HUMP_SH        (21U)
+#define S1_ST_HUMP_W         (8U)
 
 /* Largest value a field of width w holds */
 #define S1_FIELD_MAX(w)      ((1UL << (w)) - 1UL)
 
+/* ---- Build-time checks: fail the build if a layout or size is wrong -- */
+
+/* IF-13: each word's fields follow on from each other, within 32 bits */
+typedef char s1_check_st_w0[
+    ((S1_ST_STATE_SH == (S1_ST_TIME_SH + S1_ST_TIME_W)) &&
+     (S1_ST_FAULT_SH == (S1_ST_STATE_SH + S1_ST_STATE_W)) &&
+     (S1_ST_LETTER_SH == (S1_ST_FAULT_SH + S1_ST_FAULT_W)) &&
+     (S1_ST_ACTION_SH == (S1_ST_LETTER_SH + S1_ST_LETTER_W)) &&
+     (S1_ST_OBST_SH == (S1_ST_ACTION_SH + S1_ST_ACTION_W)) &&
+     ((S1_ST_OBST_SH + S1_ST_OBST_W) <= 32U)) ? 1 : -1];
+typedef char s1_check_st_w1[
+    ((S1_ST_SIDE_SH == (S1_ST_DIST_SH + S1_ST_DIST_W)) &&
+     (S1_ST_WIDTH_SH == (S1_ST_SIDE_SH + S1_ST_SIDE_W)) &&
+     (S1_ST_BARC_SH == (S1_ST_WIDTH_SH + S1_ST_WIDTH_W)) &&
+     (S1_ST_HUMP_SH == (S1_ST_BARC_SH + S1_ST_BARC_W)) &&
+     ((S1_ST_HUMP_SH + S1_ST_HUMP_W) <= 32U)) ? 1 : -1];
+
+/* IF-13 fields are as wide as the telemetry fields they feed */
+typedef char s1_check_st_widths[
+    ((S1_ST_TIME_W == TELEM_W_TIME) && (S1_ST_STATE_W == TELEM_W_MSTATE) &&
+     (S1_ST_FAULT_W == TELEM_W_FAULT) && (S1_ST_LETTER_W == TELEM_W_LETTER) &&
+     (S1_ST_ACTION_W == TELEM_W_ACTION) &&
+     (S1_ST_DIST_W == TELEM_W_OBST_DIST) &&
+     (S1_ST_SIDE_W == TELEM_W_OBST_SIDE) &&
+     (S1_ST_WIDTH_W == TELEM_W_OBST_WIDTH) &&
+     (S1_ST_BARC_W == TELEM_W_BARCODES) && (S1_ST_HUMP_W == TELEM_W_HUMP)) ?
+    1 : -1];
+
+/* IF-13 message is exactly two UW */
+typedef char s1_check_st_size[(sizeof(s1_status_msg_t) == 8U) ? 1 : -1];
+
+/* IF-15: buffer message sizes = topic ID + largest payload */
+typedef char s1_check_tx_max[
+    (S1_TX_MSG_MAX == (1U + TELEM_FRAME_MAX_LEN)) ? 1 : -1];
+typedef char s1_check_rx_max[
+    (S1_RX_MSG_MAX == (1U + CMD_MAP_FRAME_LEN)) ? 1 : -1];
+
 static ID s1_create_mbf(INT maxmsz, UW depth);
+static UW s1_fit(UW value, UW max, UW none);
 static UW s1_put(UW value, UW width, UW shift);
 static UW s1_get(UW word, UW width, UW shift);
 #if S1_FAKE_S5 && !APP_TEST
@@ -219,10 +259,17 @@ EXPORT void s1_status_pack(const s1_status_t *p_st, s1_status_msg_t *p_msg)
                 s1_put(p_st->last_action, S1_ST_ACTION_W, S1_ST_ACTION_SH) |
                 s1_put((p_st->b_obstacle != 0U) ? 1U : 0U,
                        S1_ST_OBST_W, S1_ST_OBST_SH);
-    p_msg->w1 = s1_put(p_st->obst_dist_cm, S1_ST_DIST_W, S1_ST_DIST_SH) |
+    p_msg->w1 = s1_put(s1_fit(p_st->obst_dist_cm, TELEM_OBST_DIST_MAX,
+                              TELEM_OBST_DIST_NONE),
+                       S1_ST_DIST_W, S1_ST_DIST_SH) |
                 s1_put(p_st->obst_side, S1_ST_SIDE_W, S1_ST_SIDE_SH) |
-                s1_put(p_st->obst_width_cm, S1_ST_WIDTH_W, S1_ST_WIDTH_SH) |
-                s1_put(p_st->barcodes, S1_ST_BARC_W, S1_ST_BARC_SH);
+                s1_put(s1_fit(p_st->obst_width_cm, TELEM_OBST_WIDTH_MAX,
+                              TELEM_OBST_WIDTH_NONE),
+                       S1_ST_WIDTH_W, S1_ST_WIDTH_SH) |
+                s1_put(p_st->barcodes, S1_ST_BARC_W, S1_ST_BARC_SH) |
+                s1_put(s1_fit(p_st->hump_peak_mm, TELEM_HUMP_MAX,
+                              TELEM_HUMP_NONE),
+                       S1_ST_HUMP_W, S1_ST_HUMP_SH);
 }
 
 /*
@@ -255,6 +302,8 @@ EXPORT void s1_status_unpack(const s1_status_msg_t *p_msg, s1_status_t *p_st)
                                             S1_ST_WIDTH_SH);
     p_st->barcodes        = (uint8_t)s1_get(p_msg->w1, S1_ST_BARC_W,
                                             S1_ST_BARC_SH);
+    p_st->hump_peak_mm    = (uint8_t)s1_get(p_msg->w1, S1_ST_HUMP_W,
+                                            S1_ST_HUMP_SH);
 }
 
 /*
@@ -273,7 +322,20 @@ EXPORT ER s1_status_send(const s1_status_t *p_st)
 }
 
 /*
- * Value cut to the field's largest value, then moved into place.
+ * For a field with a "no data" value: keep 'none' as it is, and cap
+ * anything else at the largest real value 'max' (as telem_pack.c does).
+ */
+static UW s1_fit(UW value, UW max, UW none)
+{
+    if (value == none)
+    {
+        return value;
+    }
+    return (value > max) ? max : value;
+}
+
+/*
+ * Value capped at the field's largest value, then moved into place.
  */
 static UW s1_put(UW value, UW width, UW shift)
 {
@@ -282,6 +344,9 @@ static UW s1_put(UW value, UW width, UW shift)
     return ((value > max) ? max : value) << shift;
 }
 
+/*
+ * One field out of a packed word.
+ */
 static UW s1_get(UW word, UW width, UW shift)
 {
     return (word >> shift) & S1_FIELD_MAX(width);
@@ -320,6 +385,10 @@ static void fake_s5_task(INT stacd, void *exinf)
 
     for (;;)
     {
+        /* FR5 demo: no hump for the first 30 s, then a 42 mm peak */
+        st.hump_peak_mm    = (sends < S1_FAKE_HUMP_SENDS) ?
+                             (uint8_t)TELEM_HUMP_NONE :
+                             (uint8_t)S1_FAKE_HUMP_MM;
         st.mission_time_ds = (uint16_t)(sends * 5U);
         st.mission_state   = (((sends / S1_FAKE_PHASE_SENDS) % 2U) == 0U) ?
                              (uint8_t)S1_MSTATE_READY : 2U;

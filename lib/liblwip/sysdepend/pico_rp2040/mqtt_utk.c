@@ -62,6 +62,9 @@
 static const u8_t	online_yes = 1u;
 static const char	online_no[1] = { 0 };	/* last will */
 
+/* 1 while online = 1 still has to be published on this connection */
+static u8_t		online_pending;
+
 /* Inbound message staging. A publish arrives as one topic callback followed by
  * one or more data callbacks, so the topic has to be kept until the fragment
  * carrying MQTT_DATA_FLAG_LAST shows up. Only the cmd and map topics are
@@ -94,6 +97,7 @@ static UW		tx_published;
 static UW		rx_dropped;
 
 static void tx_poll_timeout(void *arg);
+static void online_publish(void);
 
 void mqtt_utk_set_buffers(int32_t tx, int32_t rx)
 {
@@ -209,6 +213,11 @@ static void tx_poll_timeout(void *arg)
 
 	(void)arg;
 
+	if(client != NULL && mqtt_client_is_connected(client) &&
+	   online_pending) {
+		online_publish();	/* failed at connect: try again */
+	}
+
 	if(tx_mbf > 0 && client != NULL && mqtt_client_is_connected(client)) {
 		for(n = 0; n < MQTT_UTK_TX_PER_POLL; n++) {
 			if(tx_pending_len == 0) {
@@ -227,6 +236,16 @@ static void tx_poll_timeout(void *arg)
 	}
 
 	sys_timeout(MQTT_UTK_TX_POLL_MS, tx_poll_timeout, NULL);
+}
+
+/* Publish online = 1 (retained). Clears online_pending once mqtt.c
+ * has taken it. */
+static void online_publish(void)
+{
+	if(mqtt_publish(client, S1_TOPIC_NAME_ONLINE, &online_yes, 1u,
+			MQTT_UTK_QOS_ONLINE, 1u, NULL, NULL) == ERR_OK) {
+		online_pending = 0;
+	}
 }
 
 static void retry_timeout(void *arg)
@@ -278,13 +297,10 @@ static void connection_cb(mqtt_client_t *c, void *arg, mqtt_connection_status_t 
 		sys_untimeout(tx_poll_timeout, NULL);
 		sys_timeout(MQTT_UTK_TX_POLL_MS, tx_poll_timeout, NULL);
 
-		/* Replace the last will's online = 0 with online = 1 */
-		err = mqtt_publish(client, S1_TOPIC_NAME_ONLINE, &online_yes, 1u,
-				   MQTT_UTK_QOS_ONLINE, 1u, NULL, NULL);
-		if(err != ERR_OK) {
-			tm_printf((UB*)"mqtt: publish(online) failed, err=%d\n",
-				  (int)err);
-		}
+		/* Replace the last will's online = 0 with online = 1. If
+		 * mqtt.c is busy, tx_poll_timeout() keeps trying. */
+		online_pending = 1;
+		online_publish();
 	} else {
 		mqtt_up = 0;
 

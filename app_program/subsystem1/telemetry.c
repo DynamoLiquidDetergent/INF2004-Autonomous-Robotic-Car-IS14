@@ -10,11 +10,14 @@
  *      state sends a STATE_CHANGE event
  *   3. handle commands and maps waiting in mbf_mqtt_rx (TMO_POL),
  *      answering each with a CMD_ACK or MAP_ACK event
- *   4. every 5th tick (500 ms): pack a telemetry frame.  Link up: send it.
+ *   4. link up and frames waiting: replay 1 frame, marked "replayed".
+ *      Done before step 5, so on the tick the link comes back a frame
+ *      leaves the outage buffer before a new one joins it, and none of
+ *      the 20 kept frames is dropped
+ *   5. every 5th tick (500 ms): pack a telemetry frame.  Link up: send it.
  *      Link down, or TX full: keep it in the outage buffer (20 frames,
  *      drop-oldest)
- *   5. every 10th tick (1 s): send a heartbeat (link up only, never kept)
- *   6. link up and frames waiting: replay 1 frame, marked "replayed"
+ *   6. every 10th tick (1 s): send a heartbeat (link up only, never kept)
  * Everything goes to mbf_mqtt_tx with TMO_POL.  A heartbeat or event that
  * does not fit is dropped and counted.  The task never waits on anything
  * except its own tick (NFR1).
@@ -43,10 +46,6 @@
 #define S1_EVT_MAP_OK           (0x01U) /* MAP_ACK: ok bit 0             */
 #define S1_EVT_MAP_REASON_SHIFT (1U)    /*          reason bits 1-2      */
 
-/* Kernel message-buffer cost of one message: 4-byte header + data
-   rounded up to 4 bytes (kernel/tkernel/messagebuf.h). */
-#define S1_MBF_HEADER_SZ        (4U)
-#define S1_MBF_ROUND_MASK       (3U)
 
 #define S1_COUNT_MAX            (0xFFFFU)
 
@@ -94,6 +93,7 @@ EXPORT void telemetry_task(INT stacd, void *exinf)
     s_ctx.status.letter        = (uint8_t)TELEM_LETTER_NONE;
     s_ctx.status.obst_dist_cm  = (uint16_t)TELEM_OBST_DIST_NONE;
     s_ctx.status.obst_width_cm = (uint8_t)TELEM_OBST_WIDTH_NONE;
+    s_ctx.status.hump_peak_mm  = (uint8_t)TELEM_HUMP_NONE;
     cmd_parse_init(&s_ctx.parser);
     outage_buf_init(&s_ctx.outage);
     s_ctx.b_link_up = s1_read_link();
@@ -125,6 +125,7 @@ EXPORT void telemetry_task(INT stacd, void *exinf)
         s1_update_link(&s_ctx);
         s1_take_status(&s_ctx);
         s1_handle_rx(&s_ctx);
+        s1_replay(&s_ctx);
 
         if ((s_ctx.tick % TELEM_FRAME_TICKS) == 0U)
         {
@@ -135,8 +136,6 @@ EXPORT void telemetry_task(INT stacd, void *exinf)
         {
             s1_send_hb(&s_ctx);
         }
-
-        s1_replay(&s_ctx);
     }
 }
 
@@ -266,7 +265,7 @@ static void s1_handle_rx(s1_telem_ctx_t *p_ctx)
         {
             result = cmd_parse(&p_ctx->parser, &msg[1],
                                (uint32_t)(len - 1), &cmd);
-            /* PAUSE/RESUME/ABORT go to S5 over IF-14 in a later phase */
+            /* Accepted commands go to S5 over IF-14 at integration */
             data = (uint16_t)cmd;
             if (result == CMD_OK)
             {
@@ -323,7 +322,7 @@ static void s1_send_telem(s1_telem_ctx_t *p_ctx)
     t.last_action   = p_ctx->status.last_action;
     t.b_map_ok      = ((s1_get_nav_map() & S1_NAV_MAP_VALID) != 0UL);
     t.barcodes      = p_ctx->status.barcodes;
-    t.hump_mm       = (uint8_t)TELEM_HUMP_NONE;      /* S4 later */
+    t.hump_mm       = p_ctx->status.hump_peak_mm;    /* FR5, via IF-13 */
     t.b_obstacle    = (p_ctx->status.b_obstacle != 0U);
     t.obst_dist_cm  = p_ctx->status.obst_dist_cm;
     t.obst_side     = p_ctx->status.obst_side;
@@ -458,8 +457,7 @@ static bool s1_tx_put(uint8_t topic, const uint8_t *p_frame, uint8_t len)
 static bool s1_tx_has_room(uint8_t len)
 {
     T_RMBF r;
-    UW     need = S1_MBF_HEADER_SZ +
-                  (((UW)len + 1U + S1_MBF_ROUND_MASK) & ~(UW)S1_MBF_ROUND_MASK);
+    UW     need = S1_MBF_SLOT((UW)len + 1U);    /* + topic ID */
 
     return (tk_ref_mbf(mbf_mqtt_tx, &r) == E_OK) && ((UW)r.frbufsz >= need);
 }

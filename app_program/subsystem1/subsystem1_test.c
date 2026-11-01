@@ -61,6 +61,7 @@ static bool s1_pack_event(void);
 static bool s1_pack_header(void);
 static bool s1_status_packing(void);
 static bool s1_status_same(const s1_status_t *p_a, const s1_status_t *p_b);
+static bool s1_status_real_max(void);
 static bool s1_map_valid(void);
 static bool s1_map_bad_length(void);
 static bool s1_map_bad_letter(void);
@@ -128,7 +129,8 @@ EXPORT void subsystem1_test(void)
 
     /* Binary packing (Change Requirement 1) */
     TEST_CHECK("S1-U11", s1_pack_golden(),
-               "telemetry, heartbeat, event match independently computed bytes");
+               "telemetry, heartbeat, event match independently "
+               "computed bytes");
     TEST_CHECK("S1-U12", s1_pack_limits(),
                "telemetry 15 B; every field round-trips at min and max");
     TEST_CHECK("S1-U13", s1_pack_clamp(),
@@ -140,7 +142,8 @@ EXPORT void subsystem1_test(void)
     TEST_CHECK("S1-U16", s1_pack_header(),
                "header version/type/replayed; NULL and small buffer refused");
     TEST_CHECK("S1-U44", s1_status_packing(),
-               "IF-13 is 8 B; packs to expected words; round-trips; values cut to field max");
+               "IF-13 is 8 B; packs to expected words; round-trips; "
+               "values cut to field max");
 
     /* Mapping message (prof requirement: letter-to-movement over MQTT) */
     TEST_CHECK("S1-U18", s1_map_valid(),
@@ -158,13 +161,17 @@ EXPORT void subsystem1_test(void)
     TEST_CHECK("S1-U23", s1_task_objects(),
                "IF-13 and IF-15 message buffers created, sizes right");
     TEST_CHECK("S1-U24", s1_task_timing(),
-               "telemetry every 500 ms, heartbeat every 1 s (+/-10 ms), all valid");
+               "telemetry every 500 ms, heartbeat every 1 s (+/-10 ms), "
+               "all valid");
     TEST_CHECK("S1-U25", s1_task_status_in(),
                "IF-13 status reaches telemetry; STATE_CHANGE event sent");
     TEST_CHECK("S1-U26", s1_task_cmd_in(),
                "commands via RX buffer: valid ACKed, junk rejected");
     TEST_CHECK("S1-U27", s1_task_map_in(),
                "map via RX buffer: stored when READY, refused otherwise");
+    TEST_CHECK("S1-U45", s1_status_real_max(),
+               "IF-13 dist/width/hump: no-data kept, else capped at real "
+               "max; hump reaches telemetry");
 
     /* Link loss: outage buffering and replay (IF-15, FR10, NFR5) */
     TEST_CHECK("S1-U29", s1_outage_replay(),
@@ -352,7 +359,8 @@ static bool s1_cmd_bad_length(void)
     bool       b_ok;
 
     cmd_parse_init(&s_test_parser);
-    b_ok = (cmd_parse(&s_test_parser, NULL, CMD_FRAME_LEN, &cmd) == CMD_ERR_NULL) &&
+    b_ok = (cmd_parse(&s_test_parser, NULL, CMD_FRAME_LEN, &cmd) ==
+            CMD_ERR_NULL) &&
            (cmd == CMD_NONE) &&
            (cmd_parse(&s_test_parser, frame, 0U, &cmd) == CMD_ERR_LEN) &&
            (cmd_parse(&s_test_parser, frame, 2U, &cmd) == CMD_ERR_LEN) &&
@@ -447,8 +455,10 @@ static bool s1_pack_golden(void)
     }
 
     /* STATE_CHANGE: new state 4 (bits 0-3), old state 2 (bits 4-7) */
-    return (telem_pack_event(TELEM_EVT_STATE_CHANGE, (uint16_t)(4U | (2U << 4)),
-                             out, (uint8_t)sizeof(out)) == TELEM_EVT_FRAME_LEN) &&
+    return (telem_pack_event(TELEM_EVT_STATE_CHANGE,
+                             (uint16_t)(4U | (2U << 4)),
+                             out, (uint8_t)sizeof(out)) ==
+            TELEM_EVT_FRAME_LEN) &&
            s1_bytes_equal(out, s_golden_evt, TELEM_EVT_FRAME_LEN);
 }
 
@@ -497,7 +507,8 @@ static bool s1_pack_clamp(void)
     in.barcodes     = 40U;
     in.line_zone    = 9U;
 
-    b_ok = (telem_pack_status(&in, out, (uint8_t)sizeof(out)) == TELEM_FRAME_LEN) &&
+    b_ok = (telem_pack_status(&in, out, (uint8_t)sizeof(out)) ==
+            TELEM_FRAME_LEN) &&
            telem_unpack_status(out, TELEM_FRAME_LEN, &back) &&
            (back.speed_left   == TELEM_SPEED_MAX) &&
            (back.speed_right  == TELEM_SPEED_MIN) &&
@@ -521,7 +532,8 @@ static bool s1_pack_clamp(void)
     in.obst_dist_cm  = TELEM_OBST_DIST_NONE;
     in.obst_width_cm = TELEM_OBST_WIDTH_NONE;
 
-    return (telem_pack_status(&in, out, (uint8_t)sizeof(out)) == TELEM_FRAME_LEN) &&
+    return (telem_pack_status(&in, out, (uint8_t)sizeof(out)) ==
+            TELEM_FRAME_LEN) &&
            telem_unpack_status(out, TELEM_FRAME_LEN, &back) &&
            s1_status_equal(&in, &back);
 }
@@ -625,8 +637,10 @@ static bool s1_pack_header(void)
            (telem_frame_type(out) == TELEM_TYPE_TELEM) &&
            telem_is_replayed(out) &&
            (out[0] == (uint8_t)(before | TELEM_HDR_REPLAYED)) &&
-           telem_unpack_status(out, TELEM_FRAME_LEN, &back) &&   /* still valid */
-           !telem_unpack_hb(out, TELEM_HB_FRAME_LEN, &hb_back) &&   /* wrong type */
+           /* still valid */
+           telem_unpack_status(out, TELEM_FRAME_LEN, &back) &&
+           /* wrong type */
+           !telem_unpack_hb(out, TELEM_HB_FRAME_LEN, &hb_back) &&
            (telem_pack_status(NULL, out, (uint8_t)sizeof(out)) == 0U) &&
            (telem_pack_status(&s, NULL, TELEM_FRAME_LEN) == 0U) &&
            (telem_pack_status(&s, small, (uint8_t)sizeof(small)) == 0U) &&
@@ -643,8 +657,10 @@ static void s1_status_fill(telem_status_t *p_s, bool b_max)
     p_s->time_ds       = b_max ? 0xFFFFU : 0U;
     p_s->mission_state = b_max ? TELEM_MSTATE_MAX : 0U;
     p_s->fault_mask    = b_max ? TELEM_FAULT_MAX : 0U;
-    p_s->speed_left    = b_max ? (int16_t)TELEM_SPEED_MAX : (int16_t)TELEM_SPEED_MIN;
-    p_s->speed_right   = b_max ? (int16_t)TELEM_SPEED_MIN : (int16_t)TELEM_SPEED_MAX;
+    p_s->speed_left    = b_max ? (int16_t)TELEM_SPEED_MAX :
+                                 (int16_t)TELEM_SPEED_MIN;
+    p_s->speed_right   = b_max ? (int16_t)TELEM_SPEED_MIN :
+                                 (int16_t)TELEM_SPEED_MAX;
     p_s->motion_state  = b_max ? TELEM_MOTION_MAX : 0U;
     p_s->dist_mm       = b_max ? 0xFFFFU : 0U;
     p_s->line_zone     = b_max ? TELEM_ZONE_MAX : 0U;
@@ -766,11 +782,15 @@ static bool s1_map_bad_length(void)
     uint32_t word = 1UL;
 
     cmd_parse_init(&s_test_parser);
-    return (cmd_parse_map(&s_test_parser, NULL, 3U, true, &word) == CMD_ERR_NULL) &&
+    return (cmd_parse_map(&s_test_parser, NULL, 3U, true, &word) ==
+            CMD_ERR_NULL) &&
            (word == 0UL) &&
-           (cmd_parse_map(&s_test_parser, frame, 0U, true, &word) == CMD_ERR_LEN) &&
-           (cmd_parse_map(&s_test_parser, frame, 2U, true, &word) == CMD_ERR_LEN) &&
-           (cmd_parse_map(&s_test_parser, frame, 4U, true, &word) == CMD_ERR_LEN) &&
+           (cmd_parse_map(&s_test_parser, frame, 0U, true, &word) ==
+            CMD_ERR_LEN) &&
+           (cmd_parse_map(&s_test_parser, frame, 2U, true, &word) ==
+            CMD_ERR_LEN) &&
+           (cmd_parse_map(&s_test_parser, frame, 4U, true, &word) ==
+            CMD_ERR_LEN) &&
            (cmd_parse_rejected(&s_test_parser) == 4U);
 }
 
@@ -952,7 +972,8 @@ static bool s1_task_timing(void)
     for (i = 1U; i < n_hb; i++)
     {
         UW gap = t_hb[i] - t_hb[i - 1U];
-        if ((gap < (1000U - S1_TEST_TOL_MS)) || (gap > (1000U + S1_TEST_TOL_MS)))
+        if ((gap < (1000U - S1_TEST_TOL_MS)) ||
+            (gap > (1000U + S1_TEST_TOL_MS)))
         {
             return false;
         }
@@ -1113,7 +1134,8 @@ static bool s1_wait_tx(uint8_t topic, uint8_t evt_type, INT timeout_ms,
         }
         if ((topic == S1_TOPIC_EVT) && (evt_type != 0xFFU))
         {
-            if (!telem_unpack_event(&msg[1], (uint8_t)(len - 1), &type, &data) ||
+            if (!telem_unpack_event(&msg[1], (uint8_t)(len - 1),
+                                    &type, &data) ||
                 (type != evt_type))
             {
                 continue;
@@ -1170,6 +1192,7 @@ static bool s1_send_status_t(uint8_t state, uint8_t letter,
     st.barcodes        = 3U;
     st.obst_dist_cm    = (uint16_t)TELEM_OBST_DIST_NONE;
     st.obst_width_cm   = (uint8_t)TELEM_OBST_WIDTH_NONE;
+    st.hump_peak_mm    = 42U;
 
     return s1_status_send(&st) == E_OK;
 }
@@ -1223,21 +1246,18 @@ static bool s1_status_packing(void)
     b_ok = b_ok && (msg.w0 == 0xFFFFFFFFUL) && (msg.w1 == 0x001FFFFFUL) &&
            s1_status_same(&in, &back);
 
-    /* Too-large values are cut to the field max, never wrap */
+    /* Too-large codes and counters are cut to the field max, never wrap.
+       (Distance, width and hump: S1-U45.) */
     in.mission_state = 40U;
     in.letter        = 40U;
     in.last_action   = 9U;
     in.b_obstacle    = 7U;
-    in.obst_dist_cm  = 600U;
-    in.obst_width_cm = 99U;
     in.barcodes      = 20U;
     want = in;
     want.mission_state = 15U;
     want.letter        = 31U;
     want.last_action   = 3U;
     want.b_obstacle    = 1U;
-    want.obst_dist_cm  = 511U;
-    want.obst_width_cm = 63U;
     want.barcodes      = 15U;
     s1_status_pack(&in, &msg);
     s1_status_unpack(&msg, &back);
@@ -1260,7 +1280,66 @@ static bool s1_status_same(const s1_status_t *p_a, const s1_status_t *p_b)
            (p_a->obst_dist_cm == p_b->obst_dist_cm) &&
            (p_a->obst_side == p_b->obst_side) &&
            (p_a->obst_width_cm == p_b->obst_width_cm) &&
-           (p_a->barcodes == p_b->barcodes);
+           (p_a->barcodes == p_b->barcodes) &&
+           (p_a->hump_peak_mm == p_b->hump_peak_mm);
+}
+
+/*
+ * S1-U45: IF-13 distance, width and hump keep "no data" but cap other
+ * too-large values at the largest REAL value, as telemetry does
+ * (S1-U13).  Hump goes into w1 bits 21-28 and reaches the telemetry
+ * frame (FR5).  Expected w1 worked out by hand:
+ *   dist 87 | side 1 << 9 | width 15 << 11 | barcodes 3 << 17
+ *   | hump 42 << 21 = 0x05467A57
+ */
+static bool s1_status_real_max(void)
+{
+    s1_status_t     in   = {0};
+    s1_status_t     back = {0};
+    s1_status_msg_t msg;
+    uint8_t         frame[S1_TX_MSG_MAX];
+    uint8_t         len = 0U;
+    telem_status_t  st;
+    bool            b_ok;
+
+    /* Hump in its place */
+    in.obst_dist_cm  = 87U;
+    in.obst_side     = 1U;
+    in.obst_width_cm = 15U;
+    in.barcodes      = 3U;
+    in.hump_peak_mm  = 42U;
+    s1_status_pack(&in, &msg);
+    b_ok = (msg.w1 == 0x05467A57UL);
+
+    /* Too large: capped at the largest real value, not "no data" */
+    in.obst_dist_cm  = 600U;
+    in.obst_width_cm = 99U;
+    in.hump_peak_mm  = 255U;     /* "none" itself is kept */
+    s1_status_pack(&in, &msg);
+    s1_status_unpack(&msg, &back);
+    b_ok = b_ok && (back.obst_dist_cm == (uint16_t)TELEM_OBST_DIST_MAX) &&
+           (back.obst_width_cm == (uint8_t)TELEM_OBST_WIDTH_MAX) &&
+           (back.hump_peak_mm == (uint8_t)TELEM_HUMP_NONE);
+
+    /* "No data" values kept */
+    in.obst_dist_cm  = (uint16_t)TELEM_OBST_DIST_NONE;
+    in.obst_width_cm = (uint8_t)TELEM_OBST_WIDTH_NONE;
+    s1_status_pack(&in, &msg);
+    s1_status_unpack(&msg, &back);
+    b_ok = b_ok && (back.obst_dist_cm == (uint16_t)TELEM_OBST_DIST_NONE) &&
+           (back.obst_width_cm == (uint8_t)TELEM_OBST_WIDTH_NONE);
+
+    /* FR5: the hump sent over IF-13 shows up in the next telemetry frame */
+    s1_flush_tx();
+    if (!s1_send_status((uint8_t)S1_MSTATE_READY, 16U))   /* hump 42 */
+    {
+        return false;
+    }
+    return b_ok &&
+           s1_wait_tx(S1_TOPIC_TELEM, 0xFFU, S1_TEST_TELEM_MS,
+                      frame, &len, NULL) &&
+           telem_unpack_status(frame, len, &st) &&
+           (st.hump_mm == 42U);
 }
 
 /*
