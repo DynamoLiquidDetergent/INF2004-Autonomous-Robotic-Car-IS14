@@ -120,3 +120,26 @@ Scope: level calibration, pitch/roll direction and startup movement rejection/re
 Firmware checkpoint: `31a6b57ff01590cfad904c9e6d387c997ab0412c`. All 148 captured paired rows were fresh with read return code zero and missed counter zero. This does not establish worst-case execution time or exact sampling jitter.
 
 
+
+
+## Phase 4 test cases
+
+| ID | What is tested | Method | Expected result |
+|---|---|---|---|
+| S4-U06 | Portable terrain FSM and regression checks | Automated C assertions | Ordered/debounced traversal; fresh-data gating; impact rearm; timeout/wrap and fault latch assertions pass |
+| S4-H03 | Calibration, flat baseline, ordered humps and incomplete traversal rejection | Guided sensor bench movements | Level calibration; flat baseline without hump; three ordered single-hump completions; incomplete and downhill-only movements do not produce a hump |
+| S4-H04 | Impact event and rearm functional observation | Optional two separate padded-support bumps | One captured impact event per confirmed single bump; no impact during the rest interval; no physical latency claim |
+| S4-H05 | Sensor fault latch and restart recovery | Optional connector disconnect/reconnect followed by Pico restart | FAULT on sensor loss; reconnect alone does not clear it; level calibration and LEVEL after restart |
+
+
+
+
+
+### Phase 4 run 2026-11-01_181511_666687
+
+| Date | Test ID | Commit | Tester | Result | Evidence | Notes |
+|---|---|---|---|---|---|---|
+| 2026-11-01 | S4-U06 | `a522381` | Bryan | PASS | [Host](logs/2026-11-01_181511_666687_phase4_host.txt) | Portable terrain behavior assertions plus driver, processing and timer regression checks. |
+| 2026-11-01 | S4-H03 | `a522381` | Bryan | PASS | [Console](logs/2026-11-01_181511_666687_phase4_sensor.txt); [Summary](logs/2026-11-01_181511_666687_phase4_summary.json) | Sensor bench functional scope: flat=PASS; three humps=PASS,PASS,PASS; incomplete=PASS; downhill-only=PASS. No track detection-rate, accuracy or timing claim. |
+| 2026-11-01 | S4-H04 | `a522381` | Bryan | NOT RUN | [Console](logs/2026-11-01_181511_666687_phase4_sensor.txt); [Summary](logs/2026-11-01_181511_666687_phase4_summary.json) | Optional impact bench check skipped by operator; host rearm assertions are separate. |
+| 2026-11-01 | S4-H05 | `a522381` | Bryan | NOT RUN | [Console](logs/2026-11-01_181511_666687_phase4_sensor.txt); [Summary](logs/2026-11-01_181511_666687_phase4_summary.json) | Optional sensor-disconnection check skipped by operator. |
