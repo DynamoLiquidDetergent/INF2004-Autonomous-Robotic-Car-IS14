@@ -53,7 +53,7 @@
 /* Telemetry task state: one copy, used only by this task */
 typedef struct
 {
-    s1_status_msg_t status;     /* newest IF-13 status                 */
+    s1_status_t     status;     /* newest IF-13 status, unpacked       */
     cmd_parser_t    parser;     /* commands + maps, with reject count  */
     outage_buf_t    outage;     /* telemetry kept while the link is down */
     uint32_t        tick;
@@ -225,7 +225,7 @@ static void s1_take_status(s1_telem_ctx_t *p_ctx)
     while (tk_rcv_mbf(mbf_telem_status, &msg, TMO_POL) ==
            (INT)sizeof(s1_status_msg_t))
     {
-        p_ctx->status = msg;
+        s1_status_unpack(&msg, &p_ctx->status);
         b_got = true;
     }
 

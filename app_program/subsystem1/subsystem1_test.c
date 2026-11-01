@@ -59,6 +59,8 @@ static bool s1_pack_clamp(void);
 static bool s1_pack_hb(void);
 static bool s1_pack_event(void);
 static bool s1_pack_header(void);
+static bool s1_status_packing(void);
+static bool s1_status_same(const s1_status_t *p_a, const s1_status_t *p_b);
 static bool s1_map_valid(void);
 static bool s1_map_bad_length(void);
 static bool s1_map_bad_letter(void);
@@ -137,6 +139,8 @@ EXPORT void subsystem1_test(void)
                "event 3 B round-trip; bad type/data refused");
     TEST_CHECK("S1-U16", s1_pack_header(),
                "header version/type/replayed; NULL and small buffer refused");
+    TEST_CHECK("S1-U44", s1_status_packing(),
+               "IF-13 is 8 B; packs to expected words; round-trips; values cut to field max");
 
     /* Mapping message (prof requirement: letter-to-movement over MQTT) */
     TEST_CHECK("S1-U18", s1_map_valid(),
@@ -1157,18 +1161,106 @@ static bool s1_send_status(uint8_t state, uint8_t letter)
 static bool s1_send_status_t(uint8_t state, uint8_t letter,
                              uint16_t time_ds)
 {
-    s1_status_msg_t msg = {0};
+    s1_status_t st = {0};
 
-    msg.mission_time_ds = time_ds;
-    msg.mission_state   = state;
-    msg.fault_mask      = 2U;
-    msg.letter          = letter;
-    msg.barcodes        = 3U;
-    msg.obst_dist_cm    = (uint16_t)TELEM_OBST_DIST_NONE;
-    msg.obst_width_cm   = (uint8_t)TELEM_OBST_WIDTH_NONE;
+    st.mission_time_ds = time_ds;
+    st.mission_state   = state;
+    st.fault_mask      = 2U;
+    st.letter          = letter;
+    st.barcodes        = 3U;
+    st.obst_dist_cm    = (uint16_t)TELEM_OBST_DIST_NONE;
+    st.obst_width_cm   = (uint8_t)TELEM_OBST_WIDTH_NONE;
 
-    return tk_snd_mbf(mbf_telem_status, &msg, (INT)sizeof(msg), TMO_POL) ==
-           E_OK;
+    return s1_status_send(&st) == E_OK;
+}
+
+/*
+ * S1-U44: IF-13 packing (Change Requirement 1).
+ * Expected words worked out by hand from the layout in subsystem1.h:
+ *   time 1234 (0x04D2), state 3, fault 5, letter 10, action 2, obstacle 1
+ *     w0 = 0x04D2 | 3<<16 | 5<<20 | 10<<24 | 2<<29 | 1<<31 = 0xCA5304D2
+ *   dist 87, side 1, width 15, barcodes 3
+ *     w1 = 87 | 1<<9 | 15<<11 | 3<<17 = 0x00067A57
+ */
+static bool s1_status_packing(void)
+{
+    s1_status_t     in   = {0};
+    s1_status_t     back = {0};
+    s1_status_t     want = {0};
+    s1_status_msg_t msg;
+    bool            b_ok;
+
+    /* Fixed values -> exact words */
+    in.mission_time_ds = 1234U;
+    in.mission_state   = 3U;
+    in.fault_mask      = 5U;
+    in.letter          = 10U;
+    in.last_action     = 2U;
+    in.b_obstacle      = 1U;
+    in.obst_dist_cm    = 87U;
+    in.obst_side       = 1U;
+    in.obst_width_cm   = 15U;
+    in.barcodes        = 3U;
+    s1_status_pack(&in, &msg);
+    s1_status_unpack(&msg, &back);
+    b_ok = (sizeof(s1_status_msg_t) == 8U) &&
+           (msg.w0 == 0xCA5304D2UL) && (msg.w1 == 0x00067A57UL) &&
+           s1_status_same(&in, &back);
+
+    /* Every field at its largest / "none" value round-trips; spare bits 0 */
+    in.mission_time_ds = 0xFFFFU;
+    in.mission_state   = (uint8_t)S1_MSTATE_NONE;
+    in.fault_mask      = 15U;
+    in.letter          = 31U;
+    in.last_action     = 3U;
+    in.b_obstacle      = 1U;
+    in.obst_dist_cm    = 511U;
+    in.obst_side       = 3U;
+    in.obst_width_cm   = 63U;
+    in.barcodes        = 15U;
+    s1_status_pack(&in, &msg);
+    s1_status_unpack(&msg, &back);
+    b_ok = b_ok && (msg.w0 == 0xFFFFFFFFUL) && (msg.w1 == 0x001FFFFFUL) &&
+           s1_status_same(&in, &back);
+
+    /* Too-large values are cut to the field max, never wrap */
+    in.mission_state = 40U;
+    in.letter        = 40U;
+    in.last_action   = 9U;
+    in.b_obstacle    = 7U;
+    in.obst_dist_cm  = 600U;
+    in.obst_width_cm = 99U;
+    in.barcodes      = 20U;
+    want = in;
+    want.mission_state = 15U;
+    want.letter        = 31U;
+    want.last_action   = 3U;
+    want.b_obstacle    = 1U;
+    want.obst_dist_cm  = 511U;
+    want.obst_width_cm = 63U;
+    want.barcodes      = 15U;
+    s1_status_pack(&in, &msg);
+    s1_status_unpack(&msg, &back);
+    b_ok = b_ok && s1_status_same(&want, &back);
+
+    /* NULL is ignored */
+    s1_status_pack(NULL, &msg);
+    s1_status_unpack(NULL, &back);
+    return b_ok && (s1_status_send(NULL) == E_PAR);
+}
+
+static bool s1_status_same(const s1_status_t *p_a, const s1_status_t *p_b)
+{
+    return (p_a->mission_time_ds == p_b->mission_time_ds) &&
+           (p_a->mission_state == p_b->mission_state) &&
+           (p_a->fault_mask == p_b->fault_mask) &&
+           (p_a->letter == p_b->letter) &&
+           (p_a->last_action == p_b->last_action) &&
+           (p_a->b_obstacle == p_b->b_obstacle) &&
+           (p_a->obst_dist_cm == p_b->obst_dist_cm) &&
+           (p_a->obst_side == p_b->obst_side) &&
+           (p_a->obst_width_cm == p_b->obst_width_cm) &&
+           (p_a->barcodes == p_b->barcodes);
 }
 
 /*

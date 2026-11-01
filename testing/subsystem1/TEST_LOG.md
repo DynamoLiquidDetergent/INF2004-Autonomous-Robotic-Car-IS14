@@ -53,6 +53,7 @@ Test IDs are never changed.
 | S1-U41 | Car spots a dead link (no TCP reset) within 10 s and recovers | NFR3, FR10, NFR5, IF-15 | manual | Laptop WiFi off 15 s, then on | Last live mission time to first R frame ≤ 10 s. R frames in order. `car online` again |
 | S1-U42 | Last will and online topic | FR3, FR6, IF-15 | manual | Laptop WiFi off (same run as U41/U43) | `online = 0` row within 10 s of the last heartbeat. `online = 1` row after the car reconnects |
 | S1-U43 | 60 s outage: S1 keeps running and recovers | NFR4 (S1 part), NFR3, FR10, NFR5 | manual | Laptop WiFi off 60 s, then on | Heartbeat seq continues (no reset). 20 newest frames replayed in order. Outage count back to 0. Other subsystems checked at integration |
+| S1-U44 | IF-13 packed into 8 B: exact words for fixed values, round-trip at max/none, too-large values capped at field max, spare bits 0 | CR1, IF-13 | auto | make TEST=1, flash, read console | `[TEST] S1-U44 PASS` |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).

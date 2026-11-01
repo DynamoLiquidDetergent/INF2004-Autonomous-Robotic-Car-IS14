@@ -17,26 +17,52 @@ IMPORT ID g_s1_tid_telem;           /* telemetry task ID (for tests) */
 
 /*
  * IF-13: S5 (Vehicle Controller) -> S1, every 500 ms.
- * S5 sends one s1_status_msg_t into mbf_telem_status with TMO_POL.
- * S1 keeps only the newest.  PROPOSED: fields and the READY value are
- * still to be confirmed with S5.
+ * S5 fills an s1_status_t and calls s1_status_send(): it is packed into
+ * two UW (53 bits used, Change Requirement 1) and sent into
+ * mbf_telem_status with TMO_POL.  S1 keeps only the newest.
+ * PROPOSED: fields and the READY value are still to be confirmed with S5.
  */
 #define S1_MSTATE_READY     (1U)    /* PROPOSED: S5's READY state value */
 #define S1_MSTATE_NONE      (15U)   /* not known yet                    */
 
+/* Status as S5 fills it in (not sent as is: see s1_status_msg_t) */
 typedef struct
 {
     uint16_t mission_time_ds;   /* 0.1 s since START                    */
-    uint16_t obst_dist_cm;      /* 511 = no obstacle seen               */
-    uint8_t  mission_state;     /* 0..14; S1_MSTATE_READY = READY       */
+    uint16_t obst_dist_cm;      /* 0..510, 511 = no obstacle seen       */
+    uint8_t  mission_state;     /* 0..14; S1_MSTATE_READY = READY; 15 none */
     uint8_t  fault_mask;        /* IF-12 bits: 0 S2, 1 S3, 2 S4, 3 S5   */
     uint8_t  letter;            /* stored letter 0 = A .. 25 = Z, 31 none */
     uint8_t  last_action;       /* S1_MOVE_xxx                          */
-    uint8_t  barcodes;          /* barcodes read so far                 */
+    uint8_t  barcodes;          /* barcodes read so far, stops at 15    */
     uint8_t  b_obstacle;        /* 1 = obstacle present                 */
     uint8_t  obst_side;         /* 0 none, 1 left, 2 right              */
-    uint8_t  obst_width_cm;     /* 63 = unknown                         */
+    uint8_t  obst_width_cm;     /* 0..62, 63 = unknown                  */
+} s1_status_t;
+
+/*
+ * The IF-13 message itself: 8 bytes.
+ *   w0 bits  0-15 mission_time_ds   w1 bits  0-8  obst_dist_cm
+ *      bits 16-19 mission_state        bits  9-10 obst_side
+ *      bits 20-23 fault_mask           bits 11-16 obst_width_cm
+ *      bits 24-28 letter               bits 17-20 barcodes
+ *      bits 29-30 last_action          bits 21-31 spare, always 0
+ *      bit  31    b_obstacle
+ * Each value is cut to its field's largest value before packing
+ * (e.g. barcodes 20 -> 15, letter 40 -> 31 = none).
+ */
+typedef struct
+{
+    UW w0;
+    UW w1;
 } s1_status_msg_t;
+
+/* Pack / unpack one IF-13 message.  NULL pointers are ignored. */
+IMPORT void s1_status_pack(const s1_status_t *p_st, s1_status_msg_t *p_msg);
+IMPORT void s1_status_unpack(const s1_status_msg_t *p_msg, s1_status_t *p_st);
+/* S5: pack and send one status (TMO_POL).  E_OK, or the kernel error
+   (E_TMOUT if S1 has not taken the last two yet). */
+IMPORT ER   s1_status_send(const s1_status_t *p_st);
 
 IMPORT ID mbf_telem_status;         /* IF-13 (owned by S1) */
 

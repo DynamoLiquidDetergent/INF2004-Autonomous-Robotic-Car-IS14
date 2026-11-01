@@ -6,7 +6,8 @@
  * tests use these constants, so changing a width here is enough.
  * Bump TELEM_VERSION whenever any layout changes.
  *
- * Widths marked PROVISIONAL are working assumptions until other buddies confirm them.
+ * Widths marked PROVISIONAL are working assumptions until other
+ * buddies confirm.
  *
  * Every frame: 1 header byte, then the body packed LSB-first from bit 0
  * of byte 1, fields in the order listed.

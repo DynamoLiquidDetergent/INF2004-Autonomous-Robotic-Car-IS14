@@ -29,7 +29,34 @@ EXPORT ID mbf_telem_status = 0;
 EXPORT ID mbf_mqtt_tx = 0;
 EXPORT ID mbf_mqtt_rx = 0;
 
+/* IF-13 layout (see subsystem1.h): shift and width of each field */
+#define S1_ST_TIME_SH        (0U)
+#define S1_ST_TIME_W         (16U)
+#define S1_ST_STATE_SH       (16U)
+#define S1_ST_STATE_W        (4U)
+#define S1_ST_FAULT_SH       (20U)
+#define S1_ST_FAULT_W        (4U)
+#define S1_ST_LETTER_SH      (24U)
+#define S1_ST_LETTER_W       (5U)
+#define S1_ST_ACTION_SH      (29U)
+#define S1_ST_ACTION_W       (2U)
+#define S1_ST_OBST_SH        (31U)
+#define S1_ST_OBST_W         (1U)
+#define S1_ST_DIST_SH        (0U)     /* w1 */
+#define S1_ST_DIST_W         (9U)
+#define S1_ST_SIDE_SH        (9U)
+#define S1_ST_SIDE_W         (2U)
+#define S1_ST_WIDTH_SH       (11U)
+#define S1_ST_WIDTH_W        (6U)
+#define S1_ST_BARC_SH        (17U)
+#define S1_ST_BARC_W         (4U)
+
+/* Largest value a field of width w holds */
+#define S1_FIELD_MAX(w)      ((1UL << (w)) - 1UL)
+
 static ID s1_create_mbf(INT maxmsz, UW depth);
+static UW s1_put(UW value, UW width, UW shift);
+static UW s1_get(UW word, UW width, UW shift);
 #if S1_FAKE_S5 && !APP_TEST
 static void fake_s5_task(INT stacd, void *exinf);
 #endif
@@ -176,6 +203,91 @@ EXPORT void s1_set_nav_map(UW map_word)
 }
 
 /*
+ * IF-13: pack a status into its 8-byte message.
+ */
+EXPORT void s1_status_pack(const s1_status_t *p_st, s1_status_msg_t *p_msg)
+{
+    if ((p_st == NULL) || (p_msg == NULL))
+    {
+        return;
+    }
+
+    p_msg->w0 = s1_put(p_st->mission_time_ds, S1_ST_TIME_W, S1_ST_TIME_SH) |
+                s1_put(p_st->mission_state, S1_ST_STATE_W, S1_ST_STATE_SH) |
+                s1_put(p_st->fault_mask, S1_ST_FAULT_W, S1_ST_FAULT_SH) |
+                s1_put(p_st->letter, S1_ST_LETTER_W, S1_ST_LETTER_SH) |
+                s1_put(p_st->last_action, S1_ST_ACTION_W, S1_ST_ACTION_SH) |
+                s1_put((p_st->b_obstacle != 0U) ? 1U : 0U,
+                       S1_ST_OBST_W, S1_ST_OBST_SH);
+    p_msg->w1 = s1_put(p_st->obst_dist_cm, S1_ST_DIST_W, S1_ST_DIST_SH) |
+                s1_put(p_st->obst_side, S1_ST_SIDE_W, S1_ST_SIDE_SH) |
+                s1_put(p_st->obst_width_cm, S1_ST_WIDTH_W, S1_ST_WIDTH_SH) |
+                s1_put(p_st->barcodes, S1_ST_BARC_W, S1_ST_BARC_SH);
+}
+
+/*
+ * IF-13: unpack an 8-byte message into a status.
+ */
+EXPORT void s1_status_unpack(const s1_status_msg_t *p_msg, s1_status_t *p_st)
+{
+    if ((p_st == NULL) || (p_msg == NULL))
+    {
+        return;
+    }
+
+    p_st->mission_time_ds = (uint16_t)s1_get(p_msg->w0, S1_ST_TIME_W,
+                                             S1_ST_TIME_SH);
+    p_st->mission_state   = (uint8_t)s1_get(p_msg->w0, S1_ST_STATE_W,
+                                            S1_ST_STATE_SH);
+    p_st->fault_mask      = (uint8_t)s1_get(p_msg->w0, S1_ST_FAULT_W,
+                                            S1_ST_FAULT_SH);
+    p_st->letter          = (uint8_t)s1_get(p_msg->w0, S1_ST_LETTER_W,
+                                            S1_ST_LETTER_SH);
+    p_st->last_action     = (uint8_t)s1_get(p_msg->w0, S1_ST_ACTION_W,
+                                            S1_ST_ACTION_SH);
+    p_st->b_obstacle      = (uint8_t)s1_get(p_msg->w0, S1_ST_OBST_W,
+                                            S1_ST_OBST_SH);
+    p_st->obst_dist_cm    = (uint16_t)s1_get(p_msg->w1, S1_ST_DIST_W,
+                                             S1_ST_DIST_SH);
+    p_st->obst_side       = (uint8_t)s1_get(p_msg->w1, S1_ST_SIDE_W,
+                                            S1_ST_SIDE_SH);
+    p_st->obst_width_cm   = (uint8_t)s1_get(p_msg->w1, S1_ST_WIDTH_W,
+                                            S1_ST_WIDTH_SH);
+    p_st->barcodes        = (uint8_t)s1_get(p_msg->w1, S1_ST_BARC_W,
+                                            S1_ST_BARC_SH);
+}
+
+/*
+ * IF-13 (S5 calls this): pack one status and send it with TMO_POL.
+ */
+EXPORT ER s1_status_send(const s1_status_t *p_st)
+{
+    s1_status_msg_t msg;
+
+    if (p_st == NULL)
+    {
+        return E_PAR;
+    }
+    s1_status_pack(p_st, &msg);
+    return tk_snd_mbf(mbf_telem_status, &msg, (INT)sizeof(msg), TMO_POL);
+}
+
+/*
+ * Value cut to the field's largest value, then moved into place.
+ */
+static UW s1_put(UW value, UW width, UW shift)
+{
+    UW max = S1_FIELD_MAX(width);
+
+    return ((value > max) ? max : value) << shift;
+}
+
+static UW s1_get(UW word, UW width, UW shift)
+{
+    return (word >> shift) & S1_FIELD_MAX(width);
+}
+
+/*
  * Create one message buffer holding 'depth' messages of up to 'maxmsz'
  * bytes.  Returns its ID, or a negative error code.
  */
@@ -197,24 +309,24 @@ static ID s1_create_mbf(INT maxmsz, UW depth)
  */
 static void fake_s5_task(INT stacd, void *exinf)
 {
-    s1_status_msg_t msg = {0};
-    UW              sends = 0U;
+    s1_status_t st = {0};
+    UW          sends = 0U;
 
     (void)stacd;
     (void)exinf;
 
-    msg.obst_dist_cm  = (uint16_t)TELEM_OBST_DIST_NONE;
-    msg.obst_width_cm = (uint8_t)TELEM_OBST_WIDTH_NONE;
+    st.obst_dist_cm  = (uint16_t)TELEM_OBST_DIST_NONE;
+    st.obst_width_cm = (uint8_t)TELEM_OBST_WIDTH_NONE;
 
     for (;;)
     {
-        msg.mission_time_ds = (uint16_t)(sends * 5U);
-        msg.mission_state   = (((sends / S1_FAKE_PHASE_SENDS) % 2U) == 0U) ?
-                              (uint8_t)S1_MSTATE_READY : 2U;
-        msg.letter          = (uint8_t)(sends % 26U);
-        msg.barcodes        = (uint8_t)((sends / 10U) % 16U);
+        st.mission_time_ds = (uint16_t)(sends * 5U);
+        st.mission_state   = (((sends / S1_FAKE_PHASE_SENDS) % 2U) == 0U) ?
+                             (uint8_t)S1_MSTATE_READY : 2U;
+        st.letter          = (uint8_t)(sends % 26U);
+        st.barcodes        = (uint8_t)((sends / 10U) % 16U);
 
-        (void)tk_snd_mbf(mbf_telem_status, &msg, (INT)sizeof(msg), TMO_POL);
+        (void)s1_status_send(&st);
         sends++;
         (void)tk_dly_tsk(S1_FAKE_PERIOD_MS);
     }
