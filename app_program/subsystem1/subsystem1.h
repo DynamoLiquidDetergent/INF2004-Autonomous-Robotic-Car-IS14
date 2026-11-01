@@ -38,7 +38,9 @@ typedef struct
     uint8_t  b_obstacle;        /* 1 = obstacle present                 */
     uint8_t  obst_side;         /* 0 none, 1 left, 2 right              */
     uint8_t  obst_width_cm;     /* 0..62, 63 = unknown                  */
-    uint8_t  hump_peak_mm;      /* highest hump so far 0..254, 255 none */
+    uint8_t  hump_peak_mm;      /* highest hump so far 0..254, 255 none.
+                                   Sender caps real heights at 254: a
+                                   uint8_t 255 would read as "none" */
 } s1_status_t;
 
 /*

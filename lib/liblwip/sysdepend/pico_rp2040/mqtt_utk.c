@@ -64,6 +64,9 @@ static const char	online_no[1] = { 0 };	/* last will */
 
 /* 1 while online = 1 still has to be published on this connection */
 static u8_t		online_pending;
+/* 1 once a failed online publish has been reported (one line per
+ * connection, not one every 20 ms retry) */
+static u8_t		online_warned;
 
 /* Inbound message staging. A publish arrives as one topic callback followed by
  * one or more data callbacks, so the topic has to be kept until the fragment
@@ -242,9 +245,16 @@ static void tx_poll_timeout(void *arg)
  * has taken it. */
 static void online_publish(void)
 {
-	if(mqtt_publish(client, S1_TOPIC_NAME_ONLINE, &online_yes, 1u,
-			MQTT_UTK_QOS_ONLINE, 1u, NULL, NULL) == ERR_OK) {
+	err_t	err;
+
+	err = mqtt_publish(client, S1_TOPIC_NAME_ONLINE, &online_yes, 1u,
+			   MQTT_UTK_QOS_ONLINE, 1u, NULL, NULL);
+	if(err == ERR_OK) {
 		online_pending = 0;
+	} else if(!online_warned) {
+		online_warned = 1;
+		tm_printf((UB*)"mqtt: publish(online) failed, err=%d, "
+			  "retrying\n", (int)err);
 	}
 }
 
@@ -300,6 +310,7 @@ static void connection_cb(mqtt_client_t *c, void *arg, mqtt_connection_status_t 
 		/* Replace the last will's online = 0 with online = 1. If
 		 * mqtt.c is busy, tx_poll_timeout() keeps trying. */
 		online_pending = 1;
+		online_warned  = 0;
 		online_publish();
 	} else {
 		mqtt_up = 0;

@@ -46,7 +46,6 @@
 #define S1_EVT_MAP_OK           (0x01U) /* MAP_ACK: ok bit 0             */
 #define S1_EVT_MAP_REASON_SHIFT (1U)    /*          reason bits 1-2      */
 
-
 #define S1_COUNT_MAX            (0xFFFFU)
 
 /* Telemetry task state: one copy, used only by this task */
