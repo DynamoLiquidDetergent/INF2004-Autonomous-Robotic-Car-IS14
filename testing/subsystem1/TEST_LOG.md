@@ -53,7 +53,8 @@ Test IDs are never changed.
 | S1-U41 | Car spots a dead link (no TCP reset) within 10 s and recovers | NFR3, FR10, NFR5, IF-15 | manual | Laptop WiFi off 15 s, then on | Last live mission time to first R frame ≤ 10 s. R frames in order. `car online` again |
 | S1-U42 | Last will and online topic | FR3, FR6, IF-15 | manual | Laptop WiFi off (same run as U41/U43) | `online = 0` row within 10 s of the last heartbeat. `online = 1` row after the car reconnects |
 | S1-U43 | 60 s outage: S1 keeps running and recovers | NFR4 (S1 part), NFR3, FR10, NFR5 | manual | Laptop WiFi off 60 s, then on | Heartbeat seq continues (no reset). 20 newest frames replayed in order. Outage count back to 0. Other subsystems checked at integration |
-| S1-U44 | IF-13 packed into 8 B: exact words for fixed values, round-trip at max/none, too-large values capped at field max, spare bits 0 | CR1, IF-13 | auto | make TEST=1, flash, read console | `[TEST] S1-U44 PASS` |
+| S1-U44 | IF-13 packed into 8 B: exact words for fixed values, round-trip at max/none, too-large codes and counters capped at field max, spare bits 0 | CR1, IF-13 | auto | make TEST=1, flash, read console | `[TEST] S1-U44 PASS` *(Revised 2026-11-01: distance/width capping moved to S1-U45 after review)* |
+| S1-U45 | IF-13 distance, width, hump: "no data" kept, too-large capped at the largest real value. Hump in w1 bits 21–28 reaches the telemetry frame | CR1, IF-13, FR5 | auto | make TEST=1, flash, read console | `[TEST] S1-U45 PASS` |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).
@@ -111,3 +112,6 @@ Old rows are never deleted or edited to change their meaning / results.
 | 2026-10-29 | S1-U42 | `3990070` | Saad | PASS | `logs/2026-10-29_S1-U41-U43.csv` | online = 0 7.7 s after the car's last packet, both outages. online = 1 on all 3 connects |
 | 2026-10-29 | S1-U43 | `3990070` | Saad | PASS | `logs/2026-10-29_S1-U41-U43.csv` | ~68 s outage. No reset: mission time and hb seq continue. 118 → 129 replayed in order, oldest dropped as designed, outage 13 → 0. Other subsystems at integration |
 | 2026-11-01 | S1-U44 | `fd40779` | Saad | PASS | `logs/2026-11-01_S1-U44.txt` | TEST=1 image. IF-13 8 B, exact words. U01–U30 re-pass with packed IF-13 (28/28). MQTT image & dashboard also re-verified to be WORKING. |
+| 2026-11-01 | S1-U44 | `50791f1` | Saad | PASS | `logs/2026-11-01_S1-U44-U45.txt` | Rerun after review fixes. Codes/counters capped at field max |
+| 2026-11-01 | S1-U45 | `50791f1` | Saad | PASS | `logs/2026-11-01_S1-U44-U45.txt` | 600 cm → 510, 99 cm → 62, none kept. Hump 42 reaches telemetry. U01–U30 re-pass (29/29) |
+| 2026-11-01 | S1-U30 | `50791f1` | Saad | PASS | `logs/2026-11-01_S1-U44-U45.txt` | n=20, 104 → 123. Replay now runs before packing each tick, so no kept frame is dropped when the link returns |
