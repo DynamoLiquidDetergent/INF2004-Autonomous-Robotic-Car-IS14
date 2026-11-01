@@ -65,6 +65,11 @@ LOCAL UINT servo_cmd_deg(UINT deg)
 	return (UINT)d;
 }
 
+EXPORT UW drv_servo_deg_to_pulse_us(UINT deg)
+{
+	return obs_angle_to_pulse_us(servo_cmd_deg(deg));
+}
+
 EXPORT UW drv_servo_pulse_us(void)
 {
 	return s_servo_pulse_us;
@@ -112,7 +117,7 @@ EXPORT ER drv_s5_init(UW parts)
 		out_w(SLICE_BASE(SERVO_SLICE) + PWM_CHx_CSR, 0);
 		out_w(SLICE_BASE(SERVO_SLICE) + PWM_CHx_DIV, PWM_DIV_1MHZ);
 		pwm_set_wrap(S5_PIN_SERVO, SERVO_TOP);
-		s_servo_pulse_us = obs_angle_to_pulse_us(servo_cmd_deg(90));
+		s_servo_pulse_us = drv_servo_deg_to_pulse_us(90);
 		pwm_set_cc(S5_PIN_SERVO, s_servo_pulse_us);
 		pwm_set_enabled(S5_PIN_SERVO, TRUE);
 		s_parts |= DRV_PART_SERVO;
@@ -145,7 +150,7 @@ EXPORT void drv_servo_set_deg(UINT deg)
 	if (!(s_parts & DRV_PART_SERVO)) {
 		return;			/* servo not switched on: do not touch it */
 	}
-	s_servo_pulse_us = obs_angle_to_pulse_us(servo_cmd_deg(deg));
+	s_servo_pulse_us = drv_servo_deg_to_pulse_us(deg);
 	pwm_set_cc(S5_PIN_SERVO, s_servo_pulse_us);
 }
 

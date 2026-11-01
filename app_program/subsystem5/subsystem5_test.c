@@ -34,8 +34,8 @@ EXPORT void subsystem5_test(void)
 		   (in_w(PWM_BASE + 0x14 * 6 + PWM_CHx_CSR) & 1u) == 1u,
 		   "servo slice 6 runs with a 20 ms period (TOP 19999)");
 
-	TEST_CHECK("S5-U04", drv_servo_pulse_us() == (UW)(1500 + 10 * S5_SERVO_TRIM_DEG),
-		   "servo starts straight ahead at 90 deg (1500 us plus 10 us per degree of trim)");
+	TEST_CHECK("S5-U04", drv_servo_deg_to_pulse_us(90) == (UW)(1500 + 10 * S5_SERVO_TRIM_DEG),
+		   "scan angle 90 maps to the straight-ahead pulse (1500 us plus 10 us per degree of trim)");
 #endif
 
 	TEST_CHECK("S5-U05", s5_obs_state <= OBS_ST_FAULT, "Obstacle state fits in 3 bits");

@@ -73,6 +73,7 @@ IMPORT US_RESULT	drv_us_ping(void);
 
 /* Raw readings for tests */
 IMPORT UW	drv_pwm_reset_done(void);		/* non-zero once PWM is out of reset */
+IMPORT UW	drv_servo_deg_to_pulse_us(UINT deg);	/* scan angle -> pulse, with trim */
 IMPORT UW	drv_servo_pulse_us(void);		/* current servo pulse width, us */
 
 #endif /* DRV_ULTRASONIC_H */
