@@ -35,9 +35,13 @@
 #define S5_SERVO_SETTLE_BASE_MS	40	/* assumption A-servo: no SG90 datasheet supplied */
 #define S5_SERVO_SETTLE_PER_DEG	2	/* ms per degree moved (SG90 is about 100 ms / 60 deg) */
 #define S5_STANDALONE_REST_MS	1500	/* bench mode: pause after a scan before watching again */
-#define S5_IDX_MIN		2	/* the servo is only ever sent between these scan indices:  */
-#define S5_IDX_MAX		10	/* 30..150 degrees. The extremes (0, 180) threw the sensor
-					   off its mount on the first hardware run. */
+#define S5_IDX_MIN		4	/* the servo is only ever sent between these scan indices:  */
+#define S5_IDX_MAX		8	/* 4..8 = 60..120 degrees (index x 15). At 0/180 the sensor was
+					   thrown off its mount, and at 30/150 it hit the car body.
+					   Keep MIN <= 5 and MAX >= 7 (the lane ahead is 5..7).
+					   Widen only after checking by hand that nothing touches. */
+/* coarse scan: every second index, starting so that index 6 (straight ahead) is included */
+#define S5_COARSE_FIRST		(OBS_IDX_AHEAD - 2 * ((OBS_IDX_AHEAD - S5_IDX_MIN) / 2))
 #define S5_SERVO_STEP_DEG	15	/* the servo is moved at most this far per command, so it
 					   never snaps across the whole range */
 
@@ -261,10 +265,10 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 			break;
 
 		case OBS_ST_COARSE_SCANNING:
-			/* 30, 60, 90, 120, 150 degrees (FR38) */
+			/* every second angle inside the servo window (FR38: 30..150 when it is allowed) */
 			scan_ms = now_ms();
 			obs_scan_clear(&scan);		/* new readings, keep the background */
-			for (i = 2; i <= 10; i += 2) {
+			for (i = S5_COARSE_FIRST; i <= S5_IDX_MAX; i += 2) {
 				measure_index((unsigned)i);
 				if (s5_obs_state == OBS_ST_FAULT || scan_timed_out(scan_ms)) {
 					break;
@@ -275,7 +279,7 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 			}
 			/* object confirmed if any coarse angle sees one */
 			n = 0;
-			for (i = 2; i <= 10; i += 2) {
+			for (i = S5_COARSE_FIRST; i <= S5_IDX_MAX; i += 2) {
 				n += obs_scan_is_hit(&scan, (unsigned)i, &cfg);
 			}
 			set_state(n ? OBS_ST_FINE_SCANNING : OBS_ST_IDLE_MONITORING);

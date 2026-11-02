@@ -25,6 +25,60 @@ static void scan_with(OBS_SCAN *s, const int *idx, const int *cm, int n)
 	for (i = 0; i < n; i++) obs_scan_set(s, (unsigned)idx[i], (uint16_t)cm[i]);
 }
 
+/* Simulation: flat-faced box, 15 degree beam, 1 cm rounding. Only indices lo..hi are
+   measured (the servo window). The chosen bypass must keep the robot's half width
+   clear of the TRUE edge; a box inside the robot's lane that is not detected counts
+   as missed. Returns the number of unsafe + missed cases. */
+static int sim_boxes(int lo, int hi, int *cases_o, int *retry_o, int *worst_o)
+{
+	int W, X, D, a, k, cases = 0, unsafe = 0, missed = 0, retry = 0, stop = 0, worst = 1000;
+	OBS_PROFILE p;
+
+	for (W = 10; W <= 20; W += 2) {
+	for (X = -30; X <= 30; X += 5) {
+	for (D = 20; D <= 40; D += 5) {
+		int true_r = X + W / 2, true_l = X - W / 2;	/* + = right of the centre line */
+		OBS_SCAN sc;
+
+		obs_scan_init(&sc);
+		for (a = lo; a <= hi; a++) {
+			double best = 1e9;
+			for (k = -5; k <= 5; k++) {		/* rays across the +/-7.5 deg beam */
+				double th = ((a * 15.0) + k * 1.5) * 3.14159265358979 / 180.0;
+				double sn = sin(th), cs = cos(th), x, t;
+				if (sn <= 0.05) continue;
+				t = D / sn;
+				x = D * cs / sn;
+				if (x >= true_l && x <= true_r && t < best) best = t;
+			}
+			obs_scan_set(&sc, (unsigned)a, best > 1e8 ? OBS_DIST_NONE : (uint16_t)(best + 0.5));
+		}
+		obs_profile(&sc, &cfg, &p);
+		cases++;
+		if (!p.detected) {
+			if (true_r > -(int)cfg.robot_half_width_cm && true_l < (int)cfg.robot_half_width_cm) {
+				missed++;
+			}
+			continue;
+		}
+		if (p.action == OBS_ACT_TURN_RIGHT) {
+			int clr = (int)p.right_cm - (true_r + (int)cfg.robot_half_width_cm);
+			if (clr < worst) worst = clr;
+			if (clr < 0) unsafe++;
+		} else if (p.action == OBS_ACT_TURN_LEFT) {
+			int clr = (int)p.left_cm - (-true_l + (int)cfg.robot_half_width_cm);
+			if (clr < worst) worst = clr;
+			if (clr < 0) unsafe++;
+		} else if (p.action == OBS_ACT_REVERSE_RETRY) {
+			retry++;
+		} else if (p.action == OBS_ACT_STOP) {
+			stop++;
+		}
+	}}}
+	*cases_o = cases; *retry_o = retry + stop; *worst_o = worst;
+	return unsafe + missed;
+}
+
 int main(void)
 {
 	OBS_SCAN s;
@@ -207,60 +261,33 @@ int main(void)
 	obs_profile(&s, &cfg, &p);
 	CHECK("S5-H26", p.unc_cm >= 6 && p.unc_cm <= 9, "width uncertainty at 30 cm is about +/-7 cm");
 
-	/* S5-H27 SIMULATION: flat-faced box, 15 degree beam, 13 angles, 1 cm rounding.
-	   For every box width 10..20 cm, offset -30..+30 cm and range 20..40 cm, the
-	   chosen bypass side must keep the robot's half width clear of the TRUE edge.
-	   "Detected nothing" while the box is inside the robot's lane also counts as unsafe. */
+	/* S5-H27 SIMULATION: flat-faced boxes 10..20 cm wide, offset -30..+30 cm, 20..40 cm
+	   away. Full 0..180 degree scan: every chosen bypass must clear the true edge and no
+	   box in the lane may be missed. */
 	{
-		int W, X, D, a, k, cases = 0, unsafe = 0, missed = 0, retry = 0, stop = 0, worst = 1000;
+		int cases, retry, worst, bad = sim_boxes(0, 12, &cases, &retry, &worst);
 
-		for (W = 10; W <= 20; W += 2) {
-		for (X = -30; X <= 30; X += 5) {
-		for (D = 20; D <= 40; D += 5) {
-			int true_r = X + W / 2, true_l = X - W / 2;	/* + = right of the centre line */
-			OBS_SCAN sc;
+		printf("[HOST] S5-H27 sim 0..180 deg: %d cases, %d unsafe or missed, %d reverse-retry/stop, worst clearance %d cm\n",
+		       cases, bad, retry, worst);
+		CHECK("S5-H27", bad == 0, "simulated boxes, full scan: every bypass clears the true edge, none missed");
+	}
 
-			/* the nearer the box, the less of it matters beyond the lane */
-			obs_scan_init(&sc);
-			for (a = 0; a < OBS_NUM_ANGLES; a++) {
-				double best = 1e9;
-				for (k = -5; k <= 5; k++) {		/* rays across the +/-7.5 deg beam */
-					double th = ((a * 15.0) + k * 1.5) * 3.14159265358979 / 180.0;
-					double sn = sin(th), cs = cos(th), x, t;
-					if (sn <= 0.05) continue;
-					t = D / sn;
-					x = D * cs / sn;
-					if (x >= true_l && x <= true_r && t < best) best = t;
-				}
-				obs_scan_set(&sc, (unsigned)a, best > 1e8 ? OBS_DIST_NONE : (uint16_t)(best + 0.5));
-			}
-			obs_profile(&sc, &cfg, &p);
-			cases++;
-			if (!p.detected) {
-				if (true_r > -(int)cfg.robot_half_width_cm && true_l < (int)cfg.robot_half_width_cm) {
-					missed++;	/* box overlaps the lane but the scan saw nothing */
-				}
-				continue;
-			}
-			if (p.action == OBS_ACT_TURN_RIGHT) {
-				/* moving right by right_cm must put the robot's LEFT side beyond the right edge */
-				int clr = (int)p.right_cm - (true_r + (int)cfg.robot_half_width_cm);
-				if (clr < worst) worst = clr;
-				if (clr < 0) unsafe++;
-			} else if (p.action == OBS_ACT_TURN_LEFT) {
-				int clr = (int)p.left_cm - (-true_l + (int)cfg.robot_half_width_cm);
-				if (clr < worst) worst = clr;
-				if (clr < 0) unsafe++;
-			} else if (p.action == OBS_ACT_REVERSE_RETRY) {
-				retry++;
-			} else if (p.action == OBS_ACT_STOP) {
-				stop++;
-			}
-		}}}
-		printf("[HOST] S5-H27 sim: %d cases, %d unsafe, %d missed, %d reverse-retry, %d stop, worst clearance %d cm\n",
-		       cases, unsafe, missed, retry, stop, worst);
-		CHECK("S5-H27", unsafe == 0 && missed == 0,
-		      "simulated boxes 10..20 cm: every chosen bypass clears the true edge, none missed");
+	/* S5-H28 the same simulation with the servo limited to the window the car body allows */
+	{
+		int cases, retry, worst, bad = sim_boxes(4, 8, &cases, &retry, &worst);
+
+		printf("[HOST] S5-H28 sim 60..120 deg: %d cases, %d unsafe or missed, %d reverse-retry/stop, worst clearance %d cm\n",
+		       cases, bad, retry, worst);
+		CHECK("S5-H28", bad == 0, "simulated boxes, servo limited to 60..120 deg: every bypass clears the true edge, none missed");
+	}
+
+	/* S5-H29 and a window of 45..135 */
+	{
+		int cases, retry, worst, bad = sim_boxes(3, 9, &cases, &retry, &worst);
+
+		printf("[HOST] S5-H29 sim 45..135 deg: %d cases, %d unsafe or missed, %d reverse-retry/stop, worst clearance %d cm\n",
+		       cases, bad, retry, worst);
+		CHECK("S5-H29", bad == 0, "simulated boxes, servo limited to 45..135 deg: every bypass clears the true edge, none missed");
 	}
 
 	printf("[HOST] subsystem5 SUMMARY %d passed, %d failed\n", pass_n, fail_n);

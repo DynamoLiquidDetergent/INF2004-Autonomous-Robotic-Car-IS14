@@ -41,6 +41,8 @@ Run from the repository root (WSL or Linux): `sh testing/subsystem5/host/run.sh`
 | S5-H25 | bypass shifts are planned for at least a 20 cm obstacle; switching the planning off shrinks them (a, b, c, d) | professor guidance (maximum expected width) | auto (PC) | as above | PASS |
 | S5-H26 | width uncertainty from the 15 degree step is reported (+/- 7 cm at 30 cm range) | professor guidance (report uncertainty) | auto (PC) | as above | PASS |
 | S5-H27 | simulation: 390 flat-faced boxes (10 to 20 cm wide, 20 to 40 cm away, offset -30 to +30 cm, 15 degree beam, 1 cm rounding). Every chosen bypass must keep the robot's half width clear of the true edge and no box in the lane may be missed | professor guidance (consistently safe path) | auto (PC) | as above | PASS, 0 unsafe, 0 missed |
+| S5-H28 | same simulation with the servo limited to 60 to 120 degrees (the window the car body allows). Unmeasured edges make the profile partial and the bypass wider | professor guidance (consistently safe path) | auto (PC) | as above | PASS, 0 unsafe, 0 missed |
+| S5-H29 | same simulation with the servo limited to 45 to 135 degrees | professor guidance (consistently safe path) | auto (PC) | as above | PASS, 0 unsafe, 0 missed |
 
 ### Automatic, on the Pico (`make TEST=1`)
 
