@@ -32,6 +32,15 @@ Run from the repository root (WSL or Linux): `sh testing/subsystem5/host/run.sh`
 | S5-H16 | i8 profile message round-trips at every field limit | i8, minimum-bit rule | auto (PC) | as above | PASS |
 | S5-H17 | unused bits of the i8 message stay zero (31 + 18 bits used) | i8, minimum-bit rule | auto (PC) | as above | PASS |
 | S5-H18 | message sequence wraps in 4 bits | i8 | auto (PC) | as above | PASS |
+| S5-H19 | median of repeated readings: outlier rejected, majority "nothing" wins | professor guidance (median filter) | auto (PC) | as above | PASS |
+| S5-H20 | a reading equal to its background distance is not an obstacle | professor guidance (background subtraction) | auto (PC) | as above | PASS |
+| S5-H21 | box in front of a wall: only the angles clearly closer than the wall are hits | professor guidance (background subtraction) | auto (PC) | as above | PASS |
+| S5-H22 | hysteresis with a background: starts at 6 cm closer, stays in at 3 cm closer (a, b) | professor guidance (hysteresis) | auto (PC) | as above | PASS |
+| S5-H23 | hysteresis without a background: start at 50 cm, stays in up to 55 cm (a, b) | professor guidance (hysteresis) | auto (PC) | as above | PASS |
+| S5-H24 | a close background straight ahead (indices 5..7) is forgotten, so it can never hide a real obstacle (a, b) | safety | auto (PC) | as above | PASS |
+| S5-H25 | bypass shifts are planned for at least a 20 cm obstacle; switching the planning off shrinks them (a, b, c, d) | professor guidance (maximum expected width) | auto (PC) | as above | PASS |
+| S5-H26 | width uncertainty from the 15 degree step is reported (+/- 7 cm at 30 cm range) | professor guidance (report uncertainty) | auto (PC) | as above | PASS |
+| S5-H27 | simulation: 390 flat-faced boxes (10 to 20 cm wide, 20 to 40 cm away, offset -30 to +30 cm, 15 degree beam, 1 cm rounding). Every chosen bypass must keep the robot's half width clear of the true edge and no box in the lane may be missed | professor guidance (consistently safe path) | auto (PC) | as above | PASS, 0 unsafe, 0 missed |
 
 ### Automatic, on the Pico (`make TEST=1`)
 

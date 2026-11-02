@@ -23,9 +23,13 @@ void obs_cfg_default(OBS_CFG *cfg)
 	cfg->margin_cm = 3;
 	cfg->max_shift_cm = 40;
 	cfg->beam_comp_deg = 15;	/* 15 degree HC-SR04 beam, assumption A5 */
+	cfg->plan_width_cm = 20;	/* spec: obstacles 10..20 cm wide, plan for the widest */
+	cfg->bg_enter_cm = 6;		/* 2 x the sensor's typical +/-3 cm scatter */
+	cfg->bg_exit_cm = 3;
+	cfg->detect_hyst_cm = 5;
 }
 
-void obs_scan_init(OBS_SCAN *s)
+void obs_scan_clear(OBS_SCAN *s)
 {
 	unsigned i;
 
@@ -33,6 +37,67 @@ void obs_scan_init(OBS_SCAN *s)
 		s->dist_cm[i] = OBS_DIST_NONE;
 	}
 	s->measured = 0;
+}
+
+void obs_scan_init(OBS_SCAN *s)
+{
+	unsigned i;
+
+	obs_scan_clear(s);
+	for (i = 0; i < OBS_NUM_ANGLES; i++) {
+		s->bg_cm[i] = OBS_DIST_NONE;
+	}
+	s->bg_known = 0;
+}
+
+void obs_scan_set_bg(OBS_SCAN *s, unsigned idx, uint16_t cm)
+{
+	if (idx >= OBS_NUM_ANGLES) {
+		return;
+	}
+	s->bg_cm[idx] = cm;
+	s->bg_known |= (uint16_t)(1u << idx);
+}
+
+/* a usable background: taken, and something was actually seen there */
+static int bg_present(const OBS_SCAN *s, unsigned idx)
+{
+	return ((s->bg_known >> idx) & 1u) && s->bg_cm[idx] != OBS_DIST_NONE;
+}
+
+unsigned obs_bg_clear_ahead(OBS_SCAN *s, const OBS_CFG *cfg)
+{
+	unsigned i, n = 0;
+
+	for (i = OBS_IDX_AHEAD - 1; i <= OBS_IDX_AHEAD + 1; i++) {
+		if (bg_present(s, i) && s->bg_cm[i] <= cfg->detect_cm + cfg->detect_hyst_cm) {
+			s->bg_cm[i] = OBS_DIST_NONE;
+			n++;
+		}
+	}
+	return n;
+}
+
+uint16_t obs_median(const uint16_t *v, unsigned n)
+{
+	uint16_t t[5];
+	unsigned i, j;
+
+	if (n == 0) {
+		return OBS_DIST_NONE;
+	}
+	if (n > 5) {
+		n = 5;
+	}
+	for (i = 0; i < n; i++) {
+		t[i] = v[i];
+		for (j = i; j > 0 && t[j - 1] > t[j]; j--) {
+			uint16_t x = t[j];
+			t[j] = t[j - 1];
+			t[j - 1] = x;
+		}
+	}
+	return t[n / 2];	/* OBS_DIST_NONE = 0x1FF sorts last: "largest" */
 }
 
 void obs_scan_set(OBS_SCAN *s, unsigned idx, uint16_t cm)
@@ -49,11 +114,42 @@ int obs_scan_measured(const OBS_SCAN *s, unsigned idx)
 	return (idx < OBS_NUM_ANGLES) && ((s->measured >> idx) & 1u);
 }
 
+/* Hysteresis. ENTER (start an obstacle) is strict, STAY (extend it to a
+   neighbouring angle) is looser, so an edge reading that wobbles by a few cm
+   does not flip the width by a whole 15 degree step.
+   With a background the test is "closer than the empty-track distance by
+   enough"; without one it is the plain detect distance. */
+int obs_dist_is_hit(const OBS_SCAN *s, unsigned idx, uint16_t cm, const OBS_CFG *cfg)
+{
+	if (idx >= OBS_NUM_ANGLES || cm == OBS_DIST_NONE || cm > cfg->detect_cm) {
+		return 0;
+	}
+	if (bg_present(s, idx)) {
+		return (int)s->bg_cm[idx] >= (int)cm + (int)cfg->bg_enter_cm;
+	}
+	return 1;
+}
+
 int obs_scan_is_hit(const OBS_SCAN *s, unsigned idx, const OBS_CFG *cfg)
 {
-	return obs_scan_measured(s, idx) &&
-	       s->dist_cm[idx] != OBS_DIST_NONE &&
-	       s->dist_cm[idx] <= cfg->detect_cm;
+	return obs_scan_measured(s, idx) && obs_dist_is_hit(s, idx, s->dist_cm[idx], cfg);
+}
+
+static int is_stay(const OBS_SCAN *s, unsigned idx, const OBS_CFG *cfg)
+{
+	uint16_t cm;
+
+	if (!obs_scan_measured(s, idx)) {
+		return 0;
+	}
+	cm = s->dist_cm[idx];
+	if (cm == OBS_DIST_NONE || cm > cfg->detect_cm + cfg->detect_hyst_cm) {
+		return 0;
+	}
+	if (bg_present(s, idx)) {
+		return (int)s->bg_cm[idx] >= (int)cm + (int)cfg->bg_exit_cm;
+	}
+	return 1;
 }
 
 /* Find the obstacle: the closest hit, grown left and right over neighbouring
@@ -75,10 +171,10 @@ static int find_cluster(const OBS_SCAN *s, const OBS_CFG *cfg,
 	*closest = best;
 	*lo = best;
 	*hi = best;
-	while (*lo > 0 && obs_scan_is_hit(s, (unsigned)(*lo - 1), cfg)) {
+	while (*lo > 0 && is_stay(s, (unsigned)(*lo - 1), cfg)) {
 		(*lo)--;
 	}
-	while (*hi < OBS_NUM_ANGLES - 1 && obs_scan_is_hit(s, (unsigned)(*hi + 1), cfg)) {
+	while (*hi < OBS_NUM_ANGLES - 1 && is_stay(s, (unsigned)(*hi + 1), cfg)) {
 		(*hi)++;
 	}
 	return 1;
@@ -156,6 +252,8 @@ void obs_profile(const OBS_SCAN *s, const OBS_CFG *cfg, OBS_PROFILE *out)
 	out->partial = 0;
 	out->idx_right = 0;
 	out->idx_left = 0;
+	out->plan_width_cm = 0;
+	out->unc_cm = 0;
 
 	if (!find_cluster(s, cfg, &lo, &hi, &closest)) {
 		return;
@@ -202,6 +300,27 @@ void obs_profile(const OBS_SCAN *s, const OBS_CFG *cfg, OBS_PROFILE *out)
 		x_l = r_l * cos_tab[th_l] / 1000;	/* - = left of the centre line */
 	}
 	out->width_cm = cap_cm(w);
+
+	/* Each edge is only known to +/- half a 15 degree step, i.e. about
+	   0.131 * range. Report it; do not hide it. */
+	out->unc_cm = (hi == lo) ? cap_cm((int32_t)r_r * 263 / 1000)
+				 : cap_cm(((int32_t)r_r + r_l) * 131 / 1000);
+
+	/* Plan for at least the widest obstacle the spec allows, centred where
+	   we measured it. A narrower obstacle is then simply passed with more
+	   room than needed; a mis-measured one is still cleared. */
+	if (cfg->plan_width_cm != 0) {
+		int32_t c = (x_r + x_l) / 2;
+		int32_t half = (int32_t)cfg->plan_width_cm / 2;
+
+		if (c + half > x_r) {
+			x_r = c + half;
+		}
+		if (c - half < x_l) {
+			x_l = c - half;
+		}
+	}
+	out->plan_width_cm = cap_cm(x_r - x_l);
 
 	/* sideways move to clear the obstacle on each side */
 	shift_r = x_r + cfg->robot_half_width_cm + cfg->margin_cm;
@@ -268,4 +387,6 @@ void obs_unpack(const uint32_t w[OBS_MSG_WORDS], OBS_PROFILE *p, uint8_t *seq)
 	p->right_cm    = (uint16_t)((w[1] >> 9) & 0x1FFu);
 	p->idx_right   = 0;
 	p->idx_left    = 0;
+	p->plan_width_cm = 0;
+	p->unc_cm      = 0;
 }

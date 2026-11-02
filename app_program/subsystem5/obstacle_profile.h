@@ -57,12 +57,22 @@ typedef struct {
 	uint16_t margin_cm;		/* extra safety gap beside the obstacle */
 	uint16_t max_shift_cm;		/* most the robot can move sideways on this track */
 	uint8_t  beam_comp_deg;		/* beam spread removed from the edges: 0, 15 or 30 */
+	uint16_t plan_width_cm;		/* plan the bypass for AT LEAST this obstacle width
+					   (spec: obstacles are 10..20 cm wide, so 20). 0 = off */
+	uint16_t bg_enter_cm;		/* with a background: a reading starts an obstacle only
+					   when it is this much CLOSER than the background */
+	uint16_t bg_exit_cm;		/* ...and keeps an obstacle going while it is at least
+					   this much closer (smaller than bg_enter_cm = hysteresis) */
+	uint16_t detect_hyst_cm;	/* no background: enter at detect_cm, keep going up to
+					   detect_cm + this */
 } OBS_CFG;
 
 /* One scan: a distance per angle index, plus which indices were measured */
 typedef struct {
 	uint16_t dist_cm[OBS_NUM_ANGLES];	/* OBS_DIST_NONE = nothing in range */
 	uint16_t measured;			/* bit i set = index i was measured */
+	uint16_t bg_cm[OBS_NUM_ANGLES];		/* background distance per angle (empty track) */
+	uint16_t bg_known;			/* bit i set = background for index i was taken */
 } OBS_SCAN;
 
 /* Result of profiling (FR40) */
@@ -77,11 +87,24 @@ typedef struct {
 	uint8_t  partial;	/* 1 = an edge was not found (single sample or scan limit) */
 	uint8_t  idx_right;	/* first and last index of the obstacle (right/left edge) */
 	uint8_t  idx_left;
+	uint16_t plan_width_cm;	/* width the left/right shifts were planned for (>= width_cm) */
+	uint16_t unc_cm;	/* +/- uncertainty of width_cm from the 15 degree step (not sent) */
 } OBS_PROFILE;
 
 void obs_cfg_default(OBS_CFG *cfg);
 
-void obs_scan_init(OBS_SCAN *s);
+void obs_scan_init(OBS_SCAN *s);	/* clears the readings AND the background */
+void obs_scan_clear(OBS_SCAN *s);	/* clears the readings, keeps the background */
+void obs_scan_set_bg(OBS_SCAN *s, unsigned idx, uint16_t cm);
+/* The path straight ahead (indices 5..7) must be empty when the background is
+   taken. If a background value there is within detect range, forget it (so a
+   real obstacle can never be hidden as "background"). Returns how many. */
+unsigned obs_bg_clear_ahead(OBS_SCAN *s, const OBS_CFG *cfg);
+/* Median of n (1..5) readings. OBS_DIST_NONE counts as the largest value, so
+   one stray reading never wins and a majority of "nothing" gives "nothing". */
+uint16_t obs_median(const uint16_t *v, unsigned n);
+/* Would a reading of cm at index idx START an obstacle? (hysteresis: enter rule) */
+int  obs_dist_is_hit(const OBS_SCAN *s, unsigned idx, uint16_t cm, const OBS_CFG *cfg);
 void obs_scan_set(OBS_SCAN *s, unsigned idx, uint16_t cm);
 int  obs_scan_measured(const OBS_SCAN *s, unsigned idx);
 int  obs_scan_is_hit(const OBS_SCAN *s, unsigned idx, const OBS_CFG *cfg);

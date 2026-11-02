@@ -24,7 +24,12 @@
 #define S5_NOECHO_FAULT_N	10	/* consecutive "no pulse at all" readings = sensor fault.
 					   0 = never fault (use if the kit's sensor stays silent
 					   when nothing is in range: check on the bench) */
-#define S5_SCAN_TIMEOUT_MS	4000	/* a whole scan must finish within this, else FAULT */
+#define S5_SCAN_TIMEOUT_MS	5000	/* a whole scan must finish within this, else FAULT
+					   (13 angles x ~250 ms with the median = about 3.3 s worst case) */
+#define S5_PINGS		3	/* readings per angle; the median is used (1..5).
+					   Each ping costs about 60 ms (HC-SR04 minimum cycle). */
+#define S5_USE_BACKGROUND	1	/* take an empty-track scan at start-up and subtract it.
+					   Needs the track in front of the robot to be CLEAR at power-up. */
 #define S5_BYPASS_LIMIT_MS	8000	/* NFR31: detection to line reacquired */
 #define S5_MAX_RETRIES		2	/* REVERSE_RETRY attempts (statechart 6.3) */
 #define S5_SERVO_SETTLE_BASE_MS	40	/* assumption A-servo: no SG90 datasheet supplied */
@@ -121,14 +126,57 @@ LOCAL UINT read_distance(void)
 	return cm;
 }
 
+/* S5_PINGS readings at the current angle, median of them (the servo has
+   already settled). One stray echo cannot change the result. */
+LOCAL UINT read_median(void)
+{
+	uint16_t v[5];
+	unsigned n;
+
+	for (n = 0; n < S5_PINGS && n < 5; n++) {
+		v[n] = (uint16_t)read_distance();
+		if (s5_obs_state == OBS_ST_FAULT) {
+			n++;
+			break;
+		}
+	}
+	return obs_median(v, n);
+}
+
 LOCAL UINT measure_index(unsigned idx)
 {
 	UINT cm;
 
 	servo_goto(idx * OBS_STEP_DEG);
-	cm = read_distance();
+	cm = read_median();
 	obs_scan_set(&scan, idx, (uint16_t)cm);
 	return cm;
+}
+
+/* Empty-track scan: remember what each angle sees when no obstacle is there,
+   so a wall or the track edge is not mistaken for an obstacle later. */
+LOCAL void take_background(void)
+{
+	unsigned i, ahead;
+
+	tm_printf((UB*)"obstacle: taking background scan, keep the path ahead CLEAR\n");
+	for (i = 0; i < OBS_NUM_ANGLES; i++) {
+		servo_goto(i * OBS_STEP_DEG);
+		obs_scan_set_bg(&scan, i, (uint16_t)read_median());
+		if (s5_obs_state == OBS_ST_FAULT) {
+			return;
+		}
+	}
+	servo_goto(90);
+	ahead = obs_bg_clear_ahead(&scan, &cfg);
+	if (ahead != 0) {
+		tm_printf((UB*)"obstacle: WARNING %d background value(s) ahead were close and are ignored. "
+			  "Is something in front of the robot?\n", (INT)ahead);
+	}
+	for (i = 0; i < OBS_NUM_ANGLES; i++) {
+		tm_printf((UB*)"obstacle: background %3d deg = %d cm%s\n", (INT)(i * OBS_STEP_DEG),
+			  (INT)scan.bg_cm[i], (scan.bg_cm[i] == OBS_DIST_NONE) ? " (none)" : "");
+	}
 }
 
 LOCAL BOOL scan_timed_out(UW start_ms)
@@ -164,6 +212,10 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 		set_state(OBS_ST_IDLE_MONITORING);
 		tm_printf((UB*)"obstacle: ready (servo GP%d, trig GP%d, echo GP%d)\n",
 			  S5_PIN_SERVO, S5_PIN_TRIG, S5_PIN_ECHO);
+		obs_scan_init(&scan);
+#if S5_USE_BACKGROUND
+		take_background();
+#endif
 	}
 
 	for (;;) {
@@ -177,7 +229,7 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 			}
 			servo_goto(90);
 			cm = read_distance();
-			if (cm != OBS_DIST_NONE && cm <= cfg.detect_cm) {
+			if (obs_dist_is_hit(&scan, OBS_IDX_AHEAD, (uint16_t)cm, &cfg)) {
 				hits++;
 			} else {
 				hits = 0;
@@ -193,7 +245,7 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 		case OBS_ST_COARSE_SCANNING:
 			/* 30, 60, 90, 120, 150 degrees (FR38) */
 			scan_ms = now_ms();
-			obs_scan_init(&scan);
+			obs_scan_clear(&scan);		/* new readings, keep the background */
 			for (i = 2; i <= 10; i += 2) {
 				measure_index((unsigned)i);
 				if (s5_obs_state == OBS_ST_FAULT || scan_timed_out(scan_ms)) {
@@ -246,9 +298,10 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 				dropped_msgs++;	/* buffer full: newest dropped, counted */
 			}
 			tm_printf((UB*)"obstacle: PROFILE seq %d detected %d closest %d cm @%d deg, "
-				  "width %d cm, left %d cm, right %d cm, action %d%s, scan %d ms\n",
+				  "width %d cm (+/-%d), planned %d cm, left %d cm, right %d cm, action %d%s, scan %d ms\n",
 				  (INT)seq, (INT)profile.detected, (INT)profile.closest_cm,
 				  (INT)profile.closest_idx * OBS_STEP_DEG, (INT)profile.width_cm,
+				  (INT)profile.unc_cm, (INT)profile.plan_width_cm,
 				  (INT)profile.left_cm, (INT)profile.right_cm, (INT)profile.action,
 				  profile.partial ? " (partial)" : "", (INT)(now_ms() - scan_ms));
 			if (!profile.detected) {
