@@ -10,10 +10,10 @@
 #define S4_SENSOR_TIMEOUT_US     3000U
 #define S4_PERIPHERAL_CLOCK_HZ    125000000U
 /* Configure after physical axis check: nose-up must give positive pitch. */
-#define S4_AXIS_X                0
-#define S4_AXIS_Y                1
+#define S4_AXIS_X                1
+#define S4_AXIS_Y                0
 #define S4_AXIS_Z                2
-#define S4_SIGN_X                1
+#define S4_SIGN_X               -1
 #define S4_SIGN_Y                1
 #define S4_SIGN_Z                1
 /* Set to 1 only after hard/soft-iron calibration and motor-on validation. */
