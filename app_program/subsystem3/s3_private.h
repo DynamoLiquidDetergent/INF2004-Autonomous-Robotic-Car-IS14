@@ -35,6 +35,12 @@
 IMPORT ER   line_sensor_init(void);     /* phase 1: create objects      */
 IMPORT ER   line_sensor_start(void);    /* phase 2: start the task      */
 
+/* Line position (zone 1..7, 4 = on target) from the LEFT and CENTRE
+   sensors only; GP28 is not used.  Normalised readings 0..1000.  Pure
+   function, see line_sensor.c. */
+IMPORT uint8_t s3_edge_zone(UW n_left, UW n_centre, uint8_t prev_zone,
+                            bool was_on, bool *on_line);
+
 /* Classify one GP28 reading as dark (bar / line) or light, with
    hysteresis, using the calibrated GP28 range and sensor polarity. */
 IMPORT bool line_sensor_gp28_dark(uint16_t adc, bool was_dark);

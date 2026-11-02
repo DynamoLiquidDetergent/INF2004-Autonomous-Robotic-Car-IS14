@@ -15,7 +15,11 @@
  *	  centre GP27 (ADC1): Grove 6, the GP27 wire.  The GP26 wire of
  *	                      Grove 6 must stay unconnected (it is the same pin
  *	                      as the left sensor).
- *	  right  GP28 (ADC2): barcode sensor, also used for the line position.
+ *	  right  GP28 (ADC2): barcode sensor ONLY.  Not used for the line
+ *	                      position, line-lost or the junction flag.
+ *
+ *	Line tracking uses LEFT + CENTRE and follows the line's left-sensor
+ *	edge (centre on black, left on white): see s3_edge_zone().
  *
  *	Calibration: subsystem3_run_calibration() (called from ANOTHER task)
  *	asks this task to record the min/max of the LEFT and CENTRE sensors
@@ -56,6 +60,13 @@
 #define S3_NORM_MAX             1000u    /* normalised scale 0..1000       */
 #define S3_ON_LINE_THRESHOLD    500u     /* normalised value = "on line"   */
 #define S3_CALIB_MIN_SPREAD     300u     /* min (max-min) ADC counts needed */
+
+/* Edge following (s3_edge_zone), normalised 0..1000:
+   centre reading at or above S3_EDGE_FULL = squarely on the line;
+   left reading at or above S3_EDGE_HINT  = left sensor starting to see the
+   line (below "on line"), used to tell which way the line went. */
+#define S3_EDGE_FULL            800u
+#define S3_EDGE_HINT            250u
 
 /* 1 = calibration also replaces the GP28 range.  0 (default) = GP28 keeps
    S3_GP28_DEFAULT_LO/HI: a sweep over the solid line reads higher than the
@@ -190,12 +201,62 @@ LOCAL bool calib_uses(INT ch)
 }
 
 /*
+ * s3_edge_zone -- line position from the LEFT and CENTRE sensors only.
+ *
+ *   GP28 (the right sensor) reads the barcode and takes no part in line
+ *   tracking.  With two sensors the robot follows the line's LEFT-SENSOR
+ *   EDGE: target = centre on black, left on white (zone 4).
+ *
+ *     left   centre        zone  meaning
+ *     on     on            5     line moving towards the left sensor
+ *     on     off           7     line well towards the left sensor
+ *     off    on (full)     4     on target
+ *     off    on (partly)   3     centre sliding off: line moving away
+ *                                from the left sensor (towards GP28)
+ *     off    off           1 or 7, from what was seen just before:
+ *                                - left sensor was on, or is starting to
+ *                                  see the line (>= S3_EDGE_HINT) -> 7
+ *                                - otherwise the line slid off the far
+ *                                  side of the centre sensor          -> 1
+ *                                then held while the line stays lost.
+ *
+ *   Pure function (no ADC, no kernel calls): unit-testable.
+ *   prev_zone: zone of the previous cycle.  was_on: the line was seen in
+ *   the previous cycle.  *on_line: set to whether L or C sees it now.
+ */
+EXPORT uint8_t s3_edge_zone(UW n_left, UW n_centre, uint8_t prev_zone,
+                            bool was_on, bool *on_line)
+{
+    bool l = (n_left   >= S3_ON_LINE_THRESHOLD);
+    bool c = (n_centre >= S3_ON_LINE_THRESHOLD);
+
+    *on_line = l || c;
+
+    if (l && c)  return 5u;
+    if (l)       return 7u;
+    if (c) {
+        if (n_centre >= S3_EDGE_FULL)   return 4u;
+        if (n_left   >= S3_EDGE_HINT)   return 4u;   /* left edge close: fine */
+        return 3u;
+    }
+
+    /* neither sensor on the line */
+    if (!was_on) {
+        return prev_zone;                 /* still lost: keep the guess   */
+    }
+    if (prev_zone >= 5u || n_left >= S3_EDGE_HINT) {
+        return 7u;                        /* it went past the left sensor */
+    }
+    return 1u;                            /* it slid off towards GP28     */
+}
+
+/*
  * compute_line_state
- *   zone 1..7, 4 = line under the centre sensor.
- *   Low zone  = line under the RIGHT sensor (robot has drifted left).
- *   High zone = line under the LEFT sensor  (robot has drifted right).
+ *   zone 1..7, 4 = on target (see s3_edge_zone).
+ *   High zone = line towards the LEFT sensor (GP26): steer towards it.
+ *   Low zone  = line away from the left sensor, towards GP28's side.
  *   (Direction to confirm with the S5 owner -- IF-05 only fixes 4 = centre.)
- *   While the line is lost the last valid zone is repeated.
+ *   GP28 is not used for the zone, line-lost or the junction flag.
  */
 LOCAL LINE_DATA_MSG compute_line_state(const UW raw[S3_NUM_SENSORS], LINE_TRACK *t)
 {
@@ -208,25 +269,21 @@ LOCAL LINE_DATA_MSG compute_line_state(const UW raw[S3_NUM_SENSORS], LINE_TRACK 
         n[i]  = normalise(raw[i], s_lo[i], s_hi[i]);
         on[i] = (n[i] >= S3_ON_LINE_THRESHOLD);
     }
-    any = on[S3_CH_LEFT] || on[S3_CH_CENTRE] || on[S3_CH_RIGHT];
 
+    t->zone_last = s3_edge_zone(n[S3_CH_LEFT], n[S3_CH_CENTRE], t->zone_last,
+                                t->lost_cnt == 0u, &any);
     if (any) {
-        /* Weighted position: left = 2, centre = 1, right = 0  -> 0..2.
-           zone = 1 + round(3 * pos)  -> 1..7, centre = 4. */
-        UW den  = n[S3_CH_LEFT] + n[S3_CH_CENTRE] + n[S3_CH_RIGHT];
-        UW num  = 2u * n[S3_CH_LEFT] + n[S3_CH_CENTRE];
-        UW zone = 1u + (6u * num + den) / (2u * den);
-
-        if (zone > 7u) zone = 7u;
-        t->zone_last = (uint8_t)zone;
-        t->lost_cnt  = 0;
+        t->lost_cnt = 0;
     } else if (t->lost_cnt < S3_LOST_DEBOUNCE_CYCLES) {
         t->lost_cnt++;
     }
 
-    /* Junction: two neighbouring sensors on the line together */
-    jn_now = (on[S3_CH_LEFT] && on[S3_CH_CENTRE]) ||
-             (on[S3_CH_CENTRE] && on[S3_CH_RIGHT]);
+    /* Junction: left and centre on the line together.  GP28 is left out:
+       a barcode bar beside the line must not look like a junction.
+       NOTE: with edge following, L+C is also a normal correction (zone 5),
+       so this flag now also rises on corrections towards the left sensor.
+       It needs arming by a barcode before S5 relies on it. */
+    jn_now = on[S3_CH_LEFT] && on[S3_CH_CENTRE];
     if (!jn_now)                              t->jn_cnt = 0;
     else if (t->jn_cnt < S3_JN_DEBOUNCE_CYCLES) t->jn_cnt++;
     jn = (t->jn_cnt >= S3_JN_DEBOUNCE_CYCLES);

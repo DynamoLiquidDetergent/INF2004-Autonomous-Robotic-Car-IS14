@@ -19,8 +19,10 @@
  *	       see white and black.  Skip it and the default range is kept.
  *	    2. DEMO_PLACE_MS to put the robot down, centre sensor on the line
  *	    3. follow the line: every new LINE_DATA_MSG (20 ms) gives a zone
- *	       1..7 (4 = centred); the steering is proportional to how far off
- *	       centre it is (plus a little of how fast that changes), and the
+ *	       1..7 from the LEFT and CENTRE sensors only (4 = centre on black,
+ *	       left on white; GP28 only reads barcodes); the steering is
+ *	       proportional to how far off that it is (plus a little of how
+ *	       fast that changes), and the
  *	       robot slows down on sharp corrections.  While the line is lost
  *	       it keeps turning towards the side it was last seen on, slowly;
  *	       lost for DEMO_LOST_STOP_MS (end of the track) -> stop.
