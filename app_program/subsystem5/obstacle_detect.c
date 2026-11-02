@@ -35,6 +35,11 @@
 #define S5_SERVO_SETTLE_BASE_MS	40	/* assumption A-servo: no SG90 datasheet supplied */
 #define S5_SERVO_SETTLE_PER_DEG	2	/* ms per degree moved (SG90 is about 100 ms / 60 deg) */
 #define S5_STANDALONE_REST_MS	1500	/* bench mode: pause after a scan before watching again */
+#define S5_IDX_MIN		2	/* the servo is only ever sent between these scan indices:  */
+#define S5_IDX_MAX		10	/* 30..150 degrees. The extremes (0, 180) threw the sensor
+					   off its mount on the first hardware run. */
+#define S5_SERVO_STEP_DEG	15	/* the servo is moved at most this far per command, so it
+					   never snaps across the whole range */
 
 EXPORT volatile UB	s5_obs_state = OBS_ST_IDLE_MONITORING;
 
@@ -90,14 +95,27 @@ LOCAL BOOL monitor_enabled(void)
 /* Turn the servo to an angle and wait for it to get there */
 LOCAL void servo_goto(UINT deg)
 {
-	UINT diff = (deg > servo_deg) ? deg - servo_deg : servo_deg - deg;
-
-	if (diff == 0) {
-		return;
+	/* never outside the allowed scan window */
+	if (deg < S5_IDX_MIN * OBS_STEP_DEG) {
+		deg = S5_IDX_MIN * OBS_STEP_DEG;
 	}
-	drv_servo_set_deg(deg);
-	servo_deg = deg;
-	tk_dly_tsk(S5_SERVO_SETTLE_BASE_MS + diff * S5_SERVO_SETTLE_PER_DEG);
+	if (deg > S5_IDX_MAX * OBS_STEP_DEG) {
+		deg = S5_IDX_MAX * OBS_STEP_DEG;
+	}
+	/* small steps: a servo told to jump far accelerates hard and stops hard */
+	while (servo_deg != deg) {
+		UINT next, diff;
+
+		if (deg > servo_deg) {
+			next = (deg - servo_deg > S5_SERVO_STEP_DEG) ? servo_deg + S5_SERVO_STEP_DEG : deg;
+		} else {
+			next = (servo_deg - deg > S5_SERVO_STEP_DEG) ? servo_deg - S5_SERVO_STEP_DEG : deg;
+		}
+		diff = (next > servo_deg) ? next - servo_deg : servo_deg - next;
+		drv_servo_set_deg(next);
+		servo_deg = next;
+		tk_dly_tsk(S5_SERVO_SETTLE_BASE_MS + diff * S5_SERVO_SETTLE_PER_DEG);
+	}
 }
 
 /* One reading. Updates the no-echo counter and may raise the sensor fault.
@@ -160,7 +178,7 @@ LOCAL void take_background(void)
 	unsigned i, ahead;
 
 	tm_printf((UB*)"obstacle: taking background scan, keep the path ahead CLEAR\n");
-	for (i = 0; i < OBS_NUM_ANGLES; i++) {
+	for (i = S5_IDX_MIN; i <= S5_IDX_MAX; i++) {
 		servo_goto(i * OBS_STEP_DEG);
 		obs_scan_set_bg(&scan, i, (uint16_t)read_median());
 		if (s5_obs_state == OBS_ST_FAULT) {
@@ -173,7 +191,7 @@ LOCAL void take_background(void)
 		tm_printf((UB*)"obstacle: WARNING %d background value(s) ahead were close and are ignored. "
 			  "Is something in front of the robot?\n", (INT)ahead);
 	}
-	for (i = 0; i < OBS_NUM_ANGLES; i++) {
+	for (i = S5_IDX_MIN; i <= S5_IDX_MAX; i++) {
 		tm_printf((UB*)"obstacle: background %3d deg = %d cm%s\n", (INT)(i * OBS_STEP_DEG),
 			  (INT)scan.bg_cm[i], (scan.bg_cm[i] == OBS_DIST_NONE) ? " (none)" : "");
 	}
@@ -270,6 +288,14 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 				int a = obs_next_edge_idx(&scan, &cfg, -1);
 				int b = obs_next_edge_idx(&scan, &cfg, +1);
 
+				/* outside the safe servo window: leave the edge unmeasured,
+				   the profile then reports it as partial */
+				if (a >= 0 && (a < S5_IDX_MIN || a > S5_IDX_MAX)) {
+					a = -1;
+				}
+				if (b >= 0 && (b < S5_IDX_MIN || b > S5_IDX_MAX)) {
+					b = -1;
+				}
 				if (a < 0 && b < 0) {
 					break;
 				}
