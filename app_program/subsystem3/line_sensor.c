@@ -9,9 +9,19 @@
  *	                          (IF-05), drop-oldest when full so the reader
  *	                          always gets fresh data.
  *
+ *	Wiring (Maker Pi Pico Grove ports):
+ *	  left   GP26 (ADC0): Grove 5, the GP26 wire.  NOT the GP6 wire of
+ *	                      Grove 5: GP6 has no ADC.
+ *	  centre GP27 (ADC1): Grove 6, the GP27 wire.  The GP26 wire of
+ *	                      Grove 6 must stay unconnected (it is the same pin
+ *	                      as the left sensor).
+ *	  right  GP28 (ADC2): barcode sensor, also used for the line position.
+ *
  *	Calibration: subsystem3_run_calibration() (called from ANOTHER task)
- *	asks this task to record the min/max of each sensor while the robot is
- *	swept across the line.  Only this task ever touches the ADC.
+ *	asks this task to record the min/max of the LEFT and CENTRE sensors
+ *	while the robot is swept across the line.  GP28 keeps its hand-measured
+ *	range (S3_GP28_DEFAULT_*) unless S3_CALIB_GP28 is 1, because the
+ *	barcode thresholds depend on it.  Only this task ever touches the ADC.
  *
  *	Bypass (IF-09): subsystem3_set_bypass(true) suppresses LINE_LOST.
  *	The Safety Monitor fault bit (IF-08) is added in Commit 5.
@@ -47,9 +57,14 @@
 #define S3_ON_LINE_THRESHOLD    500u     /* normalised value = "on line"   */
 #define S3_CALIB_MIN_SPREAD     300u     /* min (max-min) ADC counts needed */
 
+/* 1 = calibration also replaces the GP28 range.  0 (default) = GP28 keeps
+   S3_GP28_DEFAULT_LO/HI: a sweep over the solid line reads higher than the
+   barcode bars do, and would raise the bar threshold above the bars. */
+#define S3_CALIB_GP28           0
+
 /* 1 = print raw values and the line state every 200 ms (Commit 3 Part B).
-   MUST be 0 when committing. */
-#define S3_LINE_DEBUG           0
+   On with the line-follow demo (s3_private.h); MUST be 0 when committing. */
+#define S3_LINE_DEBUG           (S3_BC_DRIVE_DEMO && S3_LINE_FOLLOW_DEMO)
 
 /* 1 = every second, print the lowest and highest GP28 reading of that
    second, and the raw levels a reading must cross to count as dark / light.
@@ -83,6 +98,15 @@
 #define S3_GP28_DEFAULT_LO      150u
 #define S3_GP28_DEFAULT_HI      1300u
 
+/* LEFT / CENTRE range used until a calibration replaces it.  The old
+   default 0..4095 put "on line" (50 %) at ~2050 raw, above what these IR
+   modules read over black, so the line was never seen.  Same module as
+   GP28, so GP28's measured range is used: "on line" above ~725 raw.
+   Check with the raw values S3_LINE_DEBUG prints (white should read low,
+   the black line high), then calibrate or adjust. */
+#define S3_LC_DEFAULT_LO        150u
+#define S3_LC_DEFAULT_HI        1300u
+
 /* Dark (bar) or light (space) with hysteresis: becomes dark above 60 %
    of the calibrated GP28 range, light again below 40 %. */
 #define S3_GP28_DARK_ON    600u
@@ -97,8 +121,8 @@ LOCAL volatile bool s_gp28_paused = false;   /* tests inject GP28 data  */
 LOCAL volatile UW   s_gp28_sent   = 0;       /* samples put in q_gp28_samples */
 
 /* Calibration range per sensor.  Written only by line_sensor_task. */
-LOCAL UW s_lo[S3_NUM_SENSORS] = { 0u,    0u,    S3_GP28_DEFAULT_LO };
-LOCAL UW s_hi[S3_NUM_SENSORS] = { 4095u, 4095u, S3_GP28_DEFAULT_HI };
+LOCAL UW s_lo[S3_NUM_SENSORS] = { S3_LC_DEFAULT_LO, S3_LC_DEFAULT_LO, S3_GP28_DEFAULT_LO };
+LOCAL UW s_hi[S3_NUM_SENSORS] = { S3_LC_DEFAULT_HI, S3_LC_DEFAULT_HI, S3_GP28_DEFAULT_HI };
 
 typedef struct {
     uint8_t zone_last;   /* last zone seen with the line under a sensor */
@@ -153,6 +177,17 @@ LOCAL UW gp28_raw_at(UW norm)
     return lo + (hi - lo) * norm / S3_NORM_MAX;
 }
 #endif
+
+/* true for the sensors a calibration measures and replaces */
+LOCAL bool calib_uses(INT ch)
+{
+#if S3_CALIB_GP28
+    (void)ch;
+    return true;
+#else
+    return ch != S3_CH_RIGHT;
+#endif
+}
 
 /*
  * compute_line_state
@@ -307,28 +342,35 @@ LOCAL void line_sensor_task(INT stacd, void *exinf)
                 }
             }
 
-            /* -- calibration in progress: track min/max of every sensor -- */
+            /* -- calibration in progress: track min/max of the calibrated sensors -- */
             if (cal_active) {
                 bool spread_ok = true;
 
                 for (i = 0; i < S3_NUM_SENSORS; i++) {
                     if (raw[i] < cal_min[i]) cal_min[i] = raw[i];
                     if (raw[i] > cal_max[i]) cal_max[i] = raw[i];
-                    if (cal_max[i] - cal_min[i] < S3_CALIB_MIN_SPREAD) spread_ok = false;
+                    if (calib_uses(i) && cal_max[i] - cal_min[i] < S3_CALIB_MIN_SPREAD) {
+                        spread_ok = false;
+                    }
                 }
                 cal_count++;
 
                 if (cal_count >= S3_CALIB_SAMPLES && spread_ok) {
                     for (i = 0; i < S3_NUM_SENSORS; i++) {
-                        s_lo[i] = cal_min[i];
-                        s_hi[i] = cal_max[i];
+                        if (calib_uses(i)) {
+                            s_lo[i] = cal_min[i];
+                            s_hi[i] = cal_max[i];
+                        }
                     }
                     cal_active = false;
-                    tm_printf((UB *)"S3 calib: L %u..%u  C %u..%u  R %u..%u\n",
-                              s_lo[0], s_hi[0], s_lo[1], s_hi[1], s_lo[2], s_hi[2]);
+                    tm_printf((UB *)"S3 calib: L %u..%u  C %u..%u  R %u..%u%s\n",
+                              s_lo[0], s_hi[0], s_lo[1], s_hi[1], s_lo[2], s_hi[2],
+                              S3_CALIB_GP28 ? "" : " (R kept)");
                     tk_set_flg(flg_s3_calib, CALIB_OK);
                 } else if ((W)(now - cal_start) >= (W)S3_CALIB_TIMEOUT_MS) {
                     cal_active = false;             /* keep the old range */
+                    tm_printf((UB *)"S3 calib: timed out, seen L %u..%u  C %u..%u -- range kept\n",
+                              cal_min[0], cal_max[0], cal_min[1], cal_max[1]);
                     tk_set_flg(flg_s3_calib, CALIB_FAIL);
                 }
             }

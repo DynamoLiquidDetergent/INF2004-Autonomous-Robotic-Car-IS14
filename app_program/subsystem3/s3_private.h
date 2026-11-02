@@ -19,6 +19,18 @@
  * --------------------------------------------------------------------- */
 #define S3_BC_DRIVE_DEMO    1 //was 0
 
+/* ---------------------------------------------------------------------
+ *  DEBUG SWITCH: line following (needs S3_BC_DRIVE_DEMO 1).
+ *  1 = the drive demo FOLLOWS THE BLACK LINE: it reads q_line_data
+ *      (IF-05) and steers through q_motion_cmd (IF-10), standing in for
+ *      the Vehicle Controller (S5) until S5 has its own.  Also prints the
+ *      raw sensor values and line state every 200 ms (S3_LINE_DEBUG).
+ *  0 = the drive demo drives straight (barcode tests S3-M02 / S3-M03).
+ *  MUST be 0 once S5's Vehicle Controller reads q_line_data: two readers
+ *  of one message buffer would each get only some of the messages.
+ * --------------------------------------------------------------------- */
+#define S3_LINE_FOLLOW_DEMO 1
+
 /* ---- line_sensor.c ---- */
 IMPORT ER   line_sensor_init(void);     /* phase 1: create objects      */
 IMPORT ER   line_sensor_start(void);    /* phase 2: start the task      */
