@@ -89,6 +89,10 @@ IMPORT ID mbf_mqtt_rx;              /* broker -> S1 (owned by S1) */
  * S5 should read it once at START and use that copy for the whole run.
  */
 #define S1_NAV_MAP_VALID    (0x00100000UL)
+#define S1_NAV_CODE_BITS    (5U)            /* bits per letter code    */
+#define S1_NAV_CODE_MASK    (0x1FUL)        /* one letter code         */
+/* Shift of a movement's letter code in the word (move = S1_MOVE_xxx) */
+#define S1_NAV_SHIFT(move)  ((UW)(move) * S1_NAV_CODE_BITS)
 #define S1_MOVE_FORWARD     (0U)
 #define S1_MOVE_UTURN       (1U)
 #define S1_MOVE_LEFT        (2U)

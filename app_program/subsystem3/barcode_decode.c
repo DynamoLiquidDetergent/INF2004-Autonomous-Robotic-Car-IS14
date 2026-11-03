@@ -9,8 +9,10 @@
  *	  - sent to q_decoded_char  (IF-07, the letter), and
  *	  - mapped through the current CHAR_MAP_MSG to a BARCODE_CMD and sent
  *	    to q_barcode_cmd       (IF-07, the movement command).
- *	The mapping arrives on mbx_char_map (from S1 / MQTT).  Invalid
- *	mappings are dropped silently and the previous one stays in force.
+ *	The mapping is read from S1's IF-18 word (s1_get_nav_map()).  S1
+ *	accepts a map only in READY, so it does not change during a run.
+ *	Invalid mappings are dropped silently and the previous one stays in
+ *	force.
  *
  *	A read is abandoned when:
  *	  - a slot index is skipped (a GP28 sample was dropped),
@@ -28,12 +30,13 @@
  *	same letter again within BC_DEDUP_SAMPLES is ignored, so one barcode =
  *	one report.
  *
- *	APIs used: tk_rcv_mbf, tk_snd_mbf
+ *	APIs used: tk_rcv_mbf, tk_snd_mbf, s1_get_nav_map (IF-18)
  */
 
 #include "s3_private.h"
 #include "code39.h"
 #include "code39_wide.h"
+#include "../subsystem1/subsystem1.h"   /* IF-18 map word */
 
 /* ---------------------------------------------------------------------
  *  Configuration
@@ -53,7 +56,8 @@
 #undef  BC_MAX_WINDOW_SAMPLES
 #define BC_MAX_WINDOW_SAMPLES 1600u
 
-#define BC_MAP_POLL_MS        20    /* check mbx_char_map at least this often */
+#define BC_MAP_POLL_MS        20    /* check the IF-18 map at least this often */
+#define BC_MAP_LETTER_BASE    ('A') /* IF-18 letter code 0 = 'A'            */
 
 /* 1 = also run the wide-bar decoder (code39_wide.c).  Needed for the
    track barcode print, whose narrow bars GP28 cannot see. */
@@ -94,6 +98,7 @@
  * --------------------------------------------------------------------- */
 LOCAL CHAR_MAP_MSG s_char_map;
 LOCAL bool         s_map_valid = false;
+LOCAL UW           s_nav_word  = 0U;     /* IF-18 word last taken */
 LOCAL volatile UW  s_decodes   = 0;      /* valid letters decoded */
 
 EXPORT UW barcode_decode_count(void)
@@ -184,21 +189,38 @@ EXPORT bool s3_char_map_valid(const CHAR_MAP_MSG *m)
 LOCAL void wide_use_map(const CHAR_MAP_MSG *m);   /* below */
 #endif
 
-/* Take the newest mapping, if any.  Invalid ones are dropped silently.
-   Only the 4 mapped letters can appear on the track, so the wide-bar
-   decoder is told to consider just those 4. */
+/* Take S1's map (IF-18) when it changes.  Invalid ones are dropped
+   silently.  Only the 4 mapped letters can appear on the track, so the
+   wide-bar decoder is told to consider just those 4. */
 LOCAL void poll_char_map(void)
 {
+    UW           word = s1_get_nav_map();     /* one 32-bit read */
     CHAR_MAP_MSG m;
 
-    while (tk_rcv_mbf(mbx_char_map, &m, TMO_POL) == (INT)sizeof(m)) {
-        if (s3_char_map_valid(&m)) {
-            s_char_map  = m;
-            s_map_valid = true;
+    if (((word & S1_NAV_MAP_VALID) == 0UL) || (word == s_nav_word))
+    {
+        return;                               /* no map yet, or unchanged */
+    }
+    s_nav_word = word;
+
+    /* Letter codes 0..25 to the letters 'A'..'Z' the decoder compares */
+    m.ch_forward = (uint8_t)(BC_MAP_LETTER_BASE +
+                   ((word >> S1_NAV_SHIFT(S1_MOVE_FORWARD)) &
+                    S1_NAV_CODE_MASK));
+    m.ch_uturn   = (uint8_t)(BC_MAP_LETTER_BASE +
+                   ((word >> S1_NAV_SHIFT(S1_MOVE_UTURN)) & S1_NAV_CODE_MASK));
+    m.ch_left    = (uint8_t)(BC_MAP_LETTER_BASE +
+                   ((word >> S1_NAV_SHIFT(S1_MOVE_LEFT)) & S1_NAV_CODE_MASK));
+    m.ch_right   = (uint8_t)(BC_MAP_LETTER_BASE +
+                   ((word >> S1_NAV_SHIFT(S1_MOVE_RIGHT)) & S1_NAV_CODE_MASK));
+
+    if (s3_char_map_valid(&m))
+    {
+        s_char_map  = m;
+        s_map_valid = true;
 #if S3_BC_WIDE_DECODER
-            wide_use_map(&m);
+        wide_use_map(&m);
 #endif
-        }
     }
 }
 

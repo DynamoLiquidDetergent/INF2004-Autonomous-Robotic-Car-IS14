@@ -7,6 +7,7 @@
 
 #include "s3_private.h"
 #include "code39.h"
+#include "../subsystem1/subsystem1.h"   /* IF-18: tests set the map */
 #include "../test_report.h"
 
 #if APP_TEST
@@ -26,8 +27,7 @@ static void test_queues_created(void)
                q_line_data    > 0 &&
                q_gp28_samples > 0 &&
                q_decoded_char > 0 &&
-               q_barcode_cmd  > 0 &&
-               mbx_char_map   > 0,
+               q_barcode_cmd  > 0,
                "all S3 queue IDs are valid after init");
 }
 
@@ -246,11 +246,17 @@ static void drain_gp28(void)
 // S3-U07: valid map A,B,C,D + injected "*A*" -> BARCODE_CMD_FORWARD within 200 ms
 static void test_barcode_valid_map(void)
 {
-    CHAR_MAP_MSG map = { 'A', 'B', 'C', 'D' };   /* fwd, U-turn, left, right */
+    /* IF-18 word as S1 stores it: codes A=0, B=1, C=2, D=3 for
+       forward, U-turn, left, right, plus the valid bit */
+    UW           map = (0UL << S1_NAV_SHIFT(S1_MOVE_FORWARD)) |
+                       (1UL << S1_NAV_SHIFT(S1_MOVE_UTURN)) |
+                       (2UL << S1_NAV_SHIFT(S1_MOVE_LEFT)) |
+                       (3UL << S1_NAV_SHIFT(S1_MOVE_RIGHT)) |
+                       S1_NAV_MAP_VALID;
     BARCODE_CMD  cmd = BARCODE_CMD_NONE;
     INT          rc;
 
-    (void)tk_snd_mbf(mbx_char_map, &map, sizeof(map), 100);
+    s1_set_nav_map(map);
     tk_dly_tsk(50);                              /* decode task picks it up */
 
     line_sensor_pause_gp28(true);
@@ -278,12 +284,18 @@ static void test_barcode_valid_map(void)
 // S3-U08: an invalid map (duplicate letter) is dropped silently: no command appears
 static void test_barcode_invalid_map(void)
 {
-    CHAR_MAP_MSG bad = { 'A', 'A', 'C', 'D' };
+    /* IF-18 word with 'A' twice (forward and U-turn).  S1 never stores
+       one (S1-U21), but S3 must still refuse it. */
+    UW           bad = (0UL << S1_NAV_SHIFT(S1_MOVE_FORWARD)) |
+                       (0UL << S1_NAV_SHIFT(S1_MOVE_UTURN)) |
+                       (2UL << S1_NAV_SHIFT(S1_MOVE_LEFT)) |
+                       (3UL << S1_NAV_SHIFT(S1_MOVE_RIGHT)) |
+                       S1_NAV_MAP_VALID;
     BARCODE_CMD  cmd;
     INT          rc;
 
     drain_u8(q_barcode_cmd);
-    (void)tk_snd_mbf(mbx_char_map, &bad, sizeof(bad), 100);
+    s1_set_nav_map(bad);
     tk_dly_tsk(50);
 
     rc = tk_rcv_mbf(q_barcode_cmd, &cmd, TMO_POL);
@@ -292,6 +304,7 @@ static void test_barcode_invalid_map(void)
                rc == E_TMOUT,
                "barcode: invalid map dropped, no command sent");
 
+    s1_set_nav_map(0UL);                         /* leave no map behind  */
     line_sensor_pause_gp28(false);               /* back to live samples */
 }
 

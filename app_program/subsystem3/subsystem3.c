@@ -19,7 +19,6 @@ EXPORT ID q_line_data;      /* IF-05 */
 EXPORT ID q_gp28_samples;   /* IF-06 */
 EXPORT ID q_decoded_char;   /* IF-07 */
 EXPORT ID q_barcode_cmd;    /* IF-07 */
-EXPORT ID mbx_char_map;     /* MQTT char map */
 
 /* ---- Legacy template objects (still used by S2 and S4) ---- */
 EXPORT ID        mbx_samples;
@@ -63,9 +62,6 @@ EXPORT ER subsystem3_init(void)
     q_barcode_cmd = make_mbf(sizeof(BARCODE_CMD), 4);
     if (q_barcode_cmd < E_OK) return q_barcode_cmd;
 
-    mbx_char_map = make_mbf(sizeof(CHAR_MAP_MSG), 2);
-    if (mbx_char_map < E_OK) return mbx_char_map;
-
     /* Line sensor's own objects (calibration handshake flag) */
     er = line_sensor_init();
     if (er < E_OK) return er;
@@ -93,7 +89,7 @@ EXPORT ER subsystem3_start(void)
     if (er < E_OK) return er;
 
     /* Barcode decode task: reads q_gp28_samples, writes q_decoded_char /
-       q_barcode_cmd, reads mapping updates from mbx_char_map */
+       q_barcode_cmd, reads the IF-18 map from S1 */
     er = barcode_decode_start();
     if (er < E_OK) return er;
 

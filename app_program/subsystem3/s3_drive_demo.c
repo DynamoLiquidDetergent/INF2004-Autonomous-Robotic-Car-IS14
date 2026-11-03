@@ -300,6 +300,8 @@ LOCAL void demo_run_forever(UINT epoch)
                     "continuous, will not stop on a barcode\n",
               DEMO_SPEED_MMPS, DEMO_STEER_MMPS);
 
+    tm_printf((UB *)"TICK=0x%x\n", in_w(0x4005802CU));
+    
     while (1) {
         /* steering 0 = Motion Control holds a straight line on the encoders */
         demo_send(s2_cmd_pack(S2_MODE_DRIVE, DEMO_SPEED_MMPS, DEMO_STEER_MMPS, epoch));

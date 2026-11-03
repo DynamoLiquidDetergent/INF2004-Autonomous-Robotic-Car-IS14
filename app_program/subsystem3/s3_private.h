@@ -17,7 +17,7 @@
  *      "BARCODE: ch=.. cmd=.." prints in barcode_decode.c.
  *  MUST be 0 when committing.
  * --------------------------------------------------------------------- */
-#define S3_BC_DRIVE_DEMO    1 //was 0
+#define S3_BC_DRIVE_DEMO    1
 
 /* ---------------------------------------------------------------------
  *  DEBUG SWITCH: line following (needs S3_BC_DRIVE_DEMO 1).

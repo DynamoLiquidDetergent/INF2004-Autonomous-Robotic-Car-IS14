@@ -30,8 +30,8 @@ IMPORT ID q_decoded_char;
 // IF-07: the MOVEMENT command (turn left, turn right) sent to the Vehicle Controller after a barcode is decoded and looked up in the map
 IMPORT ID q_barcode_cmd;
 
-// IF (MQTT): character-to-movement mapping arriving from WiFi/MQTT. Buddy 1 writes into this queue; Buddy 3 reads from it
-IMPORT ID mbx_char_map;
+// IF-18: the character-to-movement map is read from S1 with s1_get_nav_map()
+// (one packed 32-bit word, see subsystem1.h).  No S3 queue is needed.
 
 // IF-08: Safety Monitor event-flag group (owned by Buddy 5). Buddy 3 sets S3_FAULT_BIT on debounced LINE_LOST outside bypass; Safety Monitor reads and clears it — S3 never clears this flag
 IMPORT ID flg_fault_i14;
