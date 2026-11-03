@@ -3,6 +3,7 @@
 #include "../app.h"
 
 #include "s4_config.h"
+#include "s4_odometry.h"
 
 /* Transitional ABI: S3 main still includes these names. Remove only when
  * its owner has migrated the example consumer, not before. */
@@ -15,5 +16,10 @@ IMPORT UW s4_lines_received;
 IMPORT ID tid_imu_terrain;
 IMPORT void imu_terrain_task(INT stacd, void *exinf);
 IMPORT void s4_drain_example(void);
+
+/* Proposed i19 input. S5 binds a nonblocking reader during init, before any
+ * task starts. No S2 symbol, queue, fault flag or shared configuration added. */
+IMPORT ER subsystem4_bind_odometry(s4_read_odometry_fn read_fn);
+IMPORT BOOL s4_read_odometry(s4_odometry_t *out);
 
 #endif

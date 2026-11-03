@@ -3,6 +3,8 @@
 #include "drv_motion_sensor.h"
 #include "s4_processing.h"
 #include "s4_terrain.h"
+#include "s4_odometry.h"
+#include "s4_clock_check.h"
 
 static void map_sample(s4_sample_t *s)
 {
@@ -28,7 +30,9 @@ EXPORT void imu_terrain_task(INT stacd, void *exinf)
     s4_processor_t processor;
     s4_orientation_t orientation={0};
     s4_terrain_t terrain;
-    int sensor_ok;
+    s4_height_t height;
+    s4_clock_check_t timebase;
+    int bus_rc,init_rc,sensor_ok;
     (void)stacd;(void)exinf;
     config.magnetic_calibrated=(S4_MAG_CALIBRATED!=0);
     config.magnetic_bias[0]=S4_MAG_BIAS_X;config.magnetic_bias[1]=S4_MAG_BIAS_Y;
@@ -36,9 +40,14 @@ EXPORT void imu_terrain_task(INT stacd, void *exinf)
     config.magnetic_scale[0]=S4_MAG_SCALE_X;config.magnetic_scale[1]=S4_MAG_SCALE_Y;
     config.magnetic_scale[2]=S4_MAG_SCALE_Z;
     s4_processor_init(&processor,&config);
-    sensor_ok=(s4_board_bus_init(&bus)==0)&&(s4_sensor_init(&bus)==0);
+    bus_rc=s4_board_bus_init(&bus);
+    init_rc=(bus_rc==0)?s4_sensor_init(&bus):-100; /* -100: not attempted. */
+    sensor_ok=(bus_rc==0)&&(init_rc==0);
     startup=s4_board_time_us();last_accel=startup;s4_terrain_init(&terrain,startup);
-    (void)tk_get_tim(&clock);release=clock.lo+S4_PERIOD_MS;
+    s4_height_init(&height);
+    (void)tk_get_tim(&clock);
+    s4_clock_check_init(&timebase,startup,clock.lo);
+    release=clock.lo+S4_PERIOD_MS;
     for(;;)
     {
         uint32_t delay,work_start=s4_board_time_us(),work;
@@ -63,20 +72,37 @@ EXPORT void imu_terrain_task(INT stacd, void *exinf)
         if(terrain.impact_event){++impacts;}
         if(terrain.traversal_aborted){++aborts;}
         state=s4_terrain_state(&terrain);
+        {
+            s4_odometry_t odometry;
+            uint32_t input_time;
+            (void)s4_read_odometry(&odometry);
+            (void)tk_get_tim(&clock);input_time=s4_board_time_us();
+            s4_clock_check_step(&timebase,input_time,clock.lo);
+            s4_height_step(&height,&odometry,&orientation,fresh,
+                timebase.status==S4_CLOCK_CONSISTENT,input_time,clock.lo,
+                state,terrain.config.exit_deg,terrain.hump_event,
+                terrain.traversal_aborted);
+        }
         s4_drain_example();++cycles;
 #if S4_LOG_EVERY_CYCLES > 0
         /* Changes/events are logged immediately, not only at the heartbeat. */
         if((state!=previous_state)||terrain.hump_event||terrain.impact_event||
            terrain.traversal_aborted||((cycles%S4_LOG_EVERY_CYCLES)==0U))
         {
-            tm_printf((UB *)"S4 t_us=%u state=%s motion=%s calibrated=%d valid=%d fresh=%d rc=%d pitch_md=%d roll_md=%d impact=%d hump=%d aborted=%d humps=%u impacts=%u aborts=%u max_us=%u missed=%u\n",
+            tm_printf((UB *)"S4 t_us=%u state=%s motion=%s calibrated=%d valid=%d fresh=%d rc=%d pitch_md=%d roll_md=%d impact=%d hump=%d aborted=%d humps=%u impacts=%u aborts=%u max_us=%u missed=%u bus_rc=%d init_rc=%d timebase=%s odom_valid=%d height_valid=%d height_mm=%d highest_valid=%d highest_mm=%d height_reason=%s\n",
                 work_start,s4_terrain_state_name(state),
                 s4_motion_class_name(s4_motion_class(&terrain)),
                 (int)processor.calibrated,(int)(fresh&&orientation.orientation_valid),
                 (int)fresh,result,(int)(orientation.pitch_deg*1000.0F),
                 (int)(orientation.roll_deg*1000.0F),(int)terrain.impact_event,
                 (int)terrain.hump_event,(int)terrain.traversal_aborted,
-                humps,impacts,aborts,max_work_us,missed);
+                humps,impacts,aborts,max_work_us,missed,bus_rc,init_rc,
+                s4_clock_status_name(timebase.status),(int)height.odometry_valid,
+                (int)height.last_valid,
+                height.last_valid?(int)(height.last_mm+0.5F):-1,
+                (int)height.highest_valid,
+                height.highest_valid?(int)(height.highest_mm+0.5F):-1,
+                s4_height_reason_name(height.reason));
         }
 #endif
         previous_state=state;
