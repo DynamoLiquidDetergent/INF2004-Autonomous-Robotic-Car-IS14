@@ -92,7 +92,7 @@
    free, centre sensor over white; put black tape under GP26 only.  The
    RIGHT wheel must now turn faster than the left (robot turns towards
    GP26).  If the LEFT wheel is faster, set -1. */
-#define DEMO_LF_STEER_SIGN    1
+#define DEMO_LF_STEER_SIGN    -1
 
 #define DEMO_LF_CALIB_MS      5000   /* calibration window (S3_CALIB_TIMEOUT_MS) */
 #define DEMO_LF_PLACE_MS      3000   /* then time to put the robot on the line */
@@ -299,8 +299,6 @@ LOCAL void demo_run_forever(UINT epoch)
     tm_printf((UB *)"DEMO: driving FORWARD at %d mm/s, steering %d -- "
                     "continuous, will not stop on a barcode\n",
               DEMO_SPEED_MMPS, DEMO_STEER_MMPS);
-
-    tm_printf((UB *)"TICK=0x%x\n", in_w(0x4005802CU));
     
     while (1) {
         /* steering 0 = Motion Control holds a straight line on the encoders */

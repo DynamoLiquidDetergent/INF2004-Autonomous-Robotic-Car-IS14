@@ -53,7 +53,7 @@
    odometry (IF-17) went DOWN by ~100 mm every second, i.e. BOTH counts
    ran backwards, so both were flipped (were L TRUE, R FALSE).  Check: in
    the drive demo, "dist" must now rise by ~100 mm per second. */
-#define S2_ENC_L_INVERT		TRUE	/* only matters with S2_ENC_QUADRATURE */
+#define S2_ENC_L_INVERT		FALSE	/* only matters with S2_ENC_QUADRATURE */
 #define S2_ENC_R_INVERT		FALSE
 #define S2_ENC_QUADRATURE	1	/* 1 if channel B is a true quadrature output */
 #define S2_ENC_PULL_UP		1	/* pull-ups for open-collector encoder outputs */
