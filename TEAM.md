@@ -40,6 +40,10 @@ if the row is empty, fill it in and commit. If two people claim the same
 pin, they agree between themselves who moves. Only the *reserved* rows are
 fixed.
 
+**Left / right always means the car's own left / right, as if sitting in it
+facing forward** (not "as seen from the front"). All S2 maths depends on this:
+DRIVE steering + = turn right, TURN + = clockwise.
+
 | Pin | Owner | Used for |
 |---|---|---|
 | GP23, GP24, GP25, GP29 | *reserved* | Pico W radio |
@@ -47,34 +51,82 @@ fixed.
 | GP1 | | (taken whenever the team builds with `CRASH_REPORT=1`) |
 | GP2 | S4 | IMU SDA, I2C1 (Grove 2) |
 | GP3 | S4 | IMU SCL, I2C1 (Grove 2) |
-| GP4 | S2 | right encoder A (Grove 3) |
-| GP5 | S2 | right encoder B (Grove 3) |
-| GP6 | | free (jumper wire only, Grove 5 shares GP26) |
-| GP7 | | free (jumper wire only, Grove 7 shares GP28) |
-| GP8 | S2 | left motor M1A (PWM4 A) |
-| GP9 | S2 | left motor M1B (PWM4 B) |
-| GP10 | S2 | right motor M2A (PWM5 A) |
-| GP11 | S2 | right motor M2B (PWM5 B) |
+| GP4 | S2 | LEFT encoder A (Grove 3) |
+| GP5 | S2 | LEFT encoder B (Grove 3) |
+| GP6 | | free (Grove 5's other wire; keep unconnected while Grove 5 carries the GP26 IR sensor) |
+| GP7 | | free (Grove 7's other wire; keep unconnected while Grove 7 carries the GP28 barcode sensor) |
+| GP8 | S2 | RIGHT motor, M1A (PWM4 A) |
+| GP9 | S2 | RIGHT motor, M1B (PWM4 B) |
+| GP10 | S2 | LEFT motor, M2A (PWM5 A) |
+| GP11 | S2 | LEFT motor, M2B (PWM5 B) |
 | GP12 | S5 | servo, servo port 1 (PWM6 A) |
 | GP13 | | free (servo port 2) |
-| GP14 | S2 | left encoder A (breakout header) |
-| GP15 | S2 | left encoder B (breakout header) |
-| GP16 | S5 | HC-SR04 TRIG (Grove 4). UNVERIFIED: Grove ports are 3.3 V per the Robo Pico datasheet, so the 5 V supply source is still open. Do not use servo V+ (battery voltage, 3.6-6 V) until its voltage is measured |
-| GP17 | S5 | HC-SR04 ECHO (Grove 4). UNVERIFIED, do not wire until the echo level is measured with a multimeter. Needs a divider (1k/2k) whenever the module is supplied above 3.3 V. GP17 is also PWM0 channel B |
+| GP14 | S2 | RIGHT encoder A (breakout header; also servo port 3 signal, so servo port 3 stays empty) |
+| GP15 | S2 | RIGHT encoder B (breakout header; also servo port 4 signal, so servo port 4 stays empty) |
+| GP16 | S5 | HC-SR04+ TRIG (Grove 4). 3.3 V module, powered from Grove 4 3V3 |
+| GP17 | S5 | HC-SR04+ ECHO (Grove 4). 3.3 V output at 3V3 supply, no divider needed. GP17 is also PWM0 channel B |
 | GP18 | | free (on-board RGB LED) |
 | GP19 | | free |
 | GP20 | S5 | START button (on board, user button; enable the internal pull-up, to verify on the board) |
 | GP21 | S5 | STOP / reset button (on board, user button; enable the internal pull-up, to verify on the board) |
 | GP22 | | free (on-board buzzer) |
-| GP26 | S3 | IR left AOUT, ADC0 (Grove 6) |
-| GP27 | S3 | IR centre AOUT, ADC1 (Grove 6) |
-| GP28 | S3 | IR right / barcode AOUT, ADC2 (Grove 7). VBAT jumper left open (default) |
+| GP26 | S3 | IR line sensor "left" (S3 code name) AOUT, ADC0. **Grove 5, the GP26 wire.** Physical side to confirm with the `DEMO_LF_STEER_SIGN` bench check |
+| GP27 | S3 | IR line sensor centre AOUT, ADC1. **Grove 6, the GP27 wire.** Grove 6's GP26 wire stays unconnected (same pin as the left sensor) |
+| GP28 | S3 | Barcode IR sensor AOUT, ADC2 (Grove 7). Mounted on the car's LEFT. VBAT jumper left open (default) |
 
-Last Updated: 24/10, 2350 hrs by Saad. S5 rows, priorities, IF-10 to IF-12 and the S5 object counts edited 26/10, 0350 hrs by Min Han. S2 rows (member, PWM slices 4/5, GPIO IRQ handler, priority, IF-10, IF-11, IF-16, IF-17, S2 object counts) edited 26/10 by Aaron.
+Last Updated: 24/10, 2350 hrs by Saad. S5 rows, priorities, IF-10 to IF-12 and the S5 object counts edited 26/10, 0350 hrs by Min Han. S2 rows (member, PWM slices 4/5, GPIO IRQ handler, priority, IF-10, IF-11, IF-16, IF-17, S2 object counts) edited 26/10 by Aaron. Left/right convention, S2 motor/encoder sides, GP16/GP17, GP26–GP28 and wiring notes edited 03/11 by Saad.
 
 **Changes from Week 6:** Left encoder moved from GP0/GP1 to GP14/GP15 to keep
 the UART console free. GP20/GP21 added as START and STOP/reset buttons.
-GP16/GP17 stay unverified until a 5 V source and ECHO divider are fully figured out.
+
+**Changes 03/11 (rewire + integration testing):**
+- Left/right defined as the car's own sides. The physical wiring puts the
+  car's RIGHT wheel on M1 (GP8/GP9) with its encoder on GP14/GP15, and the
+  LEFT wheel on M2 (GP10/GP11) with its encoder on GP4/GP5. The S2 pin
+  defines in `subsystem2.h` were swapped to match (no rewiring), together
+  with `S2_ENC_L_INVERT` / `S2_ENC_R_INVERT`.
+- HC-SR04 replaced to HC-SR04+ (3.3 V): runs from Grove 4's 3V3, no 5 V
+  source or ECHO divider needed.
+- IR line sensors moved to one Grove cable each (Grove 5 / Grove 6 / Grove 7)
+  so each sensor has its own 3V3 and GND.
+- Encoder speed after a reset fixed: the kernel never configured the WATCHDOG
+  TICK that clocks the 1 MHz TIMER, so after RST the encoder periods were
+  wrong (TICK=0xeae00 after RST vs 0x4e0c after a UF2 flash). `encoder_init()`
+  now sets it (ENABLE, CYCLES=12). S5's echo timing uses the same timer.
+
+### Wiring notes
+
+**Motors (6-wire PH2.0 encoder motors).** Wire colours on our cables, by
+connector pin:
+
+| Pin | Colour | Function | Goes to |
+|---|---|---|---|
+| 1 | Blue | Encoder GND | GND |
+| 2 | Red | Encoder A | GP4 (left) / GP14 (right) |
+| 3 | Orange | Encoder B | GP5 (left) / GP15 (right) |
+| 4 | White | Encoder power | **3V3 only** (never VIN, battery or servo V+) |
+| 5 | Black | Motor + | MxA / MxB, whichever way round makes the MxA test button drive that wheel forward |
+| 6 | Yellow | Motor − | the other of MxA / MxB |
+
+Both wheels drive forward with their MxA test button (so `S2_MOTOR_x_INVERT` stay FALSE). If a motor is ever
+re-plugged, re-check with the test buttons and keep the motor and its own
+encoder together (M1 ↔ GP14/GP15, M2 ↔ GP4/GP5).
+
+**Grove ports.** Red = 3V3, black = GND. Check the board silkscreen for which
+of the white/yellow wires carries which GPIO. Tape off unused signal wires.
+
+| Grove | Device | Signal wire(s) used |
+|---|---|---|
+| 2 | IMU (I2C1) | GP2 SDA, GP3 SCL. Maker Port stays empty (shares GP2/GP3) |
+| 3 | Left wheel encoder | GP4 A, GP5 B |
+| 4 | HC-SR04+ | GP16 TRIG, GP17 ECHO |
+| 5 | IR line sensor "left" | GP26 only |
+| 6 | IR line sensor centre | GP27 only |
+| 7 | Barcode IR sensor | GP28 only |
+
+IR modules: AO to the signal wire, DO left unconnected. The right wheel
+encoder uses jumper wires on the breakout header: 3V3 from the single 3V3
+header pin (or a spare Grove port's red wire), GND from any GND.
 
 ## 3. Peripherals
 
@@ -114,7 +166,7 @@ the drivers have no locking to stop it.
 | ADC | S3 | Line Sensor Task (line_sensor.c) | GP26–GP28 |
 | PWM slices (list) | | | |
 | PWM slice 6 (servo) | S5 | Obstacle Detection Task (obstacle_detect.c) | GP12 (servo port 1); GP13 kept unused |
-| PWM slices 4, 5 (motors) | S2 | Motion Control task (motion_control.c, drv_motor.c) | GP8, GP9 (slice 4 A/B, left), GP10, GP11 (slice 5 A/B, right). 20 kHz. drv_motor.c also takes the PWM block out of reset (config.h USE_PTMR is 0) using the atomic clear alias only, so S5's servo slice is never reset |
+| PWM slices 4, 5 (motors) | S2 | Motion Control task (motion_control.c, drv_motor.c) | GP8, GP9 (slice 4 A/B, RIGHT motor, M1), GP10, GP11 (slice 5 A/B, LEFT motor, M2). 20 kHz. drv_motor.c also takes the PWM block out of reset (config.h USE_PTMR is 0) using the atomic clear alias only, so S5's servo slice is never reset |
 | GPIO interrupt (IO_IRQ_BANK0) | S2 + S5 (to agree) | one shared handler, owner to be agreed. S2 encoders (GP4/GP5, GP14/GP15) and S5 HC-SR04 echo (GP17) both need it, and a kernel interrupt number takes one handler. Alternative for S5: time the echo in hardware on PWM slice 0 channel B (GP17), untested. **S2 has implemented the shared handler** in `subsystem2/drv_encoder.c` (enabled on the Motion Control core). S5 can take GP17 edges with `s2_gpio_hook_register(17, S2_GPIO_EDGE_RISE \| S2_GPIO_EDGE_FALL, hook)` from `subsystem5_init()`; the hook runs in interrupt context and gets a 1 MHz timestamp. Proposed by S2, S5 to confirm | GP4, GP5, GP14, GP15, GP17 |
 | WiFi radio, TCP/IP, MQTT | *kernel* | `cyw43_utk_task` (built in). S1 code runs inside it via `mqtt_utk.c` (IF-15) | GP23–25, GP29 |
 
