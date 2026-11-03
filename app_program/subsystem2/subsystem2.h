@@ -35,14 +35,14 @@
 /* ---------------------------------------------------------------------
  *  Pins (TEAM.md section 2)
  * --------------------------------------------------------------------- */
-#define S2_PIN_MOTOR_L_A	8U	/* M1A, PWM slice 4 A */
-#define S2_PIN_MOTOR_L_B	9U	/* M1B, PWM slice 4 B */
-#define S2_PIN_MOTOR_R_A	10U	/* M2A, PWM slice 5 A */
-#define S2_PIN_MOTOR_R_B	11U	/* M2B, PWM slice 5 B */
-#define S2_PIN_ENC_L_A		14U	/* left encoder A  (moved from GP0) */
-#define S2_PIN_ENC_L_B		15U	/* left encoder B  (moved from GP1) */
-#define S2_PIN_ENC_R_A		4U	/* right encoder A (Grove 3) */
-#define S2_PIN_ENC_R_B		5U	/* right encoder B (Grove 3) */
+#define S2_PIN_MOTOR_L_A	10U	/* M2A -- car's own LEFT wheel  */
+#define S2_PIN_MOTOR_L_B	11U	/* M2B */
+#define S2_PIN_MOTOR_R_A	8U	/* M1A -- car's own RIGHT wheel */
+#define S2_PIN_MOTOR_R_B	9U	/* M1B */
+#define S2_PIN_ENC_L_A		4U	/* left encoder A  (Grove 3) */
+#define S2_PIN_ENC_L_B		5U	/* left encoder B  (Grove 3) */
+#define S2_PIN_ENC_R_A		14U	/* right encoder A (header)  */
+#define S2_PIN_ENC_R_B		15U	/* right encoder B (header)  */
 
 /* ---------------------------------------------------------------------
  *  Hardware settings to CHECK ON THE BENCH (testing/subsystem2, S2-M01..)
@@ -53,8 +53,8 @@
    odometry (IF-17) went DOWN by ~100 mm every second, i.e. BOTH counts
    ran backwards, so both were flipped (were L TRUE, R FALSE).  Check: in
    the drive demo, "dist" must now rise by ~100 mm per second. */
-#define S2_ENC_L_INVERT		FALSE	/* only matters with S2_ENC_QUADRATURE */
-#define S2_ENC_R_INVERT		TRUE
+#define S2_ENC_L_INVERT		TRUE	/* only matters with S2_ENC_QUADRATURE */
+#define S2_ENC_R_INVERT		FALSE
 #define S2_ENC_QUADRATURE	1	/* 1 if channel B is a true quadrature output */
 #define S2_ENC_PULL_UP		1	/* pull-ups for open-collector encoder outputs */
 #define S2_ENC_MIN_EDGE_US	500U	/* edges closer than this are noise */

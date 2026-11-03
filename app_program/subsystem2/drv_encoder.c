@@ -219,6 +219,11 @@ EXPORT ER encoder_init(void)
 		}
 	}
 
+	/* Start the 1 us tick for TIMER: 12 MHz XOSC / 12.  The kernel never
+	   sets this up; after a RUN/RST reset CYCLES is 0 and the timer rate
+	   is wrong (seen 2026-11-03: TICK=0xeae00 after RST, 0x4e0c after flash). Resolved by S1 */
+	out_w(0x4005802CU, (1U << 9) | 12U);	/* WATCHDOG TICK: ENABLE | CYCLES=12 */
+
 	for (w = 0U; w < ENC_COUNT; w++) {
 		enc_state[w].count = 0;
 		enc_state[w].last_edge_us = 0U;
