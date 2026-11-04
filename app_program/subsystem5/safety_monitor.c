@@ -18,6 +18,7 @@
 #define S5_SM_PERIOD_MS		20
 
 EXPORT ID		flg_inhibit;
+EXPORT volatile UB	s5_fault_mask;
 
 LOCAL UW now_ms(void)
 {
@@ -52,6 +53,7 @@ EXPORT void safety_monitor_task(INT stacd, void *exinf)
 		faults = (er == E_OK) ? (got & FLT_ALL_MASK) : 0;
 
 		o = sm_step(&st, &cfg, faults, s5_obs_state, now_ms());
+		s5_fault_mask |= (UB)faults;		/* for the status to subsystem 1 */
 
 		if (o.set_inhibit) {
 			/* set the latch first, so Motion Control stops on its next cycle */
@@ -66,6 +68,7 @@ EXPORT void safety_monitor_task(INT stacd, void *exinf)
 		}
 		if (o.clear_inhibit) {
 			tk_clr_flg(flg_inhibit, ~(UINT)S5_INHIBIT_BIT);
+			s5_fault_mask = 0;
 			tm_printf((UB*)"safety: inhibit released (a newer epoch is needed to move)\n");
 		}
 		if (o.reset_obstacle) {

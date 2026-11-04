@@ -55,6 +55,34 @@ IMPORT ID	flg_s5_ctrl;
  * Controller reads with obs_unpack(). */
 IMPORT ID	mbf_obstacle;
 
+/* ---- IF-14: supervisor commands from subsystem 1, owned by the Vehicle Controller ----
+ * Message buffer of 1-byte messages: bits 1:0 command, bit 2 link up, bits 7:3 unused.
+ * Subsystem 1 sends with tk_snd_mbf(mbf_sup_cmd, &b, 1, TMO_POL) after it has
+ * checked the command (FR7, FR8). The Vehicle Controller reads it every cycle.
+ *   PAUSE  stop and stand still (obstacle scans carry on); only after START
+ *   RESUME in READY: START the run; after PAUSE: drive on
+ *   ABORT  stop for good until the board is reset
+ * Link loss is only a status bit, not a fault. */
+#define SUP_CMD_NONE		0u
+#define SUP_CMD_PAUSE		1u
+#define SUP_CMD_RESUME		2u
+#define SUP_CMD_ABORT		3u
+#define SUP_CMD_MASK		0x3u
+#define SUP_LINK_UP		(1u << 2)
+IMPORT ID	mbf_sup_cmd;
+
+/* Mission state (VC_MS_* in vc_logic.h, 0..14) for the IF-13 status to subsystem 1.
+   Written by the Vehicle Controller only. */
+IMPORT volatile UB	s5_mission_state;
+
+/* Obstacle summary for the status to subsystem 1: obs_summary_* in obstacle_profile.h.
+   Written by Obstacle Detection in one store, read by the Vehicle Controller. */
+IMPORT volatile UW	s5_obs_summary;
+
+/* Faults the Safety Monitor is handling right now (IF-12 bits 0..3). Set when it
+   sees them, cleared when it releases the stop latch. Read only elsewhere. */
+IMPORT volatile UB	s5_fault_mask;
+
 /* Current Obstacle Detection state (OBS_STATE, 3 bits). Read only. */
 IMPORT volatile UB	s5_obs_state;
 
@@ -73,6 +101,12 @@ IMPORT volatile H	s5_approach_mm;
    5 and 6). Phase 7 (bypass) sets it to 0. */
 #ifndef S5_STANDALONE
 #define S5_STANDALONE		(S5_PHASE < 7)
+#endif
+/* 1 = the Vehicle Controller starts the run by itself once the power-up work is
+   done (bench tests, no dashboard). 0 = it waits in READY for RESUME from
+   subsystem 1 (IF-14). Set to 0 for the integrated demo. */
+#ifndef VC_AUTO_START
+#define VC_AUTO_START		1
 #endif
 /* 1 = print every reading and scan result on the console (bench bring-up) */
 #ifndef S5_VERBOSE

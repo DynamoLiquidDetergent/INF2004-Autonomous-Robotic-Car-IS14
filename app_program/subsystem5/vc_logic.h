@@ -62,6 +62,25 @@
    it was already aligned with it when it stopped. */
 #define VC_REVERSE_STEER	1
 
+/* ---- Mission state, reported to subsystem 1 in IF-13 (0..14; S1 proposes 1 = READY) ---- */
+#define VC_MS_INIT		0u	/* power-up: calibrating, being placed on the line */
+#define VC_MS_READY		1u	/* ready; waiting for START (RESUME from the dashboard) */
+#define VC_MS_RUNNING		2u	/* following the line */
+#define VC_MS_PAUSED		3u	/* PAUSE from the dashboard: standing still */
+#define VC_MS_AVOIDING		4u	/* obstacle: scan, creep or back-away in progress */
+#define VC_MS_FAULT		5u	/* a fault is being handled (stop latch) */
+#define VC_MS_ABORTED		6u	/* ABORT from the dashboard: stopped for good until reset */
+#define VC_MS_TURNING		7u	/* barcode command: turning at a junction */
+
+/* ---- Supervisor command (IF-14, bits 1:0) ---- */
+#define VC_SUP_NONE		0u
+#define VC_SUP_PAUSE		1u
+#define VC_SUP_RESUME		2u
+#define VC_SUP_ABORT		3u
+
+/* ---- Obstacle Detection state FAULT (OBS_ST_FAULT) ---- */
+#define VC_OBS_FAULT		7u
+
 typedef struct {
 	int		err_prev;	/* zone error of the previous cycle */
 	int		have_prev;	/* err_prev is valid */
@@ -75,6 +94,10 @@ typedef struct {
 	int		creep_have_cmd;	/* creep_speed / creep_steer are valid */
 	int		creep_speed;	/* line controller answer, kept between line messages */
 	int		creep_steer;
+	unsigned	creep_acc;	/* mm of the order already travelled before a pause / hold */
+	int		started;	/* START given (RESUME in READY, or auto start) */
+	int		paused;		/* PAUSE given, RESUME not yet */
+	int		aborted;	/* ABORT given: stays until reset */
 } VC_STATE;
 
 typedef struct {
@@ -86,6 +109,10 @@ typedef struct {
 	unsigned	motion_state;	/* S2 state from s2_get_status() */
 	int		approach_mm;	/* s5_approach_mm: 0 = none, > 0 creep forward, < 0 back away (mm) */
 	unsigned	odo_mm;		/* odometry distance (IF-17), 16 bit, wraps */
+	unsigned	sup_cmd;	/* IF-14 command taken this cycle (VC_SUP_*; NONE if no message) */
+	int		ready;		/* power-up work (calibration, placing) is finished */
+	int		auto_start;	/* 1 = start by itself once ready (bench); 0 = wait for RESUME */
+	unsigned	fault_mask;	/* faults the Safety Monitor is handling now (IF-12 bits) */
 } VC_IN;
 
 typedef struct {
@@ -95,7 +122,45 @@ typedef struct {
 	unsigned	epoch;		/* epoch to put in the command */
 	int		holding;	/* 1 = held for an obstacle or the stop latch */
 	int		creep_done;	/* 1 = the ordered creep / back-away distance is reached */
+	unsigned	mission_state;	/* VC_MS_*, for IF-13 telemetry */
 } VC_OUT;
+
+/* ---- Status to subsystem 1 (IF-13), every 500 ms ----
+   Same fields and "no data" codes as s1_status_t in subsystem1.h; vehicle_controller.c
+   copies them over. Everything is capped here the way subsystem 1 expects. */
+#define VC_NO_OBST_DIST		511u	/* obst_dist_cm: no obstacle seen */
+#define VC_NO_OBST_WIDTH	63u	/* obst_width_cm: unknown */
+#define VC_NO_LETTER		31u	/* letter: none stored */
+#define VC_NO_HUMP		255u	/* hump_peak_mm: none */
+typedef struct {
+	unsigned	mission_time_ds;	/* 0.1 s since START, 0 before */
+	unsigned	obst_dist_cm;		/* 0..510, 511 none */
+	unsigned	mission_state;		/* 0..14 */
+	unsigned	fault_mask;		/* IF-12 bits 0..3 */
+	unsigned	letter;			/* 0 = A .. 25 = Z, 31 none */
+	unsigned	last_action;		/* S1_MOVE_*: 0 forward, 1 U-turn, 2 left, 3 right */
+	unsigned	barcodes;		/* barcodes read, stops at 15 */
+	unsigned	b_obstacle;		/* 1 = obstacle present */
+	unsigned	obst_side;		/* 0 none, 1 left, 2 right */
+	unsigned	obst_width_cm;		/* 0..62, 63 unknown */
+	unsigned	hump_peak_mm;		/* 0..254, 255 none */
+} VC_STATUS;
+
+typedef struct {
+	int		obst_present;
+	unsigned	obst_dist_cm;
+	unsigned	obst_width_cm;
+	unsigned	obst_side;
+	unsigned	mission_state;
+	unsigned	fault_mask;
+	uint32_t	run_ms;		/* time since START */
+	int		letter;		/* -1 none */
+	unsigned	last_action;
+	unsigned	barcodes;
+	int		hump_mm;	/* -1 none */
+} VC_STATUS_IN;
+
+void   vc_status_fill(const VC_STATUS_IN *in, VC_STATUS *out);
 
 void   vc_init(VC_STATE *v, unsigned epoch);
 VC_OUT vc_step(VC_STATE *v, const VC_IN *in);

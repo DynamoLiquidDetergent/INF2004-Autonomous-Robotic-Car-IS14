@@ -29,6 +29,10 @@ void vc_init(VC_STATE *v, unsigned epoch)
 	v->creep_have_cmd = 0;
 	v->creep_speed  = 0;
 	v->creep_steer  = 0;
+	v->creep_acc    = 0;
+	v->started      = 0;
+	v->paused       = 0;
+	v->aborted      = 0;
 }
 
 /* The line controller: one cycle. Fills speed and steer. Returns 1 to stop. */
@@ -72,7 +76,7 @@ static int follow_line(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 static VC_OUT creep_step(VC_STATE *v, const VC_IN *in, VC_OUT o)
 {
 	int back = (in->approach_mm < 0);
-	int want = iabs(in->approach_mm);
+	int want = iabs(in->approach_mm) - (int)v->creep_acc;	/* what is left after a pause */
 	int moved;
 
 	if (!v->creep_on) {
@@ -133,6 +137,41 @@ static VC_OUT creep_step(VC_STATE *v, const VC_IN *in, VC_OUT o)
 	return o;
 }
 
+/* Mission state from the flags. Order: aborted, not started, fault, paused, avoiding. */
+static unsigned mission_of(const VC_STATE *v, const VC_IN *in)
+{
+	if (v->aborted) {
+		return VC_MS_ABORTED;
+	}
+	if (!v->started) {
+		return in->ready ? VC_MS_READY : VC_MS_INIT;
+	}
+	if (in->fault_mask != 0 || in->obs_state == VC_OBS_FAULT) {
+		return VC_MS_FAULT;
+	}
+	if (v->paused) {
+		return VC_MS_PAUSED;
+	}
+	if (in->obs_state != VC_OBS_IDLE || in->approach_mm != 0) {
+		return VC_MS_AVOIDING;
+	}
+	return VC_MS_RUNNING;
+}
+
+/* A creep that is stopped part-way (pause, hold): remember how far it got, so that
+   after the stop only the rest is driven. */
+static void creep_remember(VC_STATE *v, const VC_IN *in)
+{
+	int moved = (int)(int16_t)((in->odo_mm - v->creep_start) & 0xFFFFu);
+
+	if (in->approach_mm < 0) {
+		moved = -moved;
+	}
+	if (moved > 0) {
+		v->creep_acc += (unsigned)moved;
+	}
+}
+
 VC_OUT vc_step(VC_STATE *v, const VC_IN *in)
 {
 	VC_OUT	o;
@@ -144,12 +183,39 @@ VC_OUT vc_step(VC_STATE *v, const VC_IN *in)
 	o.holding = 0;
 	o.creep_done = 0;
 
-	/* Stand still unless Obstacle Detection is idle and the stop latch is clear.
-	   A state that is not idle means an obstacle was seen and is being scanned. */
-	hold = (in->obs_state != VC_OBS_IDLE) || (in->motion_state == VC_STATE_INHIBITED);
+	/* supervisor commands (IF-14). ABORT works at any time and stays. RESUME in READY
+	   is START; elsewhere it ends a PAUSE. PAUSE only counts once the run has started. */
+	if (in->sup_cmd == VC_SUP_ABORT) {
+		v->aborted = 1;
+	} else if (in->sup_cmd == VC_SUP_PAUSE) {
+		if (v->started) {
+			v->paused = 1;
+		}
+	} else if (in->sup_cmd == VC_SUP_RESUME) {
+		if (!v->started) {
+			if (in->ready) {
+				v->started = 1;
+			}
+		} else {
+			v->paused = 0;
+		}
+	}
+	if (!v->started && in->ready && in->auto_start) {
+		v->started = 1;
+	}
+	o.mission_state = mission_of(v, in);
+
+	/* Stand still unless the run is on, Obstacle Detection is idle and the Safety
+	   Monitor's stop latch is clear. A state that is not idle means an obstacle was
+	   seen and is being scanned. */
+	hold = (!v->started || v->paused || v->aborted) ||
+	       (in->obs_state != VC_OBS_IDLE) || (in->motion_state == VC_STATE_INHIBITED);
 	if (hold) {
 		if (!v->holding) {
 			v->holding  = 1;
+			if (v->creep_on && !v->creep_done) {
+				creep_remember(v, in);
+			}
 			v->creep_on = 0;
 			v->creep_done = 0;
 			v->epoch    = (v->epoch + 1u) & 0xFu;	/* Motion Control needs a newer epoch */
@@ -167,6 +233,7 @@ VC_OUT vc_step(VC_STATE *v, const VC_IN *in)
 	if (in->approach_mm != 0) {
 		return creep_step(v, in, o);
 	}
+	v->creep_acc = 0;			/* no order open: nothing travelled yet */
 	if (v->creep_on) {			/* the order was taken: line following starts clean */
 		v->creep_on   = 0;
 		v->creep_done = 0;
@@ -183,4 +250,33 @@ VC_OUT vc_step(VC_STATE *v, const VC_IN *in)
 		o.steer = 0;
 	}
 	return o;
+}
+
+static unsigned cap_u(unsigned v, unsigned max)
+{
+	return (v > max) ? max : v;
+}
+
+void vc_status_fill(const VC_STATUS_IN *in, VC_STATUS *out)
+{
+	unsigned t = (unsigned)(in->run_ms / 100u);
+
+	out->mission_time_ds = (in->run_ms / 100u > 65535u) ? 65535u : t;
+	out->mission_state   = cap_u(in->mission_state, 14u);
+	out->fault_mask      = in->fault_mask & 0xFu;
+	out->letter          = (in->letter >= 0 && in->letter <= 25) ? (unsigned)in->letter : VC_NO_LETTER;
+	out->last_action     = cap_u(in->last_action, 3u);
+	out->barcodes        = cap_u(in->barcodes, 15u);
+	out->hump_peak_mm    = (in->hump_mm < 0) ? VC_NO_HUMP : cap_u((unsigned)in->hump_mm, 254u);
+	if (in->obst_present) {
+		out->b_obstacle    = 1;
+		out->obst_dist_cm  = cap_u(in->obst_dist_cm, 510u);	/* never 511 = none */
+		out->obst_width_cm = cap_u(in->obst_width_cm, 62u);	/* never 63 = unknown */
+		out->obst_side     = (in->obst_side <= 2u) ? in->obst_side : 0u;
+	} else {
+		out->b_obstacle    = 0;
+		out->obst_dist_cm  = VC_NO_OBST_DIST;
+		out->obst_width_cm = VC_NO_OBST_WIDTH;
+		out->obst_side     = 0;
+	}
 }

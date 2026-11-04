@@ -64,6 +64,27 @@ EXPORT void subsystem5_test(void)
 		   "clearing one fault bit leaves the other set (TWF_BITCLR)");
 	tk_clr_flg(flg_fault_i14, 0);
 
+	/* IF-14: the supervisor command buffer takes 1-byte messages in order */
+	{
+		UB b, r = 0;
+		UB cmds[3] = { SUP_CMD_PAUSE, SUP_CMD_RESUME | SUP_LINK_UP, SUP_CMD_ABORT };
+		INT i, ok = 1;
+
+		while (tk_rcv_mbf(mbf_sup_cmd, &b, TMO_POL) > 0) { }
+		for (i = 0; i < 3; i++) {
+			if (tk_snd_mbf(mbf_sup_cmd, &cmds[i], 1, TMO_POL) != E_OK) {
+				ok = 0;
+			}
+		}
+		for (i = 0; i < 3; i++) {
+			if (tk_rcv_mbf(mbf_sup_cmd, &r, TMO_POL) != 1 || r != cmds[i]) {
+				ok = 0;
+			}
+		}
+		TEST_CHECK("S5-U10", mbf_sup_cmd > 0 && ok,
+			   "IF-14 buffer exists and returns three 1-byte commands in order");
+	}
+
 	TEST_SUMMARY("subsystem5");
 }
 

@@ -67,6 +67,7 @@
 
 EXPORT volatile UB	s5_obs_state = OBS_ST_IDLE_MONITORING;
 EXPORT volatile H	s5_approach_mm = 0;
+EXPORT volatile UW	s5_obs_summary = 0;
 
 LOCAL OBS_CFG		cfg;
 LOCAL OBS_SCAN		scan;
@@ -326,6 +327,13 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 			}
 			servo_goto(90);
 			cm = read_distance();
+			/* summary for the status to subsystem 1: live distance while an obstacle is
+			   known, gone once the way is clear */
+			if (cm == OBS_DIST_NONE || cm > cfg.detect_cm + cfg.detect_hyst_cm) {
+				s5_obs_summary = 0;
+			} else if (obs_summary_present(s5_obs_summary)) {
+				s5_obs_summary = obs_summary_with_dist(s5_obs_summary, (unsigned)cm);
+			}
 #if S5_APPROACH
 			if (s5_approach_mm != 0) {
 				if (approach_over(cm)) {
@@ -414,6 +422,7 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 			}
 #endif
 			obs_profile(&scan, &cfg, &profile);
+			s5_obs_summary = obs_summary_pack(&profile);
 			seq = (UB)((seq + 1) & 0xF);
 			obs_pack(&profile, seq, w);
 			er = tk_snd_mbf(mbf_obstacle, w, OBS_MSG_BYTES, TMO_POL);

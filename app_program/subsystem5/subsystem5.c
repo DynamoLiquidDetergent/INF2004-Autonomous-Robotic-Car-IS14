@@ -8,6 +8,7 @@
  *	  flg_inhibit    event flag group  IF-11  latched motor inhibit, to Motion Control
  *	  flg_s5_ctrl    event flag group         control into Obstacle Detection
  *	  mbf_obstacle   message buffer    i8     obstacle profile -> Vehicle Controller
+ *	  mbf_sup_cmd    message buffer    IF-14  PAUSE / RESUME / ABORT from subsystem 1
  *
  *	Tasks: s5_bringup_task (phases 1-4) or obstacle_detect_task and
  *	safety_monitor_task (phases 5-6), plus vehicle_controller_task (phase 6).
@@ -19,6 +20,7 @@
 EXPORT ID		flg_fault_i14;
 EXPORT ID		flg_s5_ctrl;
 EXPORT ID		mbf_obstacle;
+EXPORT ID		mbf_sup_cmd;
 
 EXPORT ER subsystem5_init(void)
 {
@@ -62,7 +64,16 @@ EXPORT ER subsystem5_init(void)
 	cmbf.bufsz  = 4 * (OBS_MSG_BYTES + 4);
 	cmbf.maxmsz = OBS_MSG_BYTES;
 	mbf_obstacle = tk_cre_mbf(&cmbf);
-	return (mbf_obstacle < E_OK) ? mbf_obstacle : E_OK;
+	if (mbf_obstacle < E_OK) {
+		return mbf_obstacle;
+	}
+
+	/* IF-14: supervisor commands from subsystem 1, 1 byte each, room for 4 */
+	cmbf.mbfatr = TA_TFIFO;
+	cmbf.bufsz  = 4 * (1 + 4);
+	cmbf.maxmsz = 1;
+	mbf_sup_cmd = tk_cre_mbf(&cmbf);
+	return (mbf_sup_cmd < E_OK) ? mbf_sup_cmd : E_OK;
 }
 
 EXPORT ER subsystem5_start(void)

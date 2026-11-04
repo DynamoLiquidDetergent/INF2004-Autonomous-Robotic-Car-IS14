@@ -110,7 +110,7 @@ IMPORT void s1_set_nav_map(UW map_word);
  * Normal builds only (test builds send IF-13 from the tests).
  * Set to 0 and DELETE once S5 sends IF-13.
  */
-#define S1_FAKE_S5          (1)
+#define S1_FAKE_S5          (0)    /* S5 sends IF-13 now (vehicle_controller.c) */
 
 /*
  * Debug: in builds WITHOUT MQTT=1, a task takes each message from

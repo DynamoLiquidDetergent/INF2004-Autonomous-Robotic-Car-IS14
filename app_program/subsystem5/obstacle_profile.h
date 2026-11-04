@@ -177,4 +177,38 @@ uint32_t obs_isqrt(uint32_t v);
 void obs_pack(const OBS_PROFILE *p, uint8_t seq, uint32_t w[OBS_MSG_WORDS]);
 void obs_unpack(const uint32_t w[OBS_MSG_WORDS], OBS_PROFILE *p, uint8_t *seq);
 
+
+/* ---- Obstacle summary for the status to subsystem 1 (IF-13) ----
+   One 32 bit word, written in one store by Obstacle Detection and read by the
+   Vehicle Controller.  bit 0 present, bits 1..9 distance in cm (0..511),
+   bits 10..15 width in cm (0..63), bits 16..17 side (0 none or centred,
+   1 left, 2 right).  0 = no obstacle. */
+static inline uint32_t obs_summary_pack(const OBS_PROFILE *p)
+{
+	uint32_t d, w, side = 0;
+	int mid;
+
+	if (!p->detected) {
+		return 0;
+	}
+	d = (p->closest_cm > 511u) ? 511u : p->closest_cm;
+	w = (p->width_cm > 63u) ? 63u : p->width_cm;
+	mid = (int)p->idx_right + (int)p->idx_left;	/* 12 = straight ahead */
+	if (mid < 2 * OBS_IDX_AHEAD) {
+		side = 2;		/* indices below 6 are to the RIGHT of the car */
+	} else if (mid > 2 * OBS_IDX_AHEAD) {
+		side = 1;
+	}
+	return 1u | (d << 1) | (w << 10) | (side << 16);
+}
+static inline int      obs_summary_present(uint32_t s) { return (int)(s & 1u); }
+static inline unsigned obs_summary_dist(uint32_t s)    { return (unsigned)((s >> 1) & 0x1FFu); }
+static inline unsigned obs_summary_width(uint32_t s)   { return (unsigned)((s >> 10) & 0x3Fu); }
+static inline unsigned obs_summary_side(uint32_t s)    { return (unsigned)((s >> 16) & 0x3u); }
+/* same summary with a new live distance (cm) */
+static inline uint32_t obs_summary_with_dist(uint32_t s, unsigned cm)
+{
+	return (s & ~(0x1FFu << 1)) | ((cm > 511u ? 511u : cm) << 1);
+}
+
 #endif /* OBSTACLE_PROFILE_H */

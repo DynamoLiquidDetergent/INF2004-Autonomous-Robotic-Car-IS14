@@ -27,6 +27,10 @@ static VC_IN line_in(int zone, int lost)
 	in.motion_state = 1;
 	in.approach_mm = 0;
 	in.odo_mm = 0;
+	in.sup_cmd = VC_SUP_NONE;
+	in.ready = 1;
+	in.auto_start = 1;		/* the older tests run without waiting for START */
+	in.fault_mask = 0;
 	return in;
 }
 
@@ -302,6 +306,184 @@ int main(void)
 	o = vc_step(&v, &in);
 	CHECK("S5-H73", o.mode == VC_MODE_DRIVE && o.steer == 30 && o.speed == 80,
 	      "line again after a creep: back to line speed, P only (steer 30, not 50)");
+
+	/* H81: power-up and START. INIT while the power-up work runs, READY afterwards,
+	   RUNNING only after RESUME (auto start off) */
+	vc_init(&v, 2);
+	in = line_in(4, 0);
+	in.auto_start = 0;
+	in.ready = 0;
+	o = vc_step(&v, &in);
+	CHECK("S5-H81a", o.mission_state == VC_MS_INIT && o.mode == VC_MODE_STOP && o.holding,
+	      "power-up work not finished: INIT, standing still");
+	in.sup_cmd = VC_SUP_RESUME;
+	o = vc_step(&v, &in);
+	CHECK("S5-H81b", o.mission_state == VC_MS_INIT && o.mode == VC_MODE_STOP,
+	      "RESUME before the power-up work is done does not start the run");
+	in.sup_cmd = VC_SUP_NONE;
+	in.ready = 1;
+	o = vc_step(&v, &in);
+	CHECK("S5-H81c", o.mission_state == VC_MS_READY && o.mode == VC_MODE_STOP, "ready: READY, still standing");
+	e0 = o.epoch;
+	in.sup_cmd = VC_SUP_RESUME;
+	o = vc_step(&v, &in);
+	CHECK("S5-H81d", o.mission_state == VC_MS_RUNNING && o.mode == VC_MODE_DRIVE && o.epoch == e0,
+	      "RESUME in READY is START: RUNNING and driving, same epoch (nothing was latched)");
+
+	/* H82: auto start (bench) */
+	vc_init(&v, 2);
+	in = line_in(4, 0);
+	in.ready = 0;
+	o = vc_step(&v, &in);
+	in.ready = 1;
+	o = vc_step(&v, &in);
+	CHECK("S5-H82", o.mission_state == VC_MS_RUNNING && o.mode == VC_MODE_DRIVE,
+	      "auto start on: RUNNING as soon as ready, no command needed");
+
+	/* H83: PAUSE and RESUME */
+	vc_init(&v, 2);
+	in = line_in(4, 0);
+	o = vc_step(&v, &in);
+	e0 = o.epoch;
+	in.sup_cmd = VC_SUP_PAUSE;
+	o = vc_step(&v, &in);
+	CHECK("S5-H83a", o.mission_state == VC_MS_PAUSED && o.mode == VC_MODE_STOP && o.holding &&
+	      o.epoch == ((e0 + 1u) & 0xFu), "PAUSE: PAUSED, STOP, epoch plus 1");
+	in.sup_cmd = VC_SUP_NONE;
+	o = vc_step(&v, &in);
+	CHECK("S5-H83b", o.mission_state == VC_MS_PAUSED && o.mode == VC_MODE_STOP && o.epoch == ((e0 + 1u) & 0xFu),
+	      "paused stays paused, epoch unchanged");
+	in.sup_cmd = VC_SUP_RESUME;
+	o = vc_step(&v, &in);
+	CHECK("S5-H83c", o.mission_state == VC_MS_RUNNING && o.mode == VC_MODE_DRIVE && o.epoch == ((e0 + 1u) & 0xFu),
+	      "RESUME: RUNNING and driving with the newer epoch");
+	in.sup_cmd = VC_SUP_RESUME;
+	o = vc_step(&v, &in);
+	CHECK("S5-H83d", o.mission_state == VC_MS_RUNNING && o.epoch == ((e0 + 1u) & 0xFu),
+	      "RESUME while running changes nothing");
+	vc_init(&v, 2);
+	in = line_in(4, 0);
+	in.auto_start = 0;
+	o = vc_step(&v, &in);
+	in.sup_cmd = VC_SUP_PAUSE;
+	o = vc_step(&v, &in);
+	CHECK("S5-H83e", o.mission_state == VC_MS_READY, "PAUSE in READY is ignored (the run has not started)");
+
+	/* H84: ABORT stops for good */
+	vc_init(&v, 2);
+	in = line_in(4, 0);
+	o = vc_step(&v, &in);
+	in.sup_cmd = VC_SUP_ABORT;
+	o = vc_step(&v, &in);
+	CHECK("S5-H84a", o.mission_state == VC_MS_ABORTED && o.mode == VC_MODE_STOP && o.holding, "ABORT: ABORTED and STOP");
+	in.sup_cmd = VC_SUP_RESUME;
+	o = vc_step(&v, &in);
+	in.sup_cmd = VC_SUP_NONE;
+	o = vc_step(&v, &in);
+	CHECK("S5-H84b", o.mission_state == VC_MS_ABORTED && o.mode == VC_MODE_STOP,
+	      "RESUME after ABORT does nothing: stopped until reset");
+	vc_init(&v, 2);
+	in = line_in(4, 0);
+	in.auto_start = 0;
+	in.sup_cmd = VC_SUP_ABORT;
+	o = vc_step(&v, &in);
+	CHECK("S5-H84c", o.mission_state == VC_MS_ABORTED, "ABORT in READY also works");
+
+	/* H85: what is reported while an obstacle or a fault is handled */
+	vc_init(&v, 2);
+	in = line_in(4, 0);
+	o = vc_step(&v, &in);
+	in.obs_state = 2;
+	o = vc_step(&v, &in);
+	CHECK("S5-H85a", o.mission_state == VC_MS_AVOIDING && o.holding, "obstacle scan running: AVOIDING");
+	in.obs_state = 0;
+	in.approach_mm = 100;
+	o = vc_step(&v, &in);
+	CHECK("S5-H85b", o.mission_state == VC_MS_AVOIDING, "creep order open: AVOIDING");
+	in.approach_mm = 0;
+	in.obs_state = VC_OBS_FAULT;
+	o = vc_step(&v, &in);
+	CHECK("S5-H85c", o.mission_state == VC_MS_FAULT && o.mode == VC_MODE_STOP, "obstacle task in FAULT: FAULT");
+	in.obs_state = 0;
+	in.fault_mask = 0x2;
+	in.motion_state = VC_STATE_INHIBITED;
+	o = vc_step(&v, &in);
+	CHECK("S5-H85d", o.mission_state == VC_MS_FAULT && o.mode == VC_MODE_STOP, "Safety Monitor handling a fault: FAULT");
+	in.fault_mask = 0;
+	in.motion_state = 1;
+	o = vc_step(&v, &in);
+	CHECK("S5-H85e", o.mission_state == VC_MS_RUNNING && o.mode == VC_MODE_DRIVE, "fault cleared: RUNNING again");
+	in.sup_cmd = VC_SUP_PAUSE;
+	in.fault_mask = 0x8;
+	o = vc_step(&v, &in);
+	CHECK("S5-H85f", o.mission_state == VC_MS_FAULT, "a fault is reported ahead of PAUSED");
+	in.fault_mask = 0;
+	in.sup_cmd = VC_SUP_NONE;
+	o = vc_step(&v, &in);
+	CHECK("S5-H85g", o.mission_state == VC_MS_PAUSED && o.mode == VC_MODE_STOP, "after the fault the PAUSE still holds");
+
+	/* H86: a pause in the middle of a creep keeps what was already travelled */
+	vc_init(&v, 2);
+	in = line_in(4, 0);
+	in.approach_mm = 320;
+	in.odo_mm = 1000;
+	o = vc_step(&v, &in);
+	in.odo_mm = 1100;			/* 100 mm done */
+	o = vc_step(&v, &in);
+	in.sup_cmd = VC_SUP_PAUSE;
+	o = vc_step(&v, &in);
+	CHECK("S5-H86a", o.mission_state == VC_MS_PAUSED && o.mode == VC_MODE_STOP, "pause during a creep: stopped");
+	in.sup_cmd = VC_SUP_RESUME;
+	in.odo_mm = 1103;			/* drifted 3 mm while stopping */
+	o = vc_step(&v, &in);
+	in.sup_cmd = VC_SUP_NONE;
+	in.odo_mm = 1103 + 219;			/* 100 + 219 = 319 of 320 */
+	o = vc_step(&v, &in);
+	CHECK("S5-H86b", o.mode == VC_MODE_DRIVE && !o.creep_done, "resumed: 219 mm more is still short of the order");
+	in.odo_mm = 1103 + 221;
+	o = vc_step(&v, &in);
+	CHECK("S5-H86c", o.mode == VC_MODE_STOP && o.creep_done, "only the rest (220 mm) was driven, then done");
+
+	/* H87: PAUSE does not cancel the obstacle hold; both must be clear to move */
+	vc_init(&v, 2);
+	in = line_in(4, 0);
+	o = vc_step(&v, &in);
+	in.sup_cmd = VC_SUP_PAUSE;
+	in.obs_state = 1;
+	o = vc_step(&v, &in);
+	in.sup_cmd = VC_SUP_RESUME;
+	o = vc_step(&v, &in);
+	CHECK("S5-H87a", o.mode == VC_MODE_STOP && o.holding && o.mission_state == VC_MS_AVOIDING,
+	      "RESUME while the scan is still running: stays held, AVOIDING");
+	in.sup_cmd = VC_SUP_NONE;
+	in.obs_state = 0;
+	o = vc_step(&v, &in);
+	CHECK("S5-H87b", o.mode == VC_MODE_DRIVE && o.mission_state == VC_MS_RUNNING, "scan over: driving");
+
+	/* H88: the IF-13 status, capped the way subsystem 1 expects */
+	{
+		VC_STATUS_IN si;
+		VC_STATUS vs;
+
+		si.obst_present = 1; si.obst_dist_cm = 600; si.obst_width_cm = 70; si.obst_side = 1;
+		si.mission_state = 20; si.fault_mask = 0x1F; si.run_ms = 7000000u; si.letter = 40;
+		si.last_action = 9; si.barcodes = 20; si.hump_mm = 300;
+		vc_status_fill(&si, &vs);
+		CHECK("S5-H88a", vs.obst_dist_cm == 510 && vs.obst_width_cm == 62 && vs.b_obstacle == 1 && vs.obst_side == 1,
+		      "obstacle present: distance 600 -> 510 (never 511 'none'), width 70 -> 62 (never 63 'unknown')");
+		CHECK("S5-H88b", vs.mission_state == 14 && vs.fault_mask == 0xF && vs.letter == VC_NO_LETTER &&
+		      vs.last_action == 3 && vs.barcodes == 15 && vs.hump_peak_mm == 254 && vs.mission_time_ds == 65535,
+		      "state 20 -> 14, mask 0x1F -> 0xF, letter 40 -> none, action 9 -> 3, barcodes 20 -> 15, hump 300 -> 254, time capped");
+		si.obst_present = 0; si.obst_dist_cm = 30; si.obst_width_cm = 10; si.obst_side = 2;
+		si.mission_state = VC_MS_RUNNING; si.fault_mask = 0; si.run_ms = 12345; si.letter = 3;
+		si.last_action = 2; si.barcodes = 4; si.hump_mm = -1;
+		vc_status_fill(&si, &vs);
+		CHECK("S5-H88c", vs.b_obstacle == 0 && vs.obst_dist_cm == VC_NO_OBST_DIST && vs.obst_width_cm == VC_NO_OBST_WIDTH &&
+		      vs.obst_side == 0, "no obstacle: distance 511, width 63, side 0 whatever the old values were");
+		CHECK("S5-H88d", vs.mission_state == VC_MS_RUNNING && vs.mission_time_ds == 123 && vs.letter == 3 &&
+		      vs.last_action == 2 && vs.barcodes == 4 && vs.hump_peak_mm == VC_NO_HUMP,
+		      "values in range pass through: time 12345 ms = 123 ds, hump -1 = none (255)");
+	}
 
 	printf("[HOST] vehicle controller SUMMARY %d passed, %d failed\n", pass_n, fail_n);
 	return fail_n ? 1 : 0;

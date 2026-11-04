@@ -389,6 +389,34 @@ int main(void)
 		"the wall behind the box is not added to its width (old code: far wider); the plan still covers the real 18 cm");
 	}
 
+	/* S5-H89 obstacle summary word for the status to subsystem 1 */
+	{ int ix[] = {5,6,7}, cm[] = {30,30,30}; scan_with(&s, ix, cm, 3); }
+	obs_profile(&s, &cfg, &p);
+	{
+		uint32_t w = obs_summary_pack(&p);
+
+		CHECK("S5-H89a", obs_summary_present(w) && obs_summary_dist(w) == 30 && obs_summary_side(w) == 0 &&
+		      obs_summary_width(w) == p.width_cm, "centred obstacle at 30 cm: present, distance 30, side 0 (centred), width as profiled");
+		w = obs_summary_with_dist(w, 21);
+		CHECK("S5-H89b", obs_summary_present(w) && obs_summary_dist(w) == 21 && obs_summary_width(w) == p.width_cm,
+		      "live distance replaced, the rest kept");
+	}
+	{ int ix[] = {1,2,3,4}, cm[] = {40,40,40,OBS_DIST_NONE}; scan_with(&s, ix, cm, 4); }
+	obs_profile(&s, &cfg, &p);
+	CHECK("S5-H89c", obs_summary_side(obs_summary_pack(&p)) == 2, "obstacle on the right (indices below 6): side 2");
+	{ int ix[] = {9,10,11}, cm[] = {40,40,40}; scan_with(&s, ix, cm, 3); }
+	obs_profile(&s, &cfg, &p);
+	CHECK("S5-H89d", obs_summary_side(obs_summary_pack(&p)) == 1, "obstacle on the left (indices above 6): side 1");
+	obs_scan_init(&s);
+	obs_profile(&s, &cfg, &p);
+	CHECK("S5-H89e", obs_summary_pack(&p) == 0 && !obs_summary_present(0), "nothing detected: summary word is 0");
+	{ OBS_PROFILE big = p;
+
+	  big.detected = 1; big.closest_cm = 600; big.width_cm = 200; big.idx_right = 6; big.idx_left = 6;
+	  CHECK("S5-H89f", obs_summary_dist(obs_summary_pack(&big)) == 511 && obs_summary_width(obs_summary_pack(&big)) == 63,
+		"values too big for the word are capped (511, 63); the status builder caps them again to 510 and 62");
+	}
+
 	/* S5-H25 bypass is planned for the widest allowed obstacle (20 cm) */
 	{ int ix[] = {5,6,7}, cm[] = {30,30,30}; scan_with(&s, ix, cm, 3); }
 	obs_profile(&s, &cfg, &p);
