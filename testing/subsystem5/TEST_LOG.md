@@ -49,6 +49,17 @@ Run from the repository root (WSL or Linux): `sh testing/subsystem5/host/run.sh`
 | S5-H33 | hardware regression: one wide obstacle from 30 to 120 deg is a single cluster and gets a bypass | safety | auto (PC) | as above | PASS |
 | S5-H34 | fine scan picks the next unmeasured neighbour of any obstacle inside the servo window, nearest to the servo first (a to d) | FR39 | auto (PC) | as above | PASS |
 | S5-H35 | simulation with TWO boxes (10 to 20 cm wide, 980 placements, servo window 30 to 150 deg). Every chosen bypass clears both boxes, none missed | professor guidance (consistently safe path) | auto (PC) | as above | PASS, 0 unsafe, 0 missed |
+| S5-H36 | Safety Monitor: no fault and obstacle idle, the robot is free to move | IF-11, IF-12 | auto (PC) | as above | PASS |
+| S5-H37 | a fault bit sets the motor inhibit at once and exactly that bit is cleared | IF-11, IF-12 | auto (PC) | as above | PASS |
+| S5-H38 | the inhibit is held 3000 ms after the fault, then released; a non-obstacle fault does not reset Obstacle Detection (a, b) | IF-11 | auto (PC) | as above | PASS |
+| S5-H39 | an Obstacle Detection fault: inhibit set, then released with a RESET for the obstacle task (a, b) | IF-11, IF-12 | auto (PC) | as above | PASS |
+| S5-H40 | obstacle states 1 to 3 (coarse, fine, profiling) hold the robot; states 0 and 4 to 7 do not | safety | auto (PC) | as above | PASS |
+| S5-H41 | after a scan the inhibit is held 500 ms more, then released, no reset (a, b) | safety | auto (PC) | as above | PASS |
+| S5-H42 | a second fault during the hold extends it (a, b) | IF-11 | auto (PC) | as above | PASS |
+| S5-H43 | the 32-bit millisecond counter wraps: the hold time is still 3000 ms (a, b) | IF-11 | auto (PC) | as above | PASS |
+| S5-H44 | flag bits above bit 3 are not ours and are ignored | IF-12 | auto (PC) | as above | PASS |
+| S5-H45 | a 10 s scan never releases the inhibit | safety | auto (PC) | as above | PASS |
+| S5-H46 | a fault during a scan: the longer (fault) hold wins (a, b) | IF-11 | auto (PC) | as above | PASS |
 
 ### Automatic, on the Pico (`make TEST=1`)
 
@@ -85,6 +96,9 @@ Do them in phase order (`BRINGUP.md`). Never wire the next part until the previo
 | S5-M11 | phase 5: two objects in the scan, both are profiled and the side of the second object is blocked | Professor feedback (safe navigation), NFR28 | manual | Reset with nothing in front, wait for the 9 `background` lines (no WARNING), then place one object about 30 cm ahead and a second about 30 cm to one side with a gap of at least 15 cm | `objects 2`; the side next to the second object reports `510 cm`; the action turns to the free side with clearance of at least 11 cm (half width 8 + margin 3) |
 | S5-M12 | phase 5: repeatability, same setup scanned at least 3 times in a row | Professor feedback (repeated measurements), NFR28 | manual | Leave the setup untouched and read three consecutive PROFILE lines | `width`, `planned`, `left` and `right` each within 2 cm of each other, same action every time |
 | S5-M13 | phase 5: background taken with an object in the lane ahead | Professor feedback (background subtraction) | manual | Put an object ahead before the reset | `WARNING ... background value(s) ahead were close and are ignored`, the close lane angles are stored as `511 cm (none)`, and an object placed there afterwards is still detected |
+| S5-M14 | Safety Monitor on the car: something ahead stops the wheels | IF-11, FR-safety, professor guidance (safe navigation) | manual | Image `s5-integration`, `S5_PHASE 5`, `WIFI=none`. Car on a box, wheels in the air, line-follow demo running. Reset with nothing in front, wait for the 9 `background` lines. Then put a hand about 30 cm ahead | `safety: INHIBIT set` on the console and the wheels stop (S2 state INHIBITED). Record the time from the first `obstacle:` reading of the hand to the wheels stopping |
+| S5-M15 | Safety Monitor release: hand removed, the latch is released but the robot does not restart by itself | IF-11 | manual | Same set-up as S5-M14. Take the hand away | `safety: inhibit released` at least 500 ms after the scan ends. The wheels stay stopped because Motion Control needs a newer epoch |
+| S5-M16 | Safety Monitor on a sensor fault: an unplugged sensor stops the wheels | IF-12, Version C row 3 | manual | Same set-up. Unplug the sensor (also covers S5-M08) | `obstacle: FAULT (...)`, then `safety: INHIBIT set (faults 0x8 ...)` and the wheels stop; about 3 s later the inhibit is released and Obstacle Detection is reset, and it faults again while the sensor is unplugged |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **auto (PC)** = runs on a PC, prints `[HOST]` lines;

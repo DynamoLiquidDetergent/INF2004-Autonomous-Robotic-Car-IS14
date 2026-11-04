@@ -15,7 +15,7 @@
 #include "s5_phase.h"
 
 /* ---- Task priorities (TEAM.md section 4; PROPOSED, to agree with S2/S3) ---- */
-#define S5_PRI_SAFETY		5	/* Safety Monitor (not written yet) */
+#define S5_PRI_SAFETY		5	/* Safety Monitor */
 #define S5_PRI_VEHICLE		7	/* Vehicle Controller (not written yet) */
 #define S5_PRI_OBSTACLE		8	/* Obstacle Detection */
 
@@ -28,7 +28,15 @@
 #define FLT_LINE_BIT		(1u << 1)	/* S3 Line Sensor */
 #define FLT_IMU_BIT		(1u << 2)	/* S4 IMU / terrain */
 #define FLT_OBSTACLE_BIT	(1u << 3)	/* S5 Obstacle Detection */
+#define FLT_ALL_MASK		0xFu		/* bits 0..3 */
 IMPORT ID	flg_fault_i14;
+
+/* ---- IF-11: latched motor inhibit, owned by the Safety Monitor ----
+ * Passed to Motion Control with subsystem2_bind_safety(). While S5_INHIBIT_BIT
+ * is set the motors stay off and queued commands are dropped. Only the Safety
+ * Monitor sets and clears it. */
+#define S5_INHIBIT_BIT		(1u << 0)
+IMPORT ID	flg_inhibit;
 
 /* ---- Control flags into Obstacle Detection (flg_s5_ctrl) ----
  * Set by the Vehicle Controller / Safety Monitor; Obstacle Detection clears
@@ -64,5 +72,6 @@ IMPORT volatile UB	s5_obs_state;
 /* Private to subsystem 5 */
 IMPORT void	obstacle_detect_task(INT stacd, void *exinf);	/* phases 5-6 */
 IMPORT void	s5_bringup_task(INT stacd, void *exinf);		/* phases 1-4 */
+IMPORT void	safety_monitor_task(INT stacd, void *exinf);		/* phases 5-6 */
 
 #endif /* SUBSYSTEM5_H */

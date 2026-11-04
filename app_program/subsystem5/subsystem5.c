@@ -5,14 +5,16 @@
  *
  *	Objects created here (TEAM.md section 5/6):
  *	  flg_fault_i14  event flag group  IF-12  fault bits, one per owner
+ *	  flg_inhibit    event flag group  IF-11  latched motor inhibit, to Motion Control
  *	  flg_s5_ctrl    event flag group         control into Obstacle Detection
  *	  mbf_obstacle   message buffer    i8     obstacle profile -> Vehicle Controller
  *
- *	Tasks: s5_bringup_task (phases 1-4) or obstacle_detect_task (phase 5-6). vehicle_controller_task and
- *	safety_monitor_task come next.
+ *	Tasks: s5_bringup_task (phases 1-4) or obstacle_detect_task and
+ *	safety_monitor_task (phases 5-6). vehicle_controller_task comes next.
  */
 
 #include "subsystem5.h"
+#include "../subsystem2/subsystem2.h"	/* subsystem2_bind_safety() */
 
 EXPORT ID		flg_fault_i14;
 EXPORT ID		flg_s5_ctrl;
@@ -41,6 +43,20 @@ EXPORT ER subsystem5_init(void)
 		return flg_s5_ctrl;
 	}
 
+	/* IF-11: the motor inhibit latch. Clear at power-up: the robot may move. */
+	cflg.flgatr  = TA_TFIFO | TA_WMUL;
+	cflg.iflgptn = 0;
+	flg_inhibit = tk_cre_flg(&cflg);
+	if (flg_inhibit < E_OK) {
+		return flg_inhibit;
+	}
+#if S5_PHASE >= 5
+	/* Motion Control now obeys the latch and reports a stall on bit 0 of the
+	   fault flags (FLT_MOTION_BIT). Phases 1-4 leave Motion Control free for
+	   bench work. */
+	subsystem2_bind_safety(flg_inhibit, S5_INHIBIT_BIT, flg_fault_i14, FLT_MOTION_BIT);
+#endif
+
 	/* i8: room for 4 profiles (8 bytes + 4 bytes kernel overhead each) */
 	cmbf.mbfatr = TA_TFIFO;
 	cmbf.bufsz  = 4 * (OBS_MSG_BYTES + 4);
@@ -61,5 +77,14 @@ EXPORT ER subsystem5_start(void)
 #else
 	tid = app_start_task(obstacle_detect_task, S5_PRI_OBSTACLE, 0, "obstacle_task");
 #endif
-	return (tid < E_OK) ? tid : E_OK;
+	if (tid < E_OK) {
+		return tid;
+	}
+#if S5_PHASE >= 5
+	tid = app_start_task(safety_monitor_task, S5_PRI_SAFETY, 0, "safety_monitor");
+	if (tid < E_OK) {
+		return tid;
+	}
+#endif
+	return E_OK;
 }
