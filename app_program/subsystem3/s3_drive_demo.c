@@ -14,18 +14,20 @@
  *	Three modes:
  *
  *	  S3_LINE_FOLLOW_DEMO 1  (s3_private.h -- line following)
- *	    1. calibration window (DEMO_CALIB_MS): sweep the robot slowly from
- *	       side to side across the line so the left and centre sensors
- *	       see white and black.  Skip it and the default range is kept.
- *	    2. DEMO_PLACE_MS to put the robot down, centre sensor on the line
+ *	    1. calibration window (DEMO_LF_CALIB_MS): sweep the robot slowly
+ *	       from side to side across the line so the left and centre
+ *	       sensors see white and black.  Skip it and the default range is
+ *	       kept.
+ *	    2. DEMO_LF_PLACE_MS to put the robot down, centre sensor on the line
  *	    3. follow the line: every new LINE_DATA_MSG (20 ms) gives a zone
  *	       1..7 from the LEFT and CENTRE sensors only (4 = centre on black,
- *	       left on white; GP28 only reads barcodes); the steering is
- *	       proportional to how far off that it is (plus a little of how
- *	       fast that changes), and the
- *	       robot slows down on sharp corrections.  While the line is lost
- *	       it keeps turning towards the side it was last seen on, slowly;
- *	       lost for DEMO_LOST_STOP_MS (end of the track) -> stop.
+ *	       left on white; GP28 only reads barcodes).  One zone off is
+ *	       treated as a straight: a small fixed nudge, full speed.  Further
+ *	       off is a bend: the steering is proportional to how far off it
+ *	       is (plus a little of how fast that changes), and the robot
+ *	       slows down.  While the line is lost it keeps turning towards
+ *	       the side it was last seen on, slowly; lost for
+ *	       DEMO_LF_LOST_STOP_MS (end of the track) -> stop.
  *	    Barcodes are still decoded and counted on the way.
  *
  *	  DEMO_CONTINUOUS 1  (barcode decode test, S3-M02 / S3-M03)
@@ -79,29 +81,45 @@
  *  Line following (S3_LINE_FOLLOW_DEMO).  Tune on the track.
  *
  *  err = zone - 4: -3..+3, + = the line is towards the LEFT sensor (GP26).
- *  steering (mm/s, + = turn right, IF-10) = -(KP*err + KD*(err - err_prev))
- *  speed    = DEMO_LF_SPEED - DEMO_LF_SLOW_PER_ZONE*|err|, >= DEMO_LF_MIN_SPEED
  *
- *  Robot weaves from side to side   -> lower KP, or raise KD a little
- *  Robot runs off on the outside of a bend -> raise KP, or lower DEMO_LF_SPEED
- *  Robot turns AWAY from the line   -> DEMO_LF_STEER_SIGN -1 (see below)
+ *  Two regimes (2026-11-04, smoother following):
+ *   |err| <= 1  straight: steering = -NUDGE*err, no D term, full speed.
+ *               With steering 0, subsystem 2 holds a straight line on its
+ *               encoders, so the speed stays steady for barcode reads.
+ *   |err| >= 2  bend: steering = -(KP*err + KD*(err - err_prev)),
+ *               speed = DEMO_LF_SPEED - DEMO_LF_SLOW_PER_ZONE*|err|,
+ *               >= DEMO_LF_MIN_SPEED.
+ *  The steering is then capped at CAP_NUM/CAP_DEN of the speed (4/4: the
+ *  inner wheel may stop but never runs backwards), so the robot arcs
+ *  through a bend instead of pivoting on the spot.
+ *
+ *  Robot weaves on straights        -> lower DEMO_LF_NUDGE (0 = encoder hold only)
+ *  Robot drifts off on straights    -> raise DEMO_LF_NUDGE
+ *  Robot corrects twice in a bend   -> lower KP, or raise KD a little
+ *  Robot runs off on the outside of a bend -> lower DEMO_LF_MIN_SPEED or
+ *                                      DEMO_LF_SPEED (the cap is already 4/4)
+ *  Robot turns AWAY from the line   -> flip DEMO_LF_STEER_SIGN (see below)
  * --------------------------------------------------------------------- */
 
 /* +1 = the LEFT sensor (GP26) is on the robot's left as it drives forward.
    -1 = it is on the robot's right.  Bench check: hold the robot up, wheels
    free, centre sensor over white; put black tape under GP26 only.  The
-   RIGHT wheel must now turn faster than the left (robot turns towards
-   GP26).  If the LEFT wheel is faster, set -1. */
-#define DEMO_LF_STEER_SIGN    -1
+   robot must try to turn towards GP26 (the wheel on the far side from GP26
+   turns faster).  On our car GP26 is on the car's own RIGHT: -1
+   (verified 2026-11-03 after the S2 left/right pin swap). */
+#define DEMO_LF_STEER_SIGN    (-1)
 
 #define DEMO_LF_CALIB_MS      5000   /* calibration window (S3_CALIB_TIMEOUT_MS) */
 #define DEMO_LF_PLACE_MS      3000   /* then time to put the robot on the line */
-#define DEMO_LF_SPEED         100    /* mm/s when centred (barcodes: 50..150)  */
+#define DEMO_LF_SPEED         70     /* mm/s when centred (barcodes: 50..150)  */
 #define DEMO_LF_MIN_SPEED     40     /* mm/s at the sharpest correction        */
-#define DEMO_LF_SLOW_PER_ZONE 20     /* mm/s slower per zone off centre        */
-#define DEMO_LF_KP            30     /* mm/s steering per zone off centre      */
-#define DEMO_LF_KD            20     /* mm/s steering per zone/cycle of change */
-#define DEMO_LF_STEER_MAX     120    /* mm/s steering limit                    */
+#define DEMO_LF_SLOW_PER_ZONE 10     /* mm/s slower per zone off, bends only   */
+#define DEMO_LF_KP            20     /* mm/s steering per zone off, bends only */
+#define DEMO_LF_KD            15     /* mm/s per zone/cycle of change, bends only */
+#define DEMO_LF_STEER_MAX     70     /* mm/s steering limit                    */
+#define DEMO_LF_NUDGE         5      /* mm/s steering when 1 zone off (straights) */
+#define DEMO_LF_CAP_NUM       4      /* steering cap = speed * NUM / DEN:      */
+#define DEMO_LF_CAP_DEN       4      /* 4/4 = inner wheel may stop, 3/4 = never */
 #define DEMO_LF_SEARCH_SPEED  40     /* mm/s while the line is lost            */
 #define DEMO_LF_SEARCH_STEER  100    /* mm/s turn towards where the line was   */
 #define DEMO_LF_LOST_STOP_MS  1500   /* lost this long (after S3's 200 ms) -> stop */
@@ -167,18 +185,34 @@ LOCAL DEMO_LF_OUT lf_step(DEMO_LF *c, uint8_t zone, bool lost, UW dt_ms)
 
     c->lost_ms = 0u;
 
-    turn = DEMO_LF_KP * err;
-    if (c->have_prev) {
-        turn += DEMO_LF_KD * (err - c->err_prev);
+    if (lf_abs(err) <= 1) {
+        /* on target or one zone off: straight section.  Small fixed
+           nudge, no D kick, so the robot settles and S2's encoder hold
+           keeps it straight (steady speed for barcodes). */
+        turn = DEMO_LF_NUDGE * err;
+    } else {
+        /* clearly off the line: a bend, full correction */
+        turn = DEMO_LF_KP * err;
+        if (c->have_prev) {
+            turn += DEMO_LF_KD * (err - c->err_prev);
+        }
     }
     c->err_prev  = err;
     c->have_prev = true;
 
-    /* turning towards GP26 (the LEFT sensor) is a left turn when
-       DEMO_LF_STEER_SIGN is +1, i.e. negative steering */
-    o.steer = lf_clamp(-DEMO_LF_STEER_SIGN * turn, DEMO_LF_STEER_MAX);
-    o.speed = DEMO_LF_SPEED - DEMO_LF_SLOW_PER_ZONE * lf_abs(err);
+    /* Slow down in bends only, so straights keep a steady barcode speed */
+    o.speed = DEMO_LF_SPEED;
+    if (lf_abs(err) > 1) {
+        o.speed -= DEMO_LF_SLOW_PER_ZONE * lf_abs(err);
+    }
     if (o.speed < DEMO_LF_MIN_SPEED) o.speed = DEMO_LF_MIN_SPEED;
+
+    /* turning towards GP26 (the LEFT sensor) is a left turn when
+       DEMO_LF_STEER_SIGN is +1, i.e. negative steering.  Capped at
+       CAP_NUM/CAP_DEN of the speed so the inner wheel never runs
+       backwards (the robot arcs instead of pivoting). */
+    o.steer = lf_clamp(-DEMO_LF_STEER_SIGN * turn, DEMO_LF_STEER_MAX);
+    o.steer = lf_clamp(o.steer, (o.speed * DEMO_LF_CAP_NUM) / DEMO_LF_CAP_DEN);
     return o;
 }
 
@@ -299,7 +333,7 @@ LOCAL void demo_run_forever(UINT epoch)
     tm_printf((UB *)"DEMO: driving FORWARD at %d mm/s, steering %d -- "
                     "continuous, will not stop on a barcode\n",
               DEMO_SPEED_MMPS, DEMO_STEER_MMPS);
-    
+
     while (1) {
         /* steering 0 = Motion Control holds a straight line on the encoders */
         demo_send(s2_cmd_pack(S2_MODE_DRIVE, DEMO_SPEED_MMPS, DEMO_STEER_MMPS, epoch));
