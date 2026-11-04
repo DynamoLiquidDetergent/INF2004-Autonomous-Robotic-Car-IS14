@@ -497,8 +497,24 @@ int main(void)
 		CHECK("S5-H65", errs == 0 && moves > 0, "every move ends with a gap of 16..18 cm; no move only when already about 14..20 cm (moves under 30 mm are skipped)");
 
 		CHECK("S5-H66", cfg.approach_cm == 17 && cfg.approach_near_cm == 15 && cfg.approach_far_cm == 20 &&
-		      cfg.approach_guard_cm == 13 && cfg.approach_back_max_cm == 10,
-		      "default band: aim 17 cm, back away below 15, creep above 20, guard 13, back at most 10 cm");
+		      cfg.approach_guard_cm == 13 && cfg.approach_back_max_cm == 10 && cfg.approach_min_cm == 3,
+		      "default band: aim 17 cm, back away below 15, creep above 20, guard 13, back at most 10 cm, trust readings from 3 cm");
+
+		/* H74: STOP (closer than stop_cm = 8 cm) backs straight away; it never goes forward */
+		a.detected = 1;
+		a.closest_idx = 6;
+		a.action = OBS_ACT_STOP;
+		a.closest_cm = 6;
+		CHECK("S5-H74a", obs_approach_mm(&a, &cfg) == -100, "STOP at 6 cm: back away, limited to 100 mm");
+		a.closest_cm = 3;
+		CHECK("S5-H74b", obs_approach_mm(&a, &cfg) == -100, "STOP at 3 cm (lowest trusted reading): back away 100 mm");
+		a.closest_cm = 2;
+		CHECK("S5-H74c", obs_approach_mm(&a, &cfg) == 0, "STOP at 2 cm: reading not trusted, no move (the task faults)");
+		a.closest_cm = 40;
+		CHECK("S5-H74d", obs_approach_mm(&a, &cfg) == 0, "STOP never creeps forward");
+		a.action = OBS_ACT_TURN_RIGHT;
+		a.closest_cm = 2;
+		CHECK("S5-H74e", obs_approach_mm(&a, &cfg) == 0, "bypass at 2 cm: reading not trusted, no move");
 	}
 
 	printf("[HOST] subsystem5 SUMMARY %d passed, %d failed\n", pass_n, fail_n);

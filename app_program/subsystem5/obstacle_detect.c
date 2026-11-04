@@ -415,11 +415,9 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 				  profile.partial ? " (partial)" : "", (INT)profile.clusters, (INT)(now_ms() - scan_ms));
 			if (!profile.detected) {
 				set_state(OBS_ST_IDLE_MONITORING);
-			} else if (profile.action == OBS_ACT_STOP) {
-				raise_fault("obstacle too close, no safe move");
-			} else if (profile.action == OBS_ACT_REVERSE_RETRY) {
-				set_state(OBS_ST_REVERSE_RETRY);
 #if S5_APPROACH
+			/* before STOP / REVERSE_RETRY: STOP (closer than stop_cm) backs straight
+			   away instead of faulting, when the reading can be trusted */
 			} else if (approaches < S5_MAX_APPROACHES &&
 				   (mm = obs_approach_mm(&profile, &cfg)) != 0) {
 				approaches++;
@@ -437,6 +435,10 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 				s5_approach_mm = (H)mm;
 				set_state(OBS_ST_IDLE_MONITORING);
 #endif
+			} else if (profile.action == OBS_ACT_STOP) {
+				raise_fault("obstacle too close, no safe move");
+			} else if (profile.action == OBS_ACT_REVERSE_RETRY) {
+				set_state(OBS_ST_REVERSE_RETRY);
 			} else if (S5_STANDALONE) {
 				tk_dly_tsk(S5_STANDALONE_REST_MS);
 				set_state(OBS_ST_IDLE_MONITORING);

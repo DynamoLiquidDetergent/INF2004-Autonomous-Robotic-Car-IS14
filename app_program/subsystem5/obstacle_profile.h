@@ -73,6 +73,8 @@ typedef struct {
 					   the creep short and starts the scan at once */
 	uint16_t approach_back_max_cm;	/* most the car backs away when it stopped too close
 					   (nothing watches behind it, so keep this short) */
+	uint16_t approach_min_cm;	/* closer than this the sensor reading is not trusted
+					   (HC-SR04 minimum range): no back-away, a fault instead */
 } OBS_CFG;
 
 /* One scan: a distance per angle index, plus which indices were measured */
@@ -142,9 +144,11 @@ void obs_profile(const OBS_SCAN *s, const OBS_CFG *cfg, OBS_PROFILE *out);
    choose a bypass (OBS_ACT_TURN_*), or when the gap is already inside the
    band approach_near_cm .. approach_far_cm (15..20 cm). Never more than 1023 mm
    (far more than a creep ever needs).
-   Too close (gap below approach_near_cm, but the profile still chose a
-   bypass): the answer is NEGATIVE, back away that many mm to approach_cm, at
-   most approach_back_max_cm. Positive = drive forward. */
+   Too close (gap below approach_near_cm): the answer is NEGATIVE, back away that
+   many mm to approach_cm, at most approach_back_max_cm. This also holds when the
+   profile says OBS_ACT_STOP (closer than stop_cm: no sideways move is safe, but
+   backing straight away is), as long as the reading is at least approach_min_cm.
+   Positive = drive forward (only when the profile chose a bypass). */
 int obs_approach_mm(const OBS_PROFILE *p, const OBS_CFG *cfg);
 
 /* Conversions */

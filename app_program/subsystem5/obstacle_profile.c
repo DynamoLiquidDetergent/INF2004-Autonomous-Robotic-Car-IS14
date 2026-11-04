@@ -32,6 +32,7 @@ void obs_cfg_default(OBS_CFG *cfg)
 	cfg->approach_far_cm = 20;	/* farther: creep forward */
 	cfg->approach_guard_cm = 13;	/* never closer than this while creeping */
 	cfg->approach_back_max_cm = 10;	/* back away at most 10 cm if stopped too close */
+	cfg->approach_min_cm = 3;	/* HC-SR04 minimum range is 2 cm: closer than 3 is not trusted */
 }
 
 void obs_scan_clear(OBS_SCAN *s)
@@ -568,8 +569,12 @@ int obs_approach_mm(const OBS_PROFILE *p, const OBS_CFG *cfg)
 	int ahead_mm, travel_mm, back_max_mm;
 
 	if (!p->detected ||
-	    (p->action != OBS_ACT_TURN_RIGHT && p->action != OBS_ACT_TURN_LEFT)) {
+	    (p->action != OBS_ACT_TURN_RIGHT && p->action != OBS_ACT_TURN_LEFT &&
+	     p->action != OBS_ACT_STOP)) {
 		return 0;
+	}
+	if (p->closest_cm < cfg->approach_min_cm) {
+		return 0;			/* reading too close to trust: fault, do not move */
 	}
 	if (d < 0) {
 		d = -d;
@@ -587,6 +592,9 @@ int obs_approach_mm(const OBS_PROFILE *p, const OBS_CFG *cfg)
 		back_max_mm = (int)cfg->approach_back_max_cm * 10;
 		travel_mm = (-travel_mm > back_max_mm) ? -back_max_mm : travel_mm;
 		return (travel_mm > -30) ? 0 : travel_mm;
+	}
+	if (p->action == OBS_ACT_STOP) {
+		return 0;			/* STOP only ever backs away */
 	}
 	if (ahead_mm <= (int)cfg->approach_far_cm * 10 || travel_mm <= 0) {
 		return 0;
