@@ -1,0 +1,163 @@
+---- Opened the serial port COM3 ----
+obstacle:  60 deg  echo  4832 us  status 0  -> 83 cm
+obstacle:  60 deg  echo 59479 us  status 1  -> 511 cm
+obstacle:  60 deg  echo 59492 us  status 1  -> 511 cm
+obstacle:  75 deg  echo 16565 us  status 0  -> 286 cm
+obstacle:  75 deg  echo 59448 us  status 1  -> 511 cm
+obstacle:  75 deg  echo 16737 us  status 0  -> 289 cm
+obstacle:  90 deg  echo 10499 us  status 0  -> 181 cm
+obstacle:  90 deg  echo 10620 us  status 0  -> 183 cm
+obstacle:  90 deg  echo 59482 us  status 1  -> 511 cm
+obstacle: 105 deg  echo 59777 us  status 1  -> 511 cm
+obstacle: 105 deg  echo 59444 us  status 1  -> 511 cm
+obstacle: 105 deg  echo 12847 us  status 0  -> 222 cm
+obstacle: 120 deg  echo 59789 us  status 1  -> 511 cm
+obstacle: 120 deg  echo 59672 us  status 1  -> 511 cm
+obstacle: 120 deg  echo 59490 us  status 1  -> 511 cm
+obstacle: 135 deg  echo  5010 us  status 0  -> 86 cm
+monitor: batch  n=10 last=90 from core 1
+monitor: t=3355772646 ms  samples=10  min=0 max=90 avg=45  free slots=4  free blocks=4
+obstacle: 135 deg  echo 58851 us  status 1  -> 511 cm
+obstacle: 135 deg  echo 59487 us  status 1  -> 511 cm
+obstacle: 150 deg  echo 59753 us  status 1  -> 511 cm
+obstacle: 150 deg  echo  4631 us  status 0  -> 80 cm
+obstacle: 150 deg  echo  4560 us  status 0  -> 79 cm
+obstacle: background  30 deg = 76 cm
+obstacle: background  45 deg = 511 cm (none)
+obstacle: background  60 deg = 511 cm (none)
+obstacle: background  75 deg = 289 cm
+obstacle: background  90 deg = 183 cm
+obstacle: background 105 deg = 511 cm (none)
+obstacle: background 120 deg = 511 cm (none)
+obstacle: background 135 deg = 511 cm (none)
+obstacle: background 150 deg = 80 cm
+obstacle:  90 deg  echo 10595 us  status 0  -> 183 cm
+obstacle:  90 deg  echo 10646 us  status 0  -> 184 cm
+obstacle:  90 deg  echo  3998 us  status 0  -> 69 cm
+obstacle:  90 deg  echo  4013 us  status 0  -> 69 cm
+obstacle:  90 deg  echo 10571 us  status 0  -> 182 cm
+obstacle:  90 deg  echo 10596 us  status 0  -> 183 cm
+obstacle:  90 deg  echo  4195 us  status 0  -> 72 cm
+obstacle:  90 deg  echo 10621 us  status 0  -> 183 cm
+obstacle:  90 deg  echo  4367 us  status 0  -> 75 cm
+monitor: batch  n=15 last=60 from core 1
+monitor: t=3355774196 ms  samples=15  min=0 max=100 avg=56  free slots=4  free blocks=4
+obstacle:  90 deg  echo  4230 us  status 0  -> 73 cm
+obstacle:  90 deg  echo 10671 us  status 0  -> 184 cm
+obstacle:  90 deg  echo 10622 us  status 0  -> 183 cm
+obstacle:  90 deg  echo  2784 us  status 0  -> 48 cm
+obstacle:  90 deg  echo  4221 us  status 0  -> 73 cm
+obstacle:  90 deg  echo  2404 us  status 0  -> 41 cm
+obstacle:  90 deg  echo  2217 us  status 0  -> 38 cm
+obstacle:  30 deg  echo  1868 us  status 0  -> 32 cm
+obstacle:  30 deg  echo  1792 us  status 0  -> 31 cm
+obstacle:  30 deg  echo  1787 us  status 0  -> 31 cm
+obstacle:  60 deg  echo  1787 us  status 0  -> 31 cm
+obstacle:  60 deg  echo  1838 us  status 0  -> 32 cm
+obstacle:  60 deg  echo  1939 us  status 0  -> 33 cm
+monitor: batch  n=20 last=10 from core 1
+monitor: t=3355775746 ms  samples=20  min=0 max=100 avg=50  free slots=4  free blocks=4
+obstacle:  90 deg  echo  4271 us  status 0  -> 74 cm
+obstacle:  90 deg  echo  4367 us  status 0  -> 75 cm
+obstacle:  90 deg  echo  2010 us  status 0  -> 35 cm
+obstacle: 120 deg  echo  1752 us  status 0  -> 30 cm
+obstacle: 120 deg  echo  1772 us  status 0  -> 31 cm
+obstacle: 120 deg  echo  1792 us  status 0  -> 31 cm
+obstacle: 150 deg  echo  4560 us  status 0  -> 79 cm
+obstacle: 150 deg  echo  4631 us  status 0  -> 80 cm
+obstacle: 150 deg  echo  4484 us  status 0  -> 77 cm
+monitor: batch  n=25 last=40 from core 1
+monitor: t=3355777296 ms  samples=25  min=0 max=100 avg=44  free slots=4  free blocks=4
+obstacle:  45 deg  echo  1837 us  status 0  -> 32 cm
+obstacle:  45 deg  echo  1858 us  status 0  -> 32 cm
+obstacle:  45 deg  echo  1883 us  status 0  -> 32 cm
+obstacle:  75 deg  echo  3947 us  status 0  -> 68 cm
+obstacle:  75 deg  echo  3973 us  status 0  -> 69 cm
+obstacle:  75 deg  echo  3993 us  status 0  -> 69 cm
+obstacle: PROFILE seq 1 detected 1 closest 31 cm @30 deg, width 8 cm (+/-8), planned 20 cm, left 0 cm, right 42 cm, action 2 (partial), scan 3300 ms
+monitor: batch  n=30 last=90 from core 1
+monitor: t=3355778846 ms  samples=30  min=0 max=100 avg=48  free slots=4  free blocks=4
+monitor: LED task paused, state=WAIT+SUSPEND, pri=13
+obstacle:  90 deg  echo  1802 us  status 0  -> 31 cm
+obstacle:  90 deg  echo  1898 us  status 0  -> 33 cm
+obstacle:  30 deg  echo  1757 us  status 0  -> 30 cm
+obstacle:  30 deg  echo  1731 us  status 0  -> 30 cm
+obstacle:  30 deg  echo  1731 us  status 0  -> 30 cm
+obstacle:  60 deg  echo  1893 us  status 0  -> 33 cm
+monitor: batch  n=35 last=60 from core 1
+monitor: t=3355780396 ms  samples=35  min=0 max=100 avg=52  free slots=4  free blocks=4
+obstacle:  60 deg  echo  1873 us  status 0  -> 32 cm
+obstacle:  60 deg  echo  1797 us  status 0  -> 31 cm
+obstacle:  90 deg  echo  1711 us  status 0  -> 30 cm
+obstacle:  90 deg  echo  1686 us  status 0  -> 29 cm
+obstacle:  90 deg  echo  1686 us  status 0  -> 29 cm
+obstacle: 120 deg  echo 59754 us  status 1  -> 511 cm
+obstacle: 120 deg  echo 59755 us  status 1  -> 511 cm
+obstacle: 120 deg  echo 59749 us  status 1  -> 511 cm
+obstacle: 150 deg  echo  4630 us  status 0  -> 80 cm
+obstacle: 150 deg  echo  4620 us  status 0  -> 80 cm
+obstacle: 150 deg  echo  4534 us  status 0  -> 78 cm
+monitor: batch  n=40 last=10 from core 1
+monitor: t=3355781946 ms  samples=40  min=0 max=100 avg=50  free slots=4  free blocks=4
+obstacle:  75 deg  echo  4175 us  status 0  -> 72 cm
+obstacle:  75 deg  echo  4195 us  status 0  -> 72 cm
+obstacle:  75 deg  echo  4170 us  status 0  -> 72 cm
+obstacle: 105 deg  echo  1782 us  status 0  -> 31 cm
+obstacle: 105 deg  echo  1782 us  status 0  -> 31 cm
+obstacle: 105 deg  echo  1782 us  status 0  -> 31 cm
+obstacle: PROFILE seq 2 detected 1 closest 29 cm @90 deg, width 8 cm (+/-7), planned 20 cm, left 25 cm, right 17 cm, action 1, scan 3140 ms
+monitor: batch  n=45 last=40 from core 1
+monitor: t=3355783496 ms  samples=45  min=0 max=100 avg=46  free slots=4  free blocks=4
+obstacle:  90 deg  echo  1848 us  status 0  -> 32 cm
+obstacle:  90 deg  echo  4180 us  status 0  -> 72 cm
+obstacle:  90 deg  echo  1726 us  status 0  -> 30 cm
+obstacle:  90 deg  echo  1726 us  status 0  -> 30 cm
+obstacle:  30 deg  echo  1777 us  status 0  -> 31 cm
+obstacle:  30 deg  echo  1752 us  status 0  -> 30 cm
+monitor: batch  n=50 last=90 from core 1
+monitor: t=3355785046 ms  samples=50  min=0 max=100 avg=49  free slots=4  free blocks=4
+obstacle:  30 deg  echo  1777 us  status 0  -> 31 cm
+obstacle:  60 deg  echo  1893 us  status 0  -> 33 cm
+obstacle:  60 deg  echo  1894 us  status 0  -> 33 cm
+obstacle:  60 deg  echo  1848 us  status 0  -> 32 cm
+obstacle:  90 deg  echo  1752 us  status 0  -> 30 cm
+obstacle:  90 deg  echo  1777 us  status 0  -> 31 cm
+obstacle:  90 deg  echo  1797 us  status 0  -> 31 cm
+obstacle: 120 deg  echo  1878 us  status 0  -> 32 cm
+obstacle: 120 deg  echo  1903 us  status 0  -> 33 cm
+obstacle: 120 deg  echo  1833 us  status 0  -> 32 cm
+obstacle: 150 deg  echo  4621 us  status 0  -> 80 cm
+obstacle: 150 deg  echo  4484 us  status 0  -> 77 cm
+monitor: batch  n=55 last=60 from core 1
+monitor: t=3355786596 ms  samples=55  min=0 max=100 avg=51  free slots=4  free blocks=4
+obstacle: 150 deg  echo  4606 us  status 0  -> 79 cm
+obstacle:  45 deg  echo  1757 us  status 0  -> 30 cm
+obstacle:  45 deg  echo  1731 us  status 0  -> 30 cm
+obstacle:  45 deg  echo  1706 us  status 0  -> 29 cm
+obstacle:  75 deg  echo  2055 us  status 0  -> 35 cm
+obstacle:  75 deg  echo  2005 us  status 0  -> 35 cm
+obstacle:  75 deg  echo  4196 us  status 0  -> 72 cm
+obstacle: 105 deg  echo  1772 us  status 0  -> 31 cm
+obstacle: 105 deg  echo  1797 us  status 0  -> 31 cm
+monitor: batch  n=60 last=10 from core 1
+monitor: t=3355788146 ms  samples=60  min=0 max=100 avg=50  free slots=4  free blocks=4
+monitor: LED task resumed, state=RUN, pri=12
+obstacle: 105 deg  echo  1797 us  status 0  -> 31 cm
+obstacle: 135 deg  echo  4787 us  status 0  -> 83 cm
+obstacle: 135 deg  echo  4737 us  status 0  -> 82 cm
+obstacle: 135 deg  echo  4687 us  status 0  -> 81 cm
+obstacle: PROFILE seq 3 detected 1 closest 30 cm @45 deg, width 38 cm (+/-8), planned 36 cm, left 23 cm, right 35 cm, action 2 (partial), scan 4220 ms
+monitor: batch  n=65 last=40 from core 1
+monitor: t=3355789696 ms  samples=65  min=0 max=100 avg=47  free slots=4  free blocks=4
+obstacle:  90 deg  echo 59620 us  status 1  -> 511 cm
+obstacle:  90 deg  echo 10521 us  status 0  -> 181 cm
+obstacle:  90 deg  echo 10547 us  status 0  -> 182 cm
+obstacle:  90 deg  echo 10769 us  status 0  -> 186 cm
+obstacle:  90 deg  echo 59743 us  status 1  -> 511 cm
+obstacle:  90 deg  echo 59752 us  status 1  -> 511 cm
+obstacle:  90 deg  echo 59752 us  status 1  -> 511 cm
+obstacle:  90 deg  echo 10426 us  status 0  -> 180 cm
+obstacle:  90 deg  echo 10249 us  status 0  -> 177 cm
+obstacle:  90 deg  echo 10425 us  status 0  -> 180 cm
+obstacle:  90 deg  echo 10521 us  status 0  -> 181 cm
+---- Closed the serial port COM3 ----

@@ -24,7 +24,7 @@
 #define S5_NOECHO_FAULT_N	10	/* consecutive "no pulse at all" readings = sensor fault.
 					   0 = never fault (use if the kit's sensor stays silent
 					   when nothing is in range: check on the bench) */
-#define S5_SCAN_TIMEOUT_MS	5000	/* a whole scan must finish within this, else FAULT
+#define S5_SCAN_TIMEOUT_MS	6000	/* a whole scan must finish within this, else FAULT
 					   (13 angles x ~250 ms with the median = about 3.3 s worst case) */
 #define S5_PINGS		3	/* readings per angle; the median is used (1..5).
 					   Each ping costs about 60 ms (HC-SR04 minimum cycle). */
@@ -287,29 +287,18 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 			break;
 
 		case OBS_ST_FINE_SCANNING:
-			/* Walk outwards from the obstacle one 15 degree step at a time
-			   until both edges are found (FR39). At most 12 more readings. */
+			/* Measure the unmeasured neighbours of EVERY obstacle (FR39), nearest to
+			   the servo first so it travels as little as possible. Only inside the safe
+			   servo window: an edge outside it stays unmeasured and the profile then
+			   reports it as partial. At most 9 readings in all. */
 			for (n = 0; n < OBS_NUM_ANGLES; n++) {
-				int a = obs_next_edge_idx(&scan, &cfg, -1);
-				int b = obs_next_edge_idx(&scan, &cfg, +1);
+				int a = obs_next_fine_idx(&scan, &cfg, S5_IDX_MIN, S5_IDX_MAX,
+							  (int)(servo_deg / OBS_STEP_DEG));
 
-				/* outside the safe servo window: leave the edge unmeasured,
-				   the profile then reports it as partial */
-				if (a >= 0 && (a < S5_IDX_MIN || a > S5_IDX_MAX)) {
-					a = -1;
-				}
-				if (b >= 0 && (b < S5_IDX_MIN || b > S5_IDX_MAX)) {
-					b = -1;
-				}
-				if (a < 0 && b < 0) {
+				if (a < 0) {
 					break;
 				}
-				if (a >= 0) {
-					measure_index((unsigned)a);
-				}
-				if (b >= 0) {
-					measure_index((unsigned)b);
-				}
+				measure_index((unsigned)a);
 				if (s5_obs_state == OBS_ST_FAULT || scan_timed_out(scan_ms)) {
 					break;
 				}
@@ -329,12 +318,12 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 				dropped_msgs++;	/* buffer full: newest dropped, counted */
 			}
 			tm_printf((UB*)"obstacle: PROFILE seq %d detected %d closest %d cm @%d deg, "
-				  "width %d cm (+/-%d), planned %d cm, left %d cm, right %d cm, action %d%s, scan %d ms\n",
+				  "width %d cm (+/-%d), planned %d cm, left %d cm, right %d cm, action %d%s, objects %d, scan %d ms\n",
 				  (INT)seq, (INT)profile.detected, (INT)profile.closest_cm,
 				  (INT)profile.closest_idx * OBS_STEP_DEG, (INT)profile.width_cm,
 				  (INT)profile.unc_cm, (INT)profile.plan_width_cm,
 				  (INT)profile.left_cm, (INT)profile.right_cm, (INT)profile.action,
-				  profile.partial ? " (partial)" : "", (INT)(now_ms() - scan_ms));
+				  profile.partial ? " (partial)" : "", (INT)profile.clusters, (INT)(now_ms() - scan_ms));
 			if (!profile.detected) {
 				set_state(OBS_ST_IDLE_MONITORING);
 			} else if (profile.action == OBS_ACT_STOP) {

@@ -79,6 +79,59 @@ static int sim_boxes(int lo, int hi, int *cases_o, int *retry_o, int *worst_o)
 	return unsafe + missed;
 }
 
+/* Simulation with TWO flat-faced boxes. Every chosen bypass must keep the robot's
+   half width clear of BOTH true boxes. A box in the lane that is not detected counts
+   as missed. REVERSE_RETRY and STOP are safe outcomes (the car does not move sideways). */
+static int sim_two_boxes(int lo, int hi, int *cases_o, int *retry_o, int *go_o)
+{
+	int W1, W2, X1, X2, D1, D2, a, k, cases = 0, unsafe = 0, missed = 0, retry = 0, go = 0;
+	OBS_PROFILE p;
+	int hw = (int)cfg.robot_half_width_cm;
+
+	for (W1 = 10; W1 <= 20; W1 += 5) {
+	for (W2 = 10; W2 <= 20; W2 += 5) {
+	for (X1 = -40; X1 <= 40; X1 += 10) {
+	for (X2 = -40; X2 <= 40; X2 += 10) {
+	for (D1 = 25; D1 <= 35; D1 += 10) {
+	for (D2 = 25; D2 <= 35; D2 += 10) {
+		int r1 = X1 + W1 / 2, l1 = X1 - W1 / 2, r2 = X2 + W2 / 2, l2 = X2 - W2 / 2;
+		OBS_SCAN sc;
+
+		if (X2 <= X1 || X2 - X1 < (W1 + W2) / 2 + 2) continue;	/* boxes must not touch */
+		obs_scan_init(&sc);
+		for (a = lo; a <= hi; a++) {
+			double best = 1e9;
+			for (k = -5; k <= 5; k++) {
+				double th = ((a * 15.0) + k * 1.5) * 3.14159265358979 / 180.0;
+				double sn = sin(th), cs = cos(th), x, t;
+				if (sn <= 0.05) continue;
+				t = D1 / sn; x = D1 * cs / sn;
+				if (x >= l1 && x <= r1 && t < best) best = t;
+				t = D2 / sn; x = D2 * cs / sn;
+				if (x >= l2 && x <= r2 && t < best) best = t;
+			}
+			obs_scan_set(&sc, (unsigned)a, best > 1e8 ? OBS_DIST_NONE : (uint16_t)(best + 0.5));
+		}
+		obs_profile(&sc, &cfg, &p);
+		cases++;
+		if (!p.detected) {
+			if ((r1 > -hw && l1 < hw) || (r2 > -hw && l2 < hw)) missed++;
+			continue;
+		}
+		if (p.action == OBS_ACT_TURN_RIGHT || p.action == OBS_ACT_TURN_LEFT) {
+			int c = (p.action == OBS_ACT_TURN_RIGHT) ? (int)p.right_cm : -(int)p.left_cm;
+			int hit1 = (r1 > c - hw && l1 < c + hw), hit2 = (r2 > c - hw && l2 < c + hw);
+
+			go++;
+			if (hit1 || hit2) unsafe++;
+		} else {
+			retry++;
+		}
+	}}}}}}
+	*cases_o = cases; *retry_o = retry; *go_o = go;
+	return unsafe + missed;
+}
+
 int main(void)
 {
 	OBS_SCAN s;
@@ -111,8 +164,9 @@ int main(void)
 	      p.idx_right == 5 && p.idx_left == 7, "cluster 5..7 found, closest 30 cm (tie: lowest index)");
 	/* true width of beams edge to edge: 2*30*sin(7.5 deg) = 7.8 cm */
 	CHECK("S5-H06", p.width_cm >= 7 && p.width_cm <= 9, "width about 8 cm (expected 7.8)");
-	CHECK("S5-H07", p.right_cm == p.left_cm && p.action == OBS_ACT_TURN_RIGHT,
-	      "symmetric obstacle: equal clearances, tie goes right");
+	CHECK("S5-H07", (p.right_cm == p.left_cm || p.right_cm + 1 == p.left_cm || p.left_cm + 1 == p.right_cm) &&
+	      p.action == OBS_ACT_TURN_RIGHT,
+	      "symmetric obstacle: clearances equal within 1 cm (integer rounding), tie goes right");
 
 	/* S5-H08 obstacle on the right side (hits 1..3 at 40 cm): pass on the LEFT */
 	{ int ix[] = {1,2,3,4}, cm[] = {40,40,40,OBS_DIST_NONE}; scan_with(&s, ix, cm, 4); }
@@ -245,13 +299,17 @@ int main(void)
 	/* S5-H25 bypass is planned for the widest allowed obstacle (20 cm) */
 	{ int ix[] = {5,6,7}, cm[] = {30,30,30}; scan_with(&s, ix, cm, 3); }
 	obs_profile(&s, &cfg, &p);
-	CHECK("S5-H25a", p.width_cm >= 7 && p.width_cm <= 9 && p.plan_width_cm >= 19 && p.plan_width_cm <= 21 &&
-	      p.right_cm >= 20 && p.right_cm <= 22 && p.left_cm >= 20 && p.left_cm <= 22,
-	      "measured width ~8 cm, planned 20 cm: shift = 10 + 8 half robot + 3 margin = 21");
+	CHECK("S5-H25a", p.width_cm >= 7 && p.width_cm <= 9 && p.plan_width_cm >= 23 && p.plan_width_cm <= 27 &&
+	      p.right_cm >= 22 && p.right_cm <= 26 && p.left_cm >= 22 && p.left_cm <= 26,
+	      "measured width ~8 cm, planned ~25 cm (outer edge estimate, wider than the 20 cm floor): shift about 12 + 8 + 3");
 	{ OBS_CFG c2 = cfg; c2.plan_width_cm = 0; obs_profile(&s, &c2, &q); }
-	CHECK("S5-H25b", q.plan_width_cm == q.width_cm || q.plan_width_cm + 1 >= q.width_cm,
-	      "plan_width_cm = 0 switches planning back to the measured width");
-	CHECK("S5-H25c", q.right_cm < p.right_cm, "planning for 20 cm needs a bigger shift than the measured 8 cm");
+	CHECK("S5-H25b", q.plan_width_cm + 1 >= q.width_cm,
+	      "plan_width_cm = 0: the plan is still never narrower than the measured width");
+	/* the 20 cm floor binds when the scan is a single sample (footprint 8 cm only) */
+	{ int ix[] = {6}, cm[] = {30}; OBS_CFG c2 = cfg; c2.plan_width_cm = 0;
+	  scan_with(&s, ix, cm, 1); obs_profile(&s, &cfg, &p); obs_profile(&s, &c2, &q); }
+	CHECK("S5-H25c", p.right_cm >= 20 && p.right_cm <= 22 && q.right_cm < p.right_cm,
+	      "single sample at 30 cm: the 20 cm floor gives shift 10 + 8 + 3 = 21, without it about 15");
 	{ int ix[13], cm[13]; for (i = 0; i < 13; i++) { ix[i] = i; cm[i] = 35; } scan_with(&s, ix, cm, 13); }
 	obs_profile(&s, &cfg, &p);
 	CHECK("S5-H25d", p.plan_width_cm + 1 >= p.width_cm, "a wide obstacle is never planned narrower than measured");
@@ -297,6 +355,73 @@ int main(void)
 		printf("[HOST] S5-H29 sim 45..135 deg: %d cases, %d unsafe or missed, %d reverse-retry/stop, worst clearance %d cm\n",
 		       cases, bad, retry, worst);
 		CHECK("S5-H29", bad == 0, "simulated boxes, servo limited to 45..135 deg: every bypass clears the true edge, none missed");
+	}
+
+	/* ---- Hardware regression: the first full scans on the real car (2026-11-04).
+	   Background (cm) at index 2..10: 76 NONE NONE 289 183 NONE NONE NONE 80.
+	   One box dead ahead and one to the right of the sensor. The old code looked only
+	   at the closest obstacle and said "turn right 17 cm", towards the box on the right. */
+	{
+		static const int bgi[] = {2,3,4,5,6,7,8,9,10};
+		static const int bgv[] = {76,OBS_DIST_NONE,OBS_DIST_NONE,289,183,OBS_DIST_NONE,OBS_DIST_NONE,OBS_DIST_NONE,80};
+
+		/* scan 2 of the run: 30 deg 30, 60 deg 32, 90 deg 29, 120 deg none, 150 deg 80, 75 deg 72, 105 deg 31 */
+		obs_scan_init(&s);
+		for (i = 0; i < 9; i++) obs_scan_set_bg(&s, (unsigned)bgi[i], (uint16_t)bgv[i]);
+		obs_scan_set(&s, 2, 30); obs_scan_set(&s, 4, 32); obs_scan_set(&s, 6, 29);
+		obs_scan_set(&s, 8, OBS_DIST_NONE); obs_scan_set(&s, 10, 80);
+		obs_scan_set(&s, 5, 72); obs_scan_set(&s, 7, 31);
+		obs_profile(&s, &cfg, &p);
+		printf("[HOST] S5-H31 scan 2: clusters %d closest %d cm @%d deg, left %d cm, right %d cm, action %d\n",
+		       p.clusters, p.closest_cm, p.closest_idx * 15, p.left_cm, p.right_cm, p.action);
+		CHECK("S5-H31", p.detected && p.clusters >= 2 && p.action == OBS_ACT_TURN_LEFT &&
+		      p.right_cm == OBS_DIST_CAP && p.left_cm >= 20 && p.left_cm <= 30,
+		      "centre box + box on the right: turn LEFT (right is blocked by the second box)");
+
+		/* scan 1 of the run: boxes on the right (30..60 deg) and the left (120 deg) */
+		obs_scan_init(&s);
+		for (i = 0; i < 9; i++) obs_scan_set_bg(&s, (unsigned)bgi[i], (uint16_t)bgv[i]);
+		obs_scan_set(&s, 2, 31); obs_scan_set(&s, 4, 32); obs_scan_set(&s, 6, 74);
+		obs_scan_set(&s, 8, 31); obs_scan_set(&s, 10, 79);
+		obs_scan_set(&s, 3, 32); obs_scan_set(&s, 5, 69);
+		obs_profile(&s, &cfg, &p);
+		printf("[HOST] S5-H32 scan 1: clusters %d closest %d cm @%d deg, left %d cm, right %d cm, action %d\n",
+		       p.clusters, p.closest_cm, p.closest_idx * 15, p.left_cm, p.right_cm, p.action);
+		CHECK("S5-H32", p.detected && p.clusters >= 2 && p.action == OBS_ACT_REVERSE_RETRY,
+		      "boxes on both sides: neither side is free, REVERSE_RETRY (the old code said turn left 0 cm)");
+
+		/* scan 3 of the run: everything from 30 to 120 deg at 30 to 35 cm */
+		obs_scan_init(&s);
+		for (i = 0; i < 9; i++) obs_scan_set_bg(&s, (unsigned)bgi[i], (uint16_t)bgv[i]);
+		obs_scan_set(&s, 2, 31); obs_scan_set(&s, 3, 30); obs_scan_set(&s, 4, 33); obs_scan_set(&s, 5, 35);
+		obs_scan_set(&s, 6, 31); obs_scan_set(&s, 7, 31); obs_scan_set(&s, 8, 32);
+		obs_scan_set(&s, 9, 82); obs_scan_set(&s, 10, 80);
+		obs_profile(&s, &cfg, &p);
+		printf("[HOST] S5-H33 scan 3: clusters %d width %d cm, left %d cm, right %d cm, action %d\n",
+		       p.clusters, p.width_cm, p.left_cm, p.right_cm, p.action);
+		CHECK("S5-H33", p.detected && p.clusters == 1 && p.width_cm >= 30 && p.action != OBS_ACT_CONTINUE,
+		      "one wide obstacle from 30 to 120 deg: a single cluster, a bypass is chosen");
+	}
+
+	/* S5-H34 fine scan: next index to measure for several obstacles, inside the servo window, nearest first */
+	obs_scan_init(&s);
+	obs_scan_set(&s, 2, 30); obs_scan_set(&s, 4, 32); obs_scan_set(&s, 6, 29);
+	obs_scan_set(&s, 8, OBS_DIST_NONE); obs_scan_set(&s, 10, OBS_DIST_NONE);
+	CHECK("S5-H34a", obs_next_fine_idx(&s, &cfg, 2, 10, 10) == 7, "from index 10: nearest unmeasured neighbour is 7");
+	obs_scan_set(&s, 7, OBS_DIST_NONE);
+	CHECK("S5-H34b", obs_next_fine_idx(&s, &cfg, 2, 10, 7) == 5, "then 5");
+	obs_scan_set(&s, 5, OBS_DIST_NONE);
+	CHECK("S5-H34c", obs_next_fine_idx(&s, &cfg, 2, 10, 5) == 3, "then 3 (between the two right-hand obstacles)");
+	obs_scan_set(&s, 3, OBS_DIST_NONE);
+	CHECK("S5-H34d", obs_next_fine_idx(&s, &cfg, 2, 10, 3) == -1, "index 1 is outside the servo window: nothing left to measure");
+
+	/* S5-H35 SIMULATION with two boxes, servo window 30..150 */
+	{
+		int cases, retry, go, bad = sim_two_boxes(2, 10, &cases, &retry, &go);
+
+		printf("[HOST] S5-H35 sim two boxes 30..150 deg: %d cases, %d unsafe or missed, %d bypass chosen, %d reverse-retry/stop\n",
+		       cases, bad, go, retry);
+		CHECK("S5-H35", bad == 0, "simulated TWO boxes: every chosen bypass clears both boxes, none missed");
 	}
 
 	printf("[HOST] subsystem5 SUMMARY %d passed, %d failed\n", pass_n, fail_n);

@@ -89,6 +89,7 @@ typedef struct {
 	uint8_t  idx_left;
 	uint16_t plan_width_cm;	/* width the left/right shifts were planned for (>= width_cm) */
 	uint16_t unc_cm;	/* +/- uncertainty of width_cm from the 15 degree step (not sent) */
+	uint8_t  clusters;	/* how many separate obstacles the scan saw (not sent) */
 } OBS_PROFILE;
 
 void obs_cfg_default(OBS_CFG *cfg);
@@ -113,6 +114,15 @@ int  obs_scan_is_hit(const OBS_SCAN *s, unsigned idx, const OBS_CFG *cfg);
    both edges are found / limits are reached.  dir = -1 (right) or +1 (left). */
 int  obs_next_edge_idx(const OBS_SCAN *s, const OBS_CFG *cfg, int dir);
 
+/* Fine scan helper for scans with SEVERAL obstacles: the next index to measure
+   (an unmeasured neighbour of any obstacle, inside the servo window lo..hi),
+   the one closest to the servo's current index 'from'; -1 when nothing is left. */
+int  obs_next_fine_idx(const OBS_SCAN *s, const OBS_CFG *cfg, int lo, int hi, int from);
+
+/* Profile of the whole scan. Width, closest and idx_* describe the CLOSEST
+   obstacle. The bypass side and shifts take EVERY obstacle into account: a side
+   whose corridor would touch another obstacle is reported as OBS_DIST_CAP
+   (not possible), and if neither side is free the action is REVERSE_RETRY. */
 void obs_profile(const OBS_SCAN *s, const OBS_CFG *cfg, OBS_PROFILE *out);
 
 /* Conversions */

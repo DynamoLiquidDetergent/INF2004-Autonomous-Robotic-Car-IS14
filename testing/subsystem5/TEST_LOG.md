@@ -44,6 +44,11 @@ Run from the repository root (WSL or Linux): `sh testing/subsystem5/host/run.sh`
 | S5-H28 | same simulation with the servo limited to 60 to 120 degrees (the window the car body allows). Unmeasured edges make the profile partial and the bypass wider | professor guidance (consistently safe path) | auto (PC) | as above | PASS, 0 unsafe, 0 missed |
 | S5-H29 | same simulation with the servo limited to 45 to 135 degrees | professor guidance (consistently safe path) | auto (PC) | as above | PASS, 0 unsafe, 0 missed |
 | S5-H30 | same simulation with the servo limited to 30 to 150 degrees (sensor moved forward so it clears the car body) | professor guidance (consistently safe path) | auto (PC) | as above | PASS, 0 unsafe, 0 missed |
+| S5-H31 | hardware regression (2026-11-04 run): one box dead ahead and one to the right. The profile must turn LEFT. The earlier code looked only at the closest box and said turn right 17 cm, towards the second box | professor guidance (safe path), safety | auto (PC) | as above | PASS |
+| S5-H32 | hardware regression: boxes on the right (30 to 60 deg) and on the left (120 deg). Neither side is free, so REVERSE_RETRY | safety | auto (PC) | as above | PASS |
+| S5-H33 | hardware regression: one wide obstacle from 30 to 120 deg is a single cluster and gets a bypass | safety | auto (PC) | as above | PASS |
+| S5-H34 | fine scan picks the next unmeasured neighbour of any obstacle inside the servo window, nearest to the servo first (a to d) | FR39 | auto (PC) | as above | PASS |
+| S5-H35 | simulation with TWO boxes (10 to 20 cm wide, 980 placements, servo window 30 to 150 deg). Every chosen bypass clears both boxes, none missed | professor guidance (consistently safe path) | auto (PC) | as above | PASS, 0 unsafe, 0 missed |
 
 ### Automatic, on the Pico (`make TEST=1`)
 

@@ -235,39 +235,23 @@ static int edge_unresolved(const OBS_SCAN *s, int idx, int dir)
 	return (n < 0 || n >= OBS_NUM_ANGLES || !obs_scan_measured(s, (unsigned)n));
 }
 
-void obs_profile(const OBS_SCAN *s, const OBS_CFG *cfg, OBS_PROFILE *out)
+/* Sideways extent of the obstacle made of indices lo..hi (x: + = right of the
+   centre line). Also returns the raw width. 'unresolved' is set when an edge
+   was not measured. */
+/* sin of k * 7.5 degrees, * 1000 */
+static int32_t sin_k(int k)
 {
-	int lo, hi, closest;
-	int32_t r_r, r_l, x_r, x_l, chord2, w;
+	return (k <= 12) ? cos_tab[12 - k] : cos_tab[k - 12];
+}
+
+static void cluster_geom(const OBS_SCAN *s, const OBS_CFG *cfg, int lo, int hi, int closest,
+			 int32_t *x_r, int32_t *x_l, int32_t *w, int *unresolved,
+			 int32_t *x_ro, int32_t *x_lo)
+{
+	int32_t r_r = s->dist_cm[lo], r_l = s->dist_cm[hi], chord2;
 	int th_r, th_l, h;
-	int32_t shift_r, shift_l, m;
 
-	out->detected = 0;
-	out->closest_idx = 0;
-	out->closest_cm = 0;
-	out->width_cm = 0;
-	out->left_cm = 0;
-	out->right_cm = 0;
-	out->action = OBS_ACT_CONTINUE;
-	out->partial = 0;
-	out->idx_right = 0;
-	out->idx_left = 0;
-	out->plan_width_cm = 0;
-	out->unc_cm = 0;
-
-	if (!find_cluster(s, cfg, &lo, &hi, &closest)) {
-		return;
-	}
-
-	out->detected = 1;
-	out->closest_idx = (uint8_t)closest;
-	out->closest_cm = s->dist_cm[closest];
-	out->idx_right = (uint8_t)lo;
-	out->idx_left = (uint8_t)hi;
-	out->partial = (uint8_t)(edge_unresolved(s, lo, -1) || edge_unresolved(s, hi, +1));
-
-	r_r = s->dist_cm[lo];
-	r_l = s->dist_cm[hi];
+	*unresolved = (edge_unresolved(s, lo, -1) || edge_unresolved(s, hi, +1));
 
 	/* The 15 degree beam sees an edge up to half a beam early, so the true
 	   edges lie half a beam INSIDE the outermost hit angles. Angles here
@@ -285,46 +269,228 @@ void obs_profile(const OBS_SCAN *s, const OBS_CFG *cfg, OBS_PROFILE *out)
 	if (hi == lo) {
 		/* One sample: width is at most one beam footprint,
 		   2 * tan(7.5 deg) * r = 0.263 * r. */
-		w = (int32_t)s->dist_cm[closest] * 263 / 1000;
-		x_r = (int32_t)s->dist_cm[closest] * cos_tab[2 * closest] / 1000 + w / 2;
-		x_l = (int32_t)s->dist_cm[closest] * cos_tab[2 * closest] / 1000 - w / 2;
-		out->partial = 1;
+		*w = (int32_t)s->dist_cm[closest] * 263 / 1000;
+		*x_r = (int32_t)s->dist_cm[closest] * cos_tab[2 * closest] / 1000 + *w / 2;
+		*x_l = (int32_t)s->dist_cm[closest] * cos_tab[2 * closest] / 1000 - *w / 2;
+		*unresolved = 1;
 	} else {
 		/* chord between the two edge points (law of cosines) */
 		chord2 = r_r * r_r + r_l * r_l - 2 * r_r * r_l * cos_tab[th_l - th_r] / 1000;
 		if (chord2 < 0) {
 			chord2 = 0;
 		}
-		w = (int32_t)obs_isqrt((uint32_t)chord2);
-		x_r = r_r * cos_tab[th_r] / 1000;	/* + = right of the centre line */
-		x_l = r_l * cos_tab[th_l] / 1000;	/* - = left of the centre line */
+		*w = (int32_t)obs_isqrt((uint32_t)chord2);
+		*x_r = r_r * cos_tab[th_r] / 1000;	/* + = right of the centre line */
+		*x_l = r_l * cos_tab[th_l] / 1000;	/* - = left of the centre line */
 	}
+
+	/* The estimate above is the middle one. For the bypass the true edge may
+	   lie anywhere from half a beam inside to half a beam OUTSIDE the outermost
+	   hit angle (the next angle saw nothing, so it cannot be further). Plan with
+	   the outside one: with 15 degree steps that is up to 0.26 * range further out. */
+	if (hi == lo) {
+		*x_ro = *x_r;		/* already the full beam footprint */
+		*x_lo = *x_l;
+	} else {
+		int tr = 2 * lo - cfg->beam_comp_deg / 15, tl = 2 * hi + cfg->beam_comp_deg / 15;
+
+		if (tr < 0) {
+			tr = 0;
+		}
+		if (tl > 24) {
+			tl = 24;
+		}
+		*x_ro = r_r * cos_tab[tr] / 1000;
+		*x_lo = r_l * cos_tab[tl] / 1000;
+		/* A flat face keeps its DEPTH, not its range, so at the outer angle it is
+		   further away than the hit reading. Depth based edge, never smaller than
+		   the constant-range one: x = r * sin(hit angle) / tan(outer angle). */
+		{
+			int kr = (tr < 1) ? 1 : tr, kl = (tl > 23) ? 23 : tl;
+			int32_t xr2 = r_r * sin_k(2 * lo) * cos_tab[kr] / (sin_k(kr) * 1000);
+			int32_t xl2 = r_l * sin_k(2 * hi) * cos_tab[kl] / (sin_k(kl) * 1000) - 1;
+
+			if (xr2 > *x_ro) {
+				*x_ro = xr2;
+			}
+			if (xl2 < *x_lo) {
+				*x_lo = xl2;
+			}
+		}
+		if (*x_ro < *x_r) {
+			*x_ro = *x_r;
+		}
+		if (*x_lo > *x_l) {
+			*x_lo = *x_l;
+		}
+	}
+}
+
+/* Plan for at least the widest obstacle the spec allows, centred where we
+   measured it. A narrower obstacle is then simply passed with more room than
+   needed; a mis-measured one is still cleared. */
+static void plan_span(const OBS_CFG *cfg, int32_t *x_r, int32_t *x_l)
+{
+	if (cfg->plan_width_cm != 0) {
+		int32_t c = (*x_r + *x_l) / 2;
+		int32_t half = (int32_t)cfg->plan_width_cm / 2;
+
+		if (c + half > *x_r) {
+			*x_r = c + half;
+		}
+		if (c - half < *x_l) {
+			*x_l = c - half;
+		}
+	}
+}
+
+/* Is there a run of "obstacle" indices (stay rule) starting at i that contains
+   at least one real hit? Returns its last index in *last, or -1. */
+static int run_at(const OBS_SCAN *s, const OBS_CFG *cfg, int i, int *last)
+{
+	int j = i, hit = 0;
+
+	while (j < OBS_NUM_ANGLES && is_stay(s, (unsigned)j, cfg)) {
+		hit |= obs_scan_is_hit(s, (unsigned)j, cfg);
+		j++;
+	}
+	*last = j - 1;
+	return hit;
+}
+
+int obs_next_fine_idx(const OBS_SCAN *s, const OBS_CFG *cfg, int lo, int hi, int from)
+{
+	int i = 0, last, best = -1, cand[2], k, n;
+
+	if (lo < 0) {
+		lo = 0;
+	}
+	if (hi > OBS_NUM_ANGLES - 1) {
+		hi = OBS_NUM_ANGLES - 1;
+	}
+	while (i < OBS_NUM_ANGLES) {
+		if (!is_stay(s, (unsigned)i, cfg)) {
+			i++;
+			continue;
+		}
+		if (run_at(s, cfg, i, &last)) {
+			cand[0] = i - 1;
+			cand[1] = last + 1;
+			for (k = 0; k < 2; k++) {
+				n = cand[k];
+				if (n < lo || n > hi || obs_scan_measured(s, (unsigned)n)) {
+					continue;
+				}
+				if (best < 0 ||
+				    (n > from ? n - from : from - n) < (best > from ? best - from : from - best) ||
+				    ((n > from ? n - from : from - n) == (best > from ? best - from : from - best) && n < best)) {
+					best = n;
+				}
+			}
+		}
+		i = last + 1;
+	}
+	return best;
+}
+
+void obs_profile(const OBS_SCAN *s, const OBS_CFG *cfg, OBS_PROFILE *out)
+{
+	int lo, hi, closest, i, last, unres;
+	int32_t x_r, x_l, w, x_ro, x_lo;
+	int32_t shift_r, shift_l, m, clear;
+	int32_t oxr[OBS_NUM_ANGLES], oxl[OBS_NUM_ANGLES];	/* the OTHER obstacles, planned extents */
+	int no = 0, k;
+
+	out->detected = 0;
+	out->closest_idx = 0;
+	out->closest_cm = 0;
+	out->width_cm = 0;
+	out->left_cm = 0;
+	out->right_cm = 0;
+	out->action = OBS_ACT_CONTINUE;
+	out->partial = 0;
+	out->idx_right = 0;
+	out->idx_left = 0;
+	out->plan_width_cm = 0;
+	out->unc_cm = 0;
+	out->clusters = 0;
+
+	if (!find_cluster(s, cfg, &lo, &hi, &closest)) {
+		return;
+	}
+
+	out->detected = 1;
+	out->closest_idx = (uint8_t)closest;
+	out->closest_cm = s->dist_cm[closest];
+	out->idx_right = (uint8_t)lo;
+	out->idx_left = (uint8_t)hi;
+
+	cluster_geom(s, cfg, lo, hi, closest, &x_r, &x_l, &w, &unres, &x_ro, &x_lo);
+	out->partial = (uint8_t)unres;
 	out->width_cm = cap_cm(w);
+	out->clusters = 1;
 
 	/* Each edge is only known to +/- half a 15 degree step, i.e. about
 	   0.131 * range. Report it; do not hide it. */
-	out->unc_cm = (hi == lo) ? cap_cm((int32_t)r_r * 263 / 1000)
-				 : cap_cm(((int32_t)r_r + r_l) * 131 / 1000);
+	out->unc_cm = (hi == lo) ? cap_cm((int32_t)s->dist_cm[lo] * 263 / 1000)
+				 : cap_cm(((int32_t)s->dist_cm[lo] + s->dist_cm[hi]) * 131 / 1000);
 
-	/* Plan for at least the widest obstacle the spec allows, centred where
-	   we measured it. A narrower obstacle is then simply passed with more
-	   room than needed; a mis-measured one is still cleared. */
-	if (cfg->plan_width_cm != 0) {
-		int32_t c = (x_r + x_l) / 2;
-		int32_t half = (int32_t)cfg->plan_width_cm / 2;
-
-		if (c + half > x_r) {
-			x_r = c + half;
-		}
-		if (c - half < x_l) {
-			x_l = c - half;
-		}
-	}
+	x_r = x_ro;
+	x_l = x_lo;
+	plan_span(cfg, &x_r, &x_l);
 	out->plan_width_cm = cap_cm(x_r - x_l);
 
-	/* sideways move to clear the obstacle on each side */
-	shift_r = x_r + cfg->robot_half_width_cm + cfg->margin_cm;
-	shift_l = -x_l + cfg->robot_half_width_cm + cfg->margin_cm;
+	/* every OTHER obstacle in the scan (a second box beside the first) */
+	for (i = 0; i < OBS_NUM_ANGLES; ) {
+		if (!is_stay(s, (unsigned)i, cfg)) {
+			i++;
+			continue;
+		}
+		if (run_at(s, cfg, i, &last)) {
+			if (i != lo) {
+				int32_t a, b, ww, ao, bo;
+				int u, cl = i, kk;
+
+				for (kk = i; kk <= last; kk++) {	/* its closest index */
+					if (s->dist_cm[kk] < s->dist_cm[cl]) {
+						cl = kk;
+					}
+				}
+				cluster_geom(s, cfg, i, last, cl, &a, &b, &ww, &u, &ao, &bo);
+				a = ao;
+				b = bo;
+				plan_span(cfg, &a, &b);
+				oxr[no] = a;
+				oxl[no] = b;
+				no++;
+				out->clusters++;
+				out->partial |= (uint8_t)u;
+			}
+		}
+		i = last + 1;
+	}
+
+	/* sideways move to clear the main obstacle on each side */
+	clear = (int32_t)cfg->robot_half_width_cm + cfg->margin_cm;
+	shift_r = x_r + clear;
+	shift_l = -x_l + clear;
+	if (shift_r < 0) {
+		shift_r = 0;	/* the lane is already clear on that side: no move, but the lane itself */
+	}
+	if (shift_l < 0) {
+		shift_l = 0;	/* must still be free of the other obstacles */
+	}
+
+	/* ...but a side is only possible if the corridor the robot would then
+	   occupy, [c - clear, c + clear], does not touch any other obstacle */
+	for (k = 0; k < no; k++) {
+		if (oxr[k] > shift_r - clear && oxl[k] < shift_r + clear) {
+			shift_r = OBS_DIST_CAP;
+		}
+		if (oxr[k] > -shift_l - clear && oxl[k] < -shift_l + clear) {
+			shift_l = OBS_DIST_CAP;
+		}
+	}
 	out->right_cm = cap_cm(shift_r);
 	out->left_cm = cap_cm(shift_l);
 
