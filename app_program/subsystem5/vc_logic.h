@@ -53,6 +53,10 @@
 #define VC_LF_SEARCH_STEER	100	/* mm/s turn towards where the line was */
 #define VC_LF_LOST_STOP_MS	1500	/* lost this long -> stop for good */
 #define VC_APPROACH_SPEED	40	/* mm/s while creeping up to the obstacle */
+/* Reverse: a steer of 0 would switch on the S2 straight-line hold, which flips its
+   correction when reversing and then pushes the wheels APART (seen on the car: L -109,
+   R +38 mm/s). A steer of 1 mm/s switches the hold off and is far too small to turn the car. */
+#define VC_REVERSE_STEER	1
 
 typedef struct {
 	int		err_prev;	/* zone error of the previous cycle */

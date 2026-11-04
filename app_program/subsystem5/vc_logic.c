@@ -99,7 +99,7 @@ static VC_OUT creep_step(VC_STATE *v, const VC_IN *in, VC_OUT o)
 	if (back) {
 		o.mode  = VC_MODE_DRIVE;
 		o.speed = -VC_APPROACH_SPEED;
-		o.steer = 0;
+		o.steer = VC_REVERSE_STEER;
 		return o;
 	}
 	if (v->line_gave_up) {			/* line lost for good: nothing to follow, rescan */

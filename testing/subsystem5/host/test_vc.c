@@ -222,8 +222,8 @@ int main(void)
 	in.approach_mm = -60;
 	in.odo_mm = 5;
 	o = vc_step(&v, &in);
-	CHECK("S5-H69a", o.mode == VC_MODE_DRIVE && o.speed == -40 && o.steer == 0 && !o.creep_done,
-	      "back-away order -60 mm: DRIVE -40 mm/s, steer 0");
+	CHECK("S5-H69a", o.mode == VC_MODE_DRIVE && o.speed == -40 && o.steer == VC_REVERSE_STEER && !o.creep_done,
+	      "back-away order -60 mm: DRIVE -40 mm/s, steer 1 (not 0: keeps the S2 straight-line hold off)");
 	in.odo_mm = (65536u + 5u - 59u) & 0xFFFFu;
 	o = vc_step(&v, &in);
 	CHECK("S5-H69b", o.mode == VC_MODE_DRIVE && !o.creep_done, "59 mm backwards (across the 16 bit wrap): still going");
