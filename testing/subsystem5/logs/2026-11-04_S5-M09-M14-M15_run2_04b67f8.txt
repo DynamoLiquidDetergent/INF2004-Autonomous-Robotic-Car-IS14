@@ -1,0 +1,762 @@
+---- Opened the serial port COM3 ----
+
+
+microT-Kernel Version 3.00
+
+
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+dual-core (SMP) build, usermain on core 0
+BARCODE: mapping A Z C D -- only these letters are read
+all subsystems started
+
+safety: monitor running (hold 3000 ms after a fault, 500 ms after a scan)
+monitor: I am task 13
+DEMO: LINE FOLLOW.  Calibrating for 5 s -- sweep the robot slowly side to side across the black line now (or leave it: defaults kept)
+s1: pub evt   t=3355769957 - 11 8E 07
+raw L=3989 C=4017 R=4041  zone=5 jn=1 lost=0
+obstacle: ready (servo GP12, trig GP16, echo GP17)
+obstacle: taking background scan, keep the path ahead CLEAR
+raw L=4004 C=4029 R=4064  zone=5 jn=1 lost=0
+s1: pub telem t=3355770357 - 01 00 00 01 00 02 08 00 80 03 00 FF FE F3 03
+raw L=4001 C=4027 R=4061  zone=5 jn=1 lost=0
+obstacle:  30 deg  echo  6025 us  status 0  -> 104 cm
+obstacle:  30 deg  echo 45682 us  status 1  -> 511 cm
+obstacle:  30 deg  echo  5084 us  status 0  -> 88 cm
+raw L=4013 C=4033 R=4049  zone=5 jn=1 lost=0
+obstacle:  45 deg  echo 45824 us  status 1  -> 511 cm
+obstacle:  45 deg  echo  5697 us  status 0  -> 98 cm
+raw L=4024 C=4037 R=4053  zone=5 jn=1 lost=0
+GP28: min=3992 max=4075   (dark above 840, light below 610)
+s1: pub telem t=3355770857 - 01 05 00 01 00 02 08 00 80 13 00 FF FE F3 03
+s1: pub hb    t=3355770857 - 09 00 01 00
+obstacle:  45 deg  echo  5924 us  status 0  -> 102 cm
+obstacle:  60 deg  echo  5691 us  status 0  -> 98 cm
+raw L=4020 C=4037 R=4062  zone=5 jn=1 lost=0
+obstacle:  60 deg  echo  5762 us  status 0  -> 99 cm
+monitor: batch  n=5 last=40 from core 1
+monitor: t=3355771060 ms  samples=5  min=0 max=40 avg=20  free slots=4  free blocks=4
+obstacle:  60 deg  echo  5807 us  status 0  -> 100 cm
+obstacle:  75 deg  echo 45764 us  status 1  -> 511 cm
+raw L=4005 C=4019 R=4049  zone=5 jn=1 lost=0
+obstacle:  75 deg  echo  5701 us  status 0  -> 98 cm
+s1: pub telem t=3355771357 - 01 0A 00 01 00 02 08 00 80 23 00 FF FE F3 03
+obstacle:  75 deg  echo  5742 us  status 0  -> 99 cm
+raw L=4006 C=4041 R=4066  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo 45744 us  status 1  -> 511 cm
+obstacle:  90 deg  echo 45758 us  status 1  -> 511 cm
+obstacle:  90 deg  echo 45762 us  status 1  -> 511 cm
+raw L=4012 C=4034 R=4061  zone=5 jn=1 lost=0
+obstacle: 105 deg  echo  6734 us  status 0  -> 116 cm
+obstacle: 105 deg  echo 45762 us  status 1  -> 511 cm
+raw L=4021 C=4042 R=4067  zone=5 jn=1 lost=0
+GP28: min=4027 max=4077   (dark above 840, light below 610)
+s1: pub telem t=3355771857 - 01 0F 00 01 00 02 08 00 80 33 00 FF FE F3 03
+s1: pub hb    t=3355771858 - 09 01 01 00
+obstacle: 105 deg  echo 45756 us  status 1  -> 511 cm
+obstacle: 120 deg  echo 45773 us  status 1  -> 511 cm
+raw L=4027 C=4036 R=4057  zone=5 jn=1 lost=0
+obstacle: 120 deg  echo 45754 us  status 1  -> 511 cm
+obstacle: 120 deg  echo  7891 us  status 0  -> 136 cm
+obstacle: 135 deg  echo  7714 us  status 0  -> 133 cm
+raw L=4013 C=4037 R=4052  zone=5 jn=1 lost=0
+obstacle: 135 deg  echo 45866 us  status 1  -> 511 cm
+s1: pub telem t=3355772357 - 01 14 00 01 00 02 08 00 80 43 00 FF FE F3 03
+obstacle: 135 deg  echo  7700 us  status 0  -> 133 cm
+raw L=4018 C=4046 R=4053  zone=5 jn=1 lost=0
+obstacle: 150 deg  echo 45759 us  status 1  -> 511 cm
+obstacle: 150 deg  echo  4918 us  status 0  -> 85 cm
+monitor: batch  n=10 last=90 from core 1
+monitor: t=3355772565 ms  samples=10  min=0 max=90 avg=45  free slots=4  free blocks=4
+obstacle: 150 deg  echo  4994 us  status 0  -> 86 cm
+raw L=4014 C=4034 R=4060  zone=5 jn=1 lost=0
+raw L=4015 C=4040 R=4059  zone=5 jn=1 lost=0
+GP28: min=4030 max=4080   (dark above 840, light below 610)
+s1: pub telem t=3355772857 - 01 19 00 01 00 02 08 00 80 53 00 FF FE F3 03
+s1: pub hb    t=3355772858 - 09 02 01 00
+obstacle: background  30 deg = 104 cm
+obstacle: background  45 deg = 102 cm
+obstacle: background  60 deg = 99 cm
+obstacle: background  75 deg = 99 cm
+obstacle: background  90 deg = 511 cm (none)
+obstacle: background 105 deg = 511 cm (none)
+obstacle: background 120 deg = 511 cm (none)
+obstacle: background 135 deg = 133 cm
+obstacle: background 150 deg = 86 cm
+obstacle:  90 deg  echo  5610 us  status 0  -> 97 cm
+obstacle:  90 deg  echo  5995 us  status 0  -> 103 cm
+raw L=4019 C=4022 R=4056  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5676 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5747 us  status 0  -> 99 cm
+obstacle:  90 deg  echo  5818 us  status 0  -> 100 cm
+raw L=4014 C=4040 R=4048  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5692 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5590 us  status 0  -> 96 cm
+s1: pub telem t=3355773357 - 01 1E 00 01 00 02 08 00 80 63 00 FF FE F3 03
+obstacle:  90 deg  echo  5934 us  status 0  -> 102 cm
+raw L=4026 C=4044 R=4068  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5788 us  status 0  -> 100 cm
+obstacle:  90 deg  echo 45825 us  status 1  -> 511 cm
+obstacle:  90 deg  echo 45595 us  status 1  -> 511 cm
+raw L=4009 C=4042 R=4052  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5717 us  status 0  -> 99 cm
+obstacle:  90 deg  echo  5641 us  status 0  -> 97 cm
+obstacle:  90 deg  echo  5696 us  status 0  -> 98 cm
+raw L=4010 C=4034 R=4072  zone=5 jn=1 lost=0
+s1: pub telem t=3355773857 - 01 23 00 01 00 02 08 00 80 73 00 FF FE F3 03
+s1: pub hb    t=3355773857 - 09 03 01 00
+GP28: min=4035 max=4081   (dark above 840, light below 610)
+obstacle:  90 deg  echo  5646 us  status 0  -> 97 cm
+obstacle:  90 deg  echo  5641 us  status 0  -> 97 cm
+obstacle:  90 deg  echo  5590 us  status 0  -> 96 cm
+raw L=4026 C=4041 R=4066  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5636 us  status 0  -> 97 cm
+monitor: batch  n=15 last=60 from core 1
+monitor: t=3355774070 ms  samples=15  min=0 max=100 avg=56  free slots=4  free blocks=4
+obstacle:  90 deg  echo  5853 us  status 0  -> 101 cm
+obstacle:  90 deg  echo  5702 us  status 0  -> 98 cm
+raw L=4012 C=4036 R=4078  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo 45636 us  status 1  -> 511 cm
+obstacle:  90 deg  echo  5560 us  status 0  -> 96 cm
+s1: pub telem t=3355774357 - 01 28 00 01 00 02 08 00 80 83 00 FF FE F3 03
+obstacle:  90 deg  echo  5580 us  status 0  -> 96 cm
+raw L=4022 C=4027 R=4058  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5798 us  status 0  -> 100 cm
+obstacle:  90 deg  echo  5717 us  status 0  -> 99 cm
+obstacle:  90 deg  echo  5813 us  status 0  -> 100 cm
+raw L=4018 C=4050 R=4073  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5565 us  status 0  -> 96 cm
+obstacle:  90 deg  echo  5742 us  status 0  -> 99 cm
+obstacle:  90 deg  echo  5696 us  status 0  -> 98 cm
+raw L=4025 C=4036 R=4074  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5990 us  status 0  -> 103 cm
+s1: pub telem t=3355774858 - 01 2D 00 01 00 02 08 00 80 93 00 FF FE F3 03
+s1: pub hb    t=3355774858 - 09 04 01 00
+GP28: min=4034 max=4083   (dark above 840, light below 610)
+S3 calib: timed out, seen L 3989..4029  C 4014..4053 -- range kept
+DEMO: calibration not done, default range kept
+DEMO: put the robot on the line, centre sensor over it -- starting in 3 s
+obstacle:  90 deg  echo  5819 us  status 0  -> 100 cm
+obstacle:  90 deg  echo  5742 us  status 0  -> 99 cm
+raw L=4024 C=4051 R=4059  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5869 us  status 0  -> 101 cm
+obstacle:  90 deg  echo  5773 us  status 0  -> 100 cm
+obstacle:  90 deg  echo  5829 us  status 0  -> 101 cm
+raw L=4018 C=4033 R=4078  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5833 us  status 0  -> 101 cm
+obstacle:  90 deg  echo  5844 us  status 0  -> 101 cm
+s1: pub telem t=3355775357 - 01 32 00 01 00 02 08 00 80 A3 10 FF FE F3 03
+obstacle:  90 deg  echo  5702 us  status 0  -> 98 cm
+raw L=4017 C=4036 R=4052  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5687 us  status 0  -> 98 cm
+obstacle:  90 deg  echo 45715 us  status 1  -> 511 cm
+monitor: batch  n=20 last=10 from core 1
+monitor: t=3355775575 ms  samples=20  min=0 max=100 avg=50  free slots=4  free blocks=4
+obstacle:  90 deg  echo  5772 us  status 0  -> 100 cm
+raw L=4020 C=4038 R=4065  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo 45688 us  status 1  -> 511 cm
+obstacle:  90 deg  echo  5823 us  status 0  -> 100 cm
+obstacle:  90 deg  echo  5671 us  status 0  -> 98 cm
+raw L=4014 C=4050 R=4069  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5646 us  status 0  -> 97 cm
+s1: pub telem t=3355775858 - 01 37 00 01 00 02 08 00 80 B3 10 FF FE F3 03
+s1: pub hb    t=3355775858 - 09 05 01 00
+GP28: min=4033 max=4082   (dark above 840, light below 610)
+obstacle:  90 deg  echo  5641 us  status 0  -> 97 cm
+obstacle:  90 deg  echo  5661 us  status 0  -> 98 cm
+raw L=4017 C=4035 R=4068  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5636 us  status 0  -> 97 cm
+obstacle:  90 deg  echo  5636 us  status 0  -> 97 cm
+obstacle:  90 deg  echo  5737 us  status 0  -> 99 cm
+raw L=4016 C=4033 R=4068  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  6010 us  status 0  -> 104 cm
+obstacle:  90 deg  echo  5768 us  status 0  -> 99 cm
+s1: pub telem t=3355776357 - 01 3C 00 01 00 02 08 00 80 C3 10 FF FE F3 03
+obstacle:  90 deg  echo  5671 us  status 0  -> 98 cm
+raw L=4010 C=4037 R=4059  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5747 us  status 0  -> 99 cm
+obstacle:  90 deg  echo  5697 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5742 us  status 0  -> 99 cm
+raw L=4009 C=4048 R=4080  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5793 us  status 0  -> 100 cm
+obstacle:  90 deg  echo  5742 us  status 0  -> 99 cm
+obstacle:  90 deg  echo  5717 us  status 0  -> 99 cm
+obstacle:  90 deg  echo  5691 us  status 0  -> 98 cm
+raw L=4015 C=4035 R=4066  zone=5 jn=1 lost=0
+s1: pub telem t=3355776857 - 01 41 00 01 00 02 08 00 80 D3 10 FF FE F3 03
+s1: pub hb    t=3355776858 - 09 06 01 00
+GP28: min=4032 max=4081   (dark above 840, light below 610)
+obstacle:  90 deg  echo  5939 us  status 0  -> 102 cm
+obstacle:  90 deg  echo  5939 us  status 0  -> 102 cm
+obstacle:  90 deg  echo  5641 us  status 0  -> 97 cm
+raw L=4024 C=4037 R=4051  zone=5 jn=1 lost=0
+monitor: batch  n=25 last=40 from core 1
+monitor: t=3355777080 ms  samples=25  min=0 max=100 avg=44  free slots=4  free blocks=4
+obstacle:  90 deg  echo 45672 us  status 1  -> 511 cm
+obstacle:  90 deg  echo  5808 us  status 0  -> 100 cm
+obstacle:  90 deg  echo  5763 us  status 0  -> 99 cm
+raw L=4015 C=4041 R=4065  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5717 us  status 0  -> 99 cm
+s1: pub telem t=3355777357 - 01 46 00 01 00 02 08 00 80 E3 10 FF FE F3 03
+obstacle:  90 deg  echo  5666 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5692 us  status 0  -> 98 cm
+raw L=4024 C=4036 R=4065  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5666 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5697 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5671 us  status 0  -> 98 cm
+raw L=4017 C=4033 R=4056  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5722 us  status 0  -> 99 cm
+obstacle:  90 deg  echo  5822 us  status 0  -> 100 cm
+obstacle:  90 deg  echo  5646 us  status 0  -> 97 cm
+raw L=4008 C=4037 R=4047  zone=5 jn=1 lost=0
+s1: pub telem t=3355777857 - 01 4B 00 01 00 02 08 00 80 F3 10 FF FE F3 03
+s1: pub hb    t=3355777858 - 09 07 01 00
+GP28: min=4036 max=4082   (dark above 840, light below 610)
+obstacle:  90 deg  echo  6015 us  status 0  -> 104 cm
+DEMO: following the line at up to 100 mm/s (KP 30, KD 20, sign -1)
+DEMO: motion state 0
+DEMO: motion state 1
+obstacle:  90 deg  echo  5768 us  status 0  -> 99 cm
+obstacle:  90 deg  echo  5615 us  status 0  -> 97 cm
+raw L=4012 C=4038 R=4057  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo 45641 us  status 1  -> 511 cm
+obstacle:  90 deg  echo  5590 us  status 0  -> 96 cm
+obstacle:  90 deg  echo  5793 us  status 0  -> 100 cm
+raw L=4009 C=4049 R=4052  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5697 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5651 us  status 0  -> 97 cm
+s1: pub telem t=3355778357 - 01 50 00 01 00 02 08 00 80 03 11 FF FE F3 03
+DEMO: t=  518  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   1 R=  67  dist=   16
+obstacle:  90 deg  echo  5889 us  status 0  -> 102 cm
+raw L=4017 C=4036 R=4069  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5606 us  status 0  -> 97 cm
+obstacle:  90 deg  echo  5803 us  status 0  -> 100 cm
+monitor: batch  n=30 last=90 from core 1
+monitor: t=3355778585 ms  samples=30  min=0 max=100 avg=48  free slots=4  free blocks=4
+monitor: LED task paused, state=WAIT+SUSPEND, pri=23
+obstacle:  90 deg  echo  5783 us  status 0  -> 100 cm
+raw L=4028 C=4032 R=4061  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5783 us  status 0  -> 100 cm
+obstacle:  90 deg  echo  5610 us  status 0  -> 97 cm
+obstacle:  90 deg  echo  5717 us  status 0  -> 99 cm
+raw L=4020 C=4042 R=4073  zone=5 jn=1 lost=0
+s1: pub telem t=3355778857 - 01 55 00 01 00 02 08 00 80 13 11 FF FE F3 03
+s1: pub hb    t=3355778858 - 09 08 01 00
+GP28: min=4033 max=4079   (dark above 840, light below 610)
+obstacle:  90 deg  echo  5773 us  status 0  -> 100 cm
+DEMO: t= 1018  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=  79 R=  59  dist=   40
+obstacle:  90 deg  echo  5839 us  status 0  -> 101 cm
+obstacle:  90 deg  echo  6045 us  status 0  -> 104 cm
+raw L=4026 C=4043 R=4061  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5900 us  status 0  -> 102 cm
+obstacle:  90 deg  echo  5783 us  status 0  -> 100 cm
+obstacle:  90 deg  echo  5924 us  status 0  -> 102 cm
+raw L=4017 C=4043 R=4068  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5672 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5616 us  status 0  -> 97 cm
+s1: pub telem t=3355779357 - 01 5A 00 01 00 02 08 00 80 23 11 FF FE F3 03
+obstacle:  90 deg  echo  5954 us  status 0  -> 103 cm
+DEMO: t= 1518  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L= 128 R=  53  dist=   81
+raw L=4014 C=4042 R=4058  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5697 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5839 us  status 0  -> 101 cm
+obstacle:  90 deg  echo  5656 us  status 0  -> 98 cm
+raw L=3583 C=3785 R=4060  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5671 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5859 us  status 0  -> 101 cm
+obstacle:  90 deg  echo  5925 us  status 0  -> 102 cm
+raw L=3172 C=3155 R=4085  zone=5 jn=1 lost=0
+s1: pub telem t=3355779857 - 01 5F 00 01 00 02 08 00 80 33 11 FF FE F3 03
+s1: pub hb    t=3355779858 - 09 09 01 00
+GP28: min=4038 max=4095   (dark above 840, light below 610)
+obstacle:  90 deg  echo 45700 us  status 1  -> 511 cm
+DEMO: t= 2038  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L= 113 R=  50  dist=  130
+obstacle:  90 deg  echo 45699 us  status 1  -> 511 cm
+s1: pub evt   t=3355779957 - 11 96 00
+obstacle:  90 deg  echo  5641 us  status 0  -> 97 cm
+raw L=3125 C=3138 R=4067  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5950 us  status 0  -> 103 cm
+monitor: batch  n=35 last=60 from core 1
+monitor: t=3355780090 ms  samples=35  min=0 max=100 avg=52  free slots=4  free blocks=4
+obstacle:  90 deg  echo  5692 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5717 us  status 0  -> 99 cm
+raw L=3125 C=3194 R=4072  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5788 us  status 0  -> 100 cm
+obstacle:  90 deg  echo  5662 us  status 0  -> 98 cm
+s1: pub telem t=3355780357 - 01 64 00 02 00 02 08 00 80 43 21 FF FE F3 03
+obstacle:  90 deg  echo  5682 us  status 0  -> 98 cm
+raw L=3108 C=3172 R=4069  zone=5 jn=1 lost=0
+DEMO: t= 2538  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L= 184 R=  53  dist=  185
+obstacle:  90 deg  echo  5752 us  status 0  -> 99 cm
+obstacle:  90 deg  echo  5692 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5763 us  status 0  -> 99 cm
+raw L=3120 C=3216 R=4089  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5636 us  status 0  -> 97 cm
+obstacle:  90 deg  echo  5657 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5772 us  status 0  -> 100 cm
+raw L=3107 C=3206 R=4057  zone=5 jn=1 lost=0
+s1: pub telem t=3355780857 - 01 69 00 02 00 02 08 00 80 53 21 FF FE F3 03
+s1: pub hb    t=3355780858 - 09 0A 02 00
+GP28: min=4037 max=4095   (dark above 840, light below 610)
+obstacle:  90 deg  echo  5747 us  status 0  -> 99 cm
+obstacle:  90 deg  echo  5596 us  status 0  -> 96 cm
+DEMO: t= 3038  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L= 115 R=  51  dist=  230
+obstacle:  90 deg  echo  5666 us  status 0  -> 98 cm
+raw L=3003 C=3081 R=3786  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5712 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5753 us  status 0  -> 99 cm
+obstacle:  90 deg  echo  5520 us  status 0  -> 95 cm
+raw L=3085 C=3170 R=3924  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5642 us  status 0  -> 97 cm
+obstacle:  90 deg  echo  5540 us  status 0  -> 96 cm
+s1: pub telem t=3355781357 - 01 6E 00 02 00 02 08 00 80 63 21 FF FE F3 03
+obstacle:  90 deg  echo  5566 us  status 0  -> 96 cm
+raw L=3170 C=3261 R=4046  zone=5 jn=1 lost=0
+DEMO: t= 3538  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L= 108 R=  50  dist=  270
+obstacle:  90 deg  echo 45687 us  status 1  -> 511 cm
+obstacle:  90 deg  echo  5656 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5595 us  status 0  -> 96 cm
+monitor: batch  n=40 last=10 from core 1
+monitor: t=3355781595 ms  samples=40  min=0 max=100 avg=50  free slots=4  free blocks=4
+raw L=3174 C=3280 R=3985  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5696 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5600 us  status 0  -> 97 cm
+obstacle:  90 deg  echo  5530 us  status 0  -> 95 cm
+raw L=3355 C=3445 R=4019  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5485 us  status 0  -> 95 cm
+s1: pub telem t=3355781857 - 01 73 00 02 00 02 08 00 80 73 21 FF FE F3 03
+s1: pub hb    t=3355781858 - 09 0B 02 00
+GP28: min=3595 max=4080   (dark above 840, light below 610)
+obstacle:  90 deg  echo  5676 us  status 0  -> 98 cm
+DEMO: t= 4038  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L= 160 R=  26  dist=  318
+obstacle:  90 deg  echo  5611 us  status 0  -> 97 cm
+raw L=3322 C=3412 R=4036  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5616 us  status 0  -> 97 cm
+obstacle:  90 deg  echo  5429 us  status 0  -> 94 cm
+obstacle:  90 deg  echo  5672 us  status 0  -> 98 cm
+raw L=3217 C=3306 R=4038  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5544 us  status 0  -> 96 cm
+obstacle:  90 deg  echo  5470 us  status 0  -> 94 cm
+s1: pub telem t=3355782357 - 01 78 00 02 00 02 08 00 80 83 21 FF FE F3 03
+obstacle:  90 deg  echo  5600 us  status 0  -> 97 cm
+raw L=3060 C=3158 R=4044  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5601 us  status 0  -> 97 cm
+DEMO: t= 4558  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L= 125 R=  56  dist=  369
+obstacle:  90 deg  echo  5419 us  status 0  -> 93 cm
+obstacle:  90 deg  echo  5495 us  status 0  -> 95 cm
+raw L=2922 C=3037 R=3162  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5666 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5499 us  status 0  -> 95 cm
+obstacle:  90 deg  echo  5606 us  status 0  -> 97 cm
+raw L=2550 C=2617 R=4060  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5485 us  status 0  -> 95 cm
+s1: pub telem t=3355782857 - 01 7D 00 02 00 02 08 00 80 93 21 FF FE F3 03
+s1: pub hb    t=3355782857 - 09 0C 02 00
+GP28: min=3119 max=4075   (dark above 840, light below 610)
+obstacle:  90 deg  echo  5535 us  status 0  -> 95 cm
+DEMO: t= 5058  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L= 120 R=  52  dist=  414
+obstacle:  90 deg  echo  5509 us  status 0  -> 95 cm
+raw L=2313 C=2382 R=4081  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5429 us  status 0  -> 94 cm
+monitor: batch  n=45 last=40 from core 1
+monitor: t=3355783100 ms  samples=45  min=0 max=100 avg=46  free slots=4  free blocks=4
+obstacle:  90 deg  echo  5798 us  status 0  -> 100 cm
+obstacle:  90 deg  echo  5575 us  status 0  -> 96 cm
+raw L=3578 C=3666 R=4049  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5424 us  status 0  -> 94 cm
+obstacle:  90 deg  echo  5575 us  status 0  -> 96 cm
+s1: pub telem t=3355783357 - 01 82 00 02 00 02 08 00 80 03 20 FF FE F3 03
+obstacle:  90 deg  echo  5484 us  status 0  -> 95 cm
+obstacle:  90 deg  echo  5571 us  status 0  -> 96 cm
+raw L=4024 C=4037 R=4070  zone=5 jn=1 lost=0
+DEMO: t= 5578  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L= 116 R=  52  dist=  458
+obstacle:  90 deg  echo  5479 us  status 0  -> 94 cm
+obstacle:  90 deg  echo 45775 us  status 1  -> 511 cm
+obstacle:  90 deg  echo 45759 us  status 1  -> 511 cm
+raw L=4021 C=4033 R=4066  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo 45766 us  status 1  -> 511 cm
+obstacle:  90 deg  echo  2085 us  status 0  -> 36 cm
+obstacle:  90 deg  echo  5656 us  status 0  -> 98 cm
+raw L=4018 C=4038 R=4060  zone=5 jn=1 lost=0
+s1: pub telem t=3355783857 - 01 87 00 02 00 02 08 00 80 13 20 FF FE F3 03
+s1: pub hb    t=3355783858 - 09 0D 02 00
+GP28: min=4001 max=4095   (dark above 840, light below 610)
+obstacle:  90 deg  echo  2101 us  status 0  -> 36 cm
+obstacle:  90 deg  echo  5515 us  status 0  -> 95 cm
+DEMO: t= 6078  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L= 110 R=  51  dist=  499
+obstacle:  90 deg  echo  5717 us  status 0  -> 99 cm
+raw L=4001 C=4045 R=4057  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5576 us  status 0  -> 96 cm
+obstacle:  90 deg  echo  1954 us  status 0  -> 34 cm
+obstacle:  90 deg  echo  5566 us  status 0  -> 96 cm
+raw L=4025 C=4026 R=4069  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5667 us  status 0  -> 98 cm
+s1: pub telem t=3355784357 - 01 8C 00 02 00 02 08 00 80 23 20 FF FE F3 03
+obstacle:  90 deg  echo  1721 us  status 0  -> 30 cm
+obstacle:  90 deg  echo  1736 us  status 0  -> 30 cm
+safety: INHIBIT set (faults 0x0, obstacle state 1)
+raw L=4013 C=4037 R=4072  zone=5 jn=1 lost=0
+DEMO: motion state 5
+DEMO: t= 6578  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=  39 R=  17  dist=  538
+monitor: batch  n=50 last=90 from core 1
+monitor: t=3355784605 ms  samples=50  min=0 max=100 avg=49  free slots=4  free blocks=4
+raw L=4011 C=4048 R=4065  zone=5 jn=1 lost=0
+obstacle:  30 deg  echo  7422 us  status 0  -> 128 cm
+obstacle:  30 deg  echo  5074 us  status 0  -> 87 cm
+raw L=4018 C=4029 R=4066  zone=5 jn=1 lost=0
+s1: pub telem t=3355784857 - 01 91 00 02 00 02 08 00 80 33 20 FF FE F3 03
+s1: pub hb    t=3355784858 - 09 0E 02 00
+GP28: min=4034 max=4081   (dark above 840, light below 610)
+obstacle:  30 deg  echo  7563 us  status 0  -> 130 cm
+DEMO: t= 7078  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+raw L=4011 C=4041 R=4072  zone=5 jn=1 lost=0
+obstacle:  60 deg  echo  5601 us  status 0  -> 97 cm
+obstacle:  60 deg  echo  5581 us  status 0  -> 96 cm
+obstacle:  60 deg  echo  5601 us  status 0  -> 97 cm
+raw L=4014 C=4032 R=4053  zone=5 jn=1 lost=0
+s1: pub telem t=3355785357 - 01 96 00 02 00 02 08 00 80 43 30 FF FE F3 03
+obstacle:  90 deg  echo  1438 us  status 0  -> 25 cm
+raw L=4018 C=4047 R=4066  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  1437 us  status 0  -> 25 cm
+DEMO: t= 7578  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+obstacle:  90 deg  echo  1463 us  status 0  -> 25 cm
+raw L=4013 C=4041 R=4051  zone=5 jn=1 lost=0
+obstacle: 120 deg  echo 45799 us  status 1  -> 511 cm
+obstacle: 120 deg  echo 45614 us  status 1  -> 511 cm
+raw L=4022 C=4025 R=4064  zone=5 jn=1 lost=0
+obstacle: 120 deg  echo 45659 us  status 1  -> 511 cm
+s1: pub telem t=3355785858 - 01 9B 00 02 00 02 08 00 80 53 30 FF FE F3 03
+s1: pub hb    t=3355785858 - 09 0F 02 00
+GP28: min=4034 max=4080   (dark above 840, light below 610)
+DEMO: t= 8078  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+raw L=4016 C=4038 R=4056  zone=5 jn=1 lost=0
+obstacle: 150 deg  echo  7801 us  status 0  -> 135 cm
+obstacle: 150 deg  echo 45492 us  status 1  -> 511 cm
+monitor: batch  n=55 last=60 from core 1
+monitor: t=3355786110 ms  samples=55  min=0 max=100 avg=51  free slots=4  free blocks=4
+obstacle: 150 deg  echo 45669 us  status 1  -> 511 cm
+raw L=4006 C=4038 R=4059  zone=5 jn=1 lost=0
+s1: pub telem t=3355786357 - 01 A0 00 02 00 02 08 00 80 63 30 FF FE F3 03
+obstacle: 105 deg  echo 45745 us  status 1  -> 511 cm
+raw L=4005 C=4040 R=4067  zone=5 jn=1 lost=0
+DEMO: t= 8578  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+obstacle: 105 deg  echo  1529 us  status 0  -> 26 cm
+obstacle: 105 deg  echo  1453 us  status 0  -> 25 cm
+raw L=4019 C=4035 R=4073  zone=5 jn=1 lost=0
+obstacle:  75 deg  echo  1412 us  status 0  -> 24 cm
+obstacle:  75 deg  echo  1488 us  status 0  -> 26 cm
+raw L=4025 C=4048 R=4058  zone=5 jn=1 lost=0
+s1: pub telem t=3355786857 - 01 A5 00 02 00 02 08 00 80 73 30 FF FE F3 03
+s1: pub hb    t=3355786858 - 09 10 02 00
+GP28: min=4033 max=4078   (dark above 840, light below 610)
+obstacle:  75 deg  echo  1493 us  status 0  -> 26 cm
+obstacle: PROFILE seq 1 detected 1 closest 25 cm @90 deg, width 6 cm (+/-6), planned 21 cm, left 22 cm, right 21 cm, action 1, objects 1, scan 2524 ms
+DEMO: t= 9078  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+raw L=4014 C=4036 R=4067  zone=5 jn=1 lost=0
+raw L=4018 C=4040 R=4069  zone=5 jn=1 lost=0
+s1: pub telem t=3355787357 - 01 AA 00 02 00 02 08 00 80 83 30 FF FE F3 03
+raw L=4005 C=4033 R=4058  zone=5 jn=1 lost=0
+DEMO: t= 9598  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+monitor: batch  n=60 last=10 from core 1
+monitor: t=3355787615 ms  samples=60  min=0 max=100 avg=50  free slots=4  free blocks=4
+monitor: LED task resumed, state=WAIT, pri=22
+raw L=4024 C=4040 R=4045  zone=5 jn=1 lost=0
+raw L=4009 C=4047 R=4066  zone=5 jn=1 lost=0
+s1: pub telem t=3355787857 - 01 AF 00 02 00 02 08 00 80 93 30 FF FE F3 03
+s1: pub hb    t=3355787858 - 09 11 02 00
+GP28: min=4034 max=4080   (dark above 840, light below 610)
+DEMO: t=10098  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+raw L=4018 C=4044 R=4069  zone=5 jn=1 lost=0
+raw L=4014 C=4046 R=4053  zone=5 jn=1 lost=0
+s1: pub telem t=3355788357 - 01 B4 00 02 00 02 08 00 80 A3 30 FF FE F3 03
+raw L=4005 C=4037 R=4053  zone=5 jn=1 lost=0
+DEMO: t=10598  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+obstacle:  90 deg  echo  5667 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5834 us  status 0  -> 101 cm
+obstacle:  90 deg  echo  5662 us  status 0  -> 98 cm
+raw L=4025 C=4042 R=4065  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5753 us  status 0  -> 99 cm
+obstacle:  90 deg  echo  5778 us  status 0  -> 100 cm
+obstacle:  90 deg  echo  6051 us  status 0  -> 104 cm
+raw L=4021 C=4038 R=4053  zone=5 jn=1 lost=0
+s1: pub telem t=3355788857 - 01 B9 00 02 00 02 08 00 80 B3 30 FF FE F3 03
+s1: pub hb    t=3355788858 - 09 12 02 00
+GP28: min=4035 max=4080   (dark above 840, light below 610)
+obstacle:  90 deg  echo 45672 us  status 1  -> 511 cm
+safety: inhibit released (a newer epoch is needed to move)
+obstacle:  90 deg  echo  5692 us  status 0  -> 98 cm
+DEMO: t=11098  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+obstacle:  90 deg  echo  5687 us  status 0  -> 98 cm
+raw L=4014 C=4033 R=4048  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5692 us  status 0  -> 98 cm
+monitor: batch  n=65 last=40 from core 1
+monitor: t=3355789120 ms  samples=65  min=0 max=100 avg=47  free slots=4  free blocks=4
+obstacle:  90 deg  echo  5935 us  status 0  -> 102 cm
+obstacle:  90 deg  echo  5662 us  status 0  -> 98 cm
+raw L=4017 C=4036 R=4061  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5662 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5636 us  status 0  -> 97 cm
+s1: pub telem t=3355789358 - 01 BE 00 02 00 02 08 00 80 C3 30 FF FE F3 03
+obstacle:  90 deg  echo  5712 us  status 0  -> 98 cm
+raw L=4019 C=4028 R=4060  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5616 us  status 0  -> 97 cm
+DEMO: t=11598  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+obstacle:  90 deg  echo  5789 us  status 0  -> 100 cm
+obstacle:  90 deg  echo  5591 us  status 0  -> 96 cm
+raw L=4024 C=4029 R=4068  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5667 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5647 us  status 0  -> 97 cm
+obstacle:  90 deg  echo  5672 us  status 0  -> 98 cm
+raw L=4022 C=4045 R=4058  zone=5 jn=1 lost=0
+s1: pub telem t=3355789857 - 01 C3 00 02 00 02 08 00 80 D3 30 FF FE F3 03
+s1: pub hb    t=3355789858 - 09 13 02 00
+GP28: min=4033 max=4081   (dark above 840, light below 610)
+obstacle:  90 deg  echo  5647 us  status 0  -> 97 cm
+obstacle:  90 deg  echo  5697 us  status 0  -> 98 cm
+s1: pub evt   t=3355789957 - 11 0E 01
+DEMO: t=12098  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+obstacle:  90 deg  echo  5647 us  status 0  -> 97 cm
+raw L=4009 C=4041 R=4062  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  1584 us  status 0  -> 27 cm
+obstacle:  90 deg  echo  1463 us  status 0  -> 25 cm
+safety: INHIBIT set (faults 0x0, obstacle state 1)
+raw L=4003 C=4046 R=4055  zone=5 jn=1 lost=0
+s1: pub telem t=3355790357 - 01 C8 00 01 00 02 08 00 80 E3 40 FF FE F3 03
+raw L=4018 C=4049 R=4068  zone=5 jn=1 lost=0
+obstacle:  30 deg  echo  5145 us  status 0  -> 89 cm
+DEMO: t=12598  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+obstacle:  30 deg  echo  6259 us  status 0  -> 108 cm
+obstacle:  30 deg  echo  5419 us  status 0  -> 93 cm
+monitor: batch  n=70 last=90 from core 1
+monitor: t=3355790625 ms  samples=70  min=0 max=100 avg=49  free slots=4  free blocks=4
+raw L=4017 C=4032 R=4056  zone=5 jn=1 lost=0
+obstacle:  60 deg  echo  1347 us  status 0  -> 23 cm
+raw L=4009 C=4023 R=4076  zone=5 jn=1 lost=0
+s1: pub telem t=3355790857 - 01 CD 00 01 00 02 08 00 80 F3 40 FF FE F3 03
+s1: pub hb    t=3355790858 - 09 14 01 00
+GP28: min=4036 max=4080   (dark above 840, light below 610)
+obstacle:  60 deg  echo  1347 us  status 0  -> 23 cm
+obstacle:  60 deg  echo  1347 us  status 0  -> 23 cm
+DEMO: t=13098  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+raw L=4021 C=4042 R=4054  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  1433 us  status 0  -> 25 cm
+obstacle:  90 deg  echo  1458 us  status 0  -> 25 cm
+raw L=4012 C=4046 R=4065  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  1433 us  status 0  -> 25 cm
+s1: pub telem t=3355791357 - 01 D2 00 01 00 02 08 00 80 03 41 FF FE F3 03
+raw L=4024 C=4038 R=4056  zone=5 jn=1 lost=0
+obstacle: 120 deg  echo 45659 us  status 1  -> 511 cm
+DEMO: t=13598  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+obstacle: 120 deg  echo  7766 us  status 0  -> 134 cm
+obstacle: 120 deg  echo  7691 us  status 0  -> 133 cm
+raw L=4025 C=4044 R=4068  zone=5 jn=1 lost=0
+obstacle: 150 deg  echo  5176 us  status 0  -> 89 cm
+obstacle: 150 deg  echo  5171 us  status 0  -> 89 cm
+raw L=4018 C=4050 R=4053  zone=5 jn=1 lost=0
+s1: pub telem t=3355791857 - 01 D7 00 01 00 02 08 00 80 13 41 FF FE F3 03
+s1: pub hb    t=3355791858 - 09 15 01 00
+GP28: min=3882 max=4078   (dark above 840, light below 610)
+obstacle: 150 deg  echo  5267 us  status 0  -> 91 cm
+DEMO: t=14098  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+raw L=4011 C=4047 R=4080  zone=5 jn=1 lost=0
+monitor: batch  n=75 last=60 from core 1
+monitor: t=3355792130 ms  samples=75  min=0 max=100 avg=51  free slots=4  free blocks=4
+obstacle: 105 deg  echo 45758 us  status 1  -> 511 cm
+obstacle: 105 deg  echo 45748 us  status 1  -> 511 cm
+raw L=4021 C=4030 R=4068  zone=5 jn=1 lost=0
+obstacle: 105 deg  echo 45762 us  status 1  -> 511 cm
+s1: pub telem t=3355792357 - 01 DC 00 01 00 02 08 00 80 23 41 FF FE F3 03
+raw L=4025 C=4037 R=4069  zone=5 jn=1 lost=0
+obstacle:  75 deg  echo  1402 us  status 0  -> 24 cm
+DEMO: t=14598  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+obstacle:  75 deg  echo  1397 us  status 0  -> 24 cm
+obstacle:  75 deg  echo  1397 us  status 0  -> 24 cm
+raw L=4026 C=4048 R=4062  zone=5 jn=1 lost=0
+obstacle:  45 deg  echo  4781 us  status 0  -> 82 cm
+raw L=4013 C=4044 R=4053  zone=5 jn=1 lost=0
+obstacle:  45 deg  echo  5697 us  status 0  -> 98 cm
+s1: pub telem t=3355792858 - 01 E1 00 01 00 02 08 00 80 33 41 FF FE F3 03
+s1: pub hb    t=3355792858 - 09 16 01 00
+GP28: min=3907 max=4080   (dark above 840, light below 610)
+obstacle:  45 deg  echo  3932 us  status 0  -> 68 cm
+DEMO: t=15098  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+raw L=4027 C=4040 R=4054  zone=5 jn=1 lost=0
+obstacle: PROFILE seq 2 detected 1 closest 23 cm @60 deg, width 6 cm (+/-6), planned 20 cm, left 16 cm, right 26 cm, action 2, objects 1, scan 2986 ms
+raw L=4011 C=4040 R=4068  zone=5 jn=1 lost=0
+s1: pub telem t=3355793357 - 01 E6 00 01 00 02 08 00 80 43 41 FF FE F3 03
+raw L=4019 C=4037 R=4062  zone=5 jn=1 lost=0
+DEMO: t=15598  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+monitor: batch  n=80 last=10 from core 1
+monitor: t=3355793635 ms  samples=80  min=0 max=100 avg=50  free slots=4  free blocks=4
+raw L=4014 C=4040 R=4056  zone=5 jn=1 lost=0
+raw L=4021 C=4049 R=4053  zone=5 jn=1 lost=0
+s1: pub telem t=3355793857 - 01 EB 00 01 00 02 08 00 80 53 41 FF FE F3 03
+s1: pub hb    t=3355793858 - 09 17 01 00
+GP28: min=3984 max=4082   (dark above 840, light below 610)
+DEMO: t=16098  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+raw L=4005 C=4035 R=4056  zone=5 jn=1 lost=0
+raw L=4010 C=4029 R=4057  zone=5 jn=1 lost=0
+s1: pub telem t=3355794357 - 01 F0 00 01 00 02 08 00 80 63 41 FF FE F3 03
+raw L=4014 C=4032 R=4059  zone=5 jn=1 lost=0
+DEMO: t=16598  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+raw L=4017 C=4046 R=4059  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  1468 us  status 0  -> 25 cm
+obstacle:  90 deg  echo  1443 us  status 0  -> 25 cm
+raw L=4024 C=4033 R=4055  zone=5 jn=1 lost=0
+s1: pub telem t=3355794857 - 01 F5 00 01 00 02 08 00 80 73 41 FF FE F3 03
+s1: pub hb    t=3355794858 - 09 18 01 00
+GP28: min=3917 max=4083   (dark above 840, light below 610)
+DEMO: t=17098  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+raw L=4011 C=4043 R=4061  zone=5 jn=1 lost=0
+obstacle:  30 deg  echo 45652 us  status 1  -> 511 cm
+monitor: batch  n=85 last=40 from core 1
+monitor: t=3355795140 ms  samples=85  min=0 max=100 avg=48  free slots=4  free blocks=4
+obstacle:  30 deg  echo 45686 us  status 1  -> 511 cm
+obstacle:  30 deg  echo 45669 us  status 1  -> 511 cm
+raw L=4014 C=4042 R=4055  zone=5 jn=1 lost=0
+s1: pub telem t=3355795357 - 01 FA 00 01 00 02 08 00 80 83 51 FF FE F3 03
+obstacle:  60 deg  echo  1615 us  status 0  -> 28 cm
+raw L=4013 C=4034 R=4059  zone=5 jn=1 lost=0
+obstacle:  60 deg  echo  1544 us  status 0  -> 27 cm
+DEMO: t=17598  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+obstacle:  60 deg  echo  1473 us  status 0  -> 25 cm
+raw L=4013 C=4034 R=4062  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  1524 us  status 0  -> 26 cm
+obstacle:  90 deg  echo  1549 us  status 0  -> 27 cm
+raw L=4025 C=4035 R=4068  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  1468 us  status 0  -> 25 cm
+s1: pub telem t=3355795857 - 01 FF 00 01 00 02 08 00 80 93 51 FF FE F3 03
+s1: pub hb    t=3355795858 - 09 19 01 00
+GP28: min=4024 max=4082   (dark above 840, light below 610)
+DEMO: t=18098  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+raw L=4019 C=4036 R=4076  zone=5 jn=1 lost=0
+obstacle: 120 deg  echo 45678 us  status 1  -> 511 cm
+obstacle: 120 deg  echo 45669 us  status 1  -> 511 cm
+obstacle: 120 deg  echo 45669 us  status 1  -> 511 cm
+raw L=4025 C=4048 R=4051  zone=5 jn=1 lost=0
+s1: pub telem t=3355796357 - 01 04 01 01 00 02 08 00 80 03 50 FF FE F3 03
+obstacle: 150 deg  echo  5227 us  status 0  -> 90 cm
+obstacle: 150 deg  echo  5252 us  status 0  -> 91 cm
+raw L=4026 C=4042 R=4063  zone=5 jn=1 lost=0
+obstacle: 150 deg  echo  5277 us  status 0  -> 91 cm
+DEMO: t=18598  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+raw L=4027 C=4043 R=4068  zone=5 jn=1 lost=0
+monitor: batch  n=90 last=90 from core 1
+monitor: t=3355796645 ms  samples=90  min=0 max=100 avg=49  free slots=4  free blocks=4
+monitor: LED task paused, state=WAIT+SUSPEND, pri=23
+obstacle: 105 deg  echo  1458 us  status 0  -> 25 cm
+obstacle: 105 deg  echo  1483 us  status 0  -> 26 cm
+raw L=4015 C=4037 R=4062  zone=5 jn=1 lost=0
+s1: pub telem t=3355796857 - 01 09 01 01 00 02 08 00 80 13 50 FF FE F3 03
+s1: pub hb    t=3355796858 - 09 1A 01 00
+GP28: min=3918 max=4082   (dark above 840, light below 610)
+obstacle: 105 deg  echo  1458 us  status 0  -> 25 cm
+DEMO: t=19098  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+raw L=4016 C=4047 R=4057  zone=5 jn=1 lost=0
+obstacle:  75 deg  echo  1483 us  status 0  -> 26 cm
+obstacle:  75 deg  echo  1458 us  status 0  -> 25 cm
+obstacle:  75 deg  echo  1458 us  status 0  -> 25 cm
+raw L=4026 C=4048 R=4072  zone=5 jn=1 lost=0
+s1: pub telem t=3355797357 - 01 0E 01 01 00 02 08 00 80 23 50 FF FE F3 03
+obstacle:  45 deg  echo  1519 us  status 0  -> 26 cm
+raw L=4013 C=4046 R=4074  zone=5 jn=1 lost=0
+obstacle:  45 deg  echo  1615 us  status 0  -> 28 cm
+DEMO: t=19598  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+obstacle:  45 deg  echo 45704 us  status 1  -> 511 cm
+raw L=4021 C=4038 R=4054  zone=5 jn=1 lost=0
+obstacle: PROFILE seq 3 detected 1 closest 25 cm @75 deg, width 20 cm (+/-6), planned 36 cm, left 22 cm, right 36 cm, action 2, objects 1, scan 2986 ms
+raw L=4028 C=4049 R=4076  zone=5 jn=1 lost=0
+s1: pub telem t=3355797857 - 01 13 01 01 00 02 08 00 80 33 50 FF FE F3 03
+s1: pub hb    t=3355797858 - 09 1B 01 00
+GP28: min=3971 max=4083   (dark above 840, light below 610)
+DEMO: t=20098  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+raw L=4022 C=4047 R=4077  zone=5 jn=1 lost=0
+monitor: batch  n=95 last=60 from core 1
+monitor: t=3355798150 ms  samples=95  min=0 max=100 avg=51  free slots=4  free blocks=4
+raw L=4024 C=4044 R=4080  zone=5 jn=1 lost=0
+s1: pub telem t=3355798357 - 01 18 01 01 00 02 08 00 80 43 50 FF FE F3 03
+raw L=4025 C=4025 R=4061  zone=5 jn=1 lost=0
+DEMO: t=20598  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+raw L=4022 C=4037 R=4079  zone=5 jn=1 lost=0
+raw L=4016 C=4038 R=4064  zone=5 jn=1 lost=0
+s1: pub telem t=3355798857 - 01 1D 01 01 00 02 08 00 80 53 50 FF FE F3 03
+s1: pub hb    t=3355798858 - 09 1C 01 00
+GP28: min=4035 max=4081   (dark above 840, light below 610)
+DEMO: t=21098  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+raw L=4026 C=4050 R=4057  zone=5 jn=1 lost=0
+raw L=4026 C=4038 R=4068  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5738 us  status 0  -> 99 cm
+obstacle:  90 deg  echo  5758 us  status 0  -> 99 cm
+s1: pub telem t=3355799357 - 01 22 01 01 00 02 08 00 80 63 50 FF FE F3 03
+obstacle:  90 deg  echo  5808 us  status 0  -> 100 cm
+raw L=4027 C=4037 R=4068  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5762 us  status 0  -> 99 cm
+DEMO: t=21619  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+obstacle:  90 deg  echo  5712 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5914 us  status 0  -> 102 cm
+raw L=4024 C=4041 R=4064  zone=5 jn=1 lost=0
+monitor: batch  n=100 last=10 from core 1
+monitor: t=3355799655 ms  samples=100  min=0 max=100 avg=50  free slots=4  free blocks=4
+obstacle:  90 deg  echo  5681 us  status 0  -> 98 cm
+safety: inhibit released (a newer epoch is needed to move)
+obstacle:  90 deg  echo  5778 us  status 0  -> 100 cm
+obstacle:  90 deg  echo  5682 us  status 0  -> 98 cm
+raw L=4025 C=4032 R=4065  zone=5 jn=1 lost=0
+s1: pub telem t=3355799857 - 01 27 01 01 00 02 08 00 80 73 50 FF FE F3 03
+s1: pub hb    t=3355799858 - 09 1D 01 00
+GP28: min=4033 max=4080   (dark above 840, light below 610)
+obstacle:  90 deg  echo  5732 us  status 0  -> 99 cm
+obstacle:  90 deg  echo  5702 us  status 0  -> 98 cm
+s1: pub evt   t=3355799957 - 11 96 00
+obstacle:  90 deg  echo  5798 us  status 0  -> 100 cm
+raw L=4007 C=4048 R=4057  zone=5 jn=1 lost=0
+DEMO: t=22138  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+obstacle:  90 deg  echo  5777 us  status 0  -> 100 cm
+obstacle:  90 deg  echo  5874 us  status 0  -> 101 cm
+obstacle:  90 deg  echo  5778 us  status 0  -> 100 cm
+raw L=4019 C=4048 R=4073  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5762 us  status 0  -> 99 cm
+obstacle:  90 deg  echo  5712 us  status 0  -> 98 cm
+s1: pub telem t=3355800357 - 01 2C 01 02 00 02 08 00 80 83 60 2A FE F3 03
+obstacle:  90 deg  echo  5717 us  status 0  -> 99 cm
+raw L=4011 C=4048 R=4075  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5717 us  status 0  -> 99 cm
+obstacle:  90 deg  echo  5692 us  status 0  -> 98 cm
+DEMO: t=22639  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+obstacle:  90 deg  echo  5960 us  status 0  -> 103 cm
+raw L=4024 C=4032 R=4068  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5909 us  status 0  -> 102 cm
+obstacle:  90 deg  echo  5763 us  status 0  -> 99 cm
+obstacle:  90 deg  echo  5763 us  status 0  -> 99 cm
+raw L=4018 C=4044 R=4060  zone=5 jn=1 lost=0
+s1: pub telem t=3355800857 - 01 31 01 02 00 02 08 00 80 93 60 2A FE F3 03
+s1: pub hb    t=3355800858 - 09 1E 02 00
+GP28: min=4033 max=4081   (dark above 840, light below 610)
+obstacle:  90 deg  echo  5914 us  status 0  -> 102 cm
+obstacle:  90 deg  echo  5692 us  status 0  -> 98 cm
+obstacle:  90 deg  echo  5707 us  status 0  -> 98 cm
+raw L=4013 C=4043 R=4070  zone=5 jn=1 lost=0
+DEMO: t=23158  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+obstacle:  90 deg  echo  5960 us  status 0  -> 103 cm
+obstacle:  90 deg  echo  5798 us  status 0  -> 100 cm
+monitor: batch  n=105 last=40 from core 1
+monitor: t=3355801160 ms  samples=105  min=0 max=100 avg=48  free slots=4  free blocks=4
+obstacle:  90 deg  echo  6016 us  status 0  -> 104 cm
+raw L=4024 C=4046 R=4053  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5798 us  status 0  -> 100 cm
+obstacle:  90 deg  echo  5783 us  status 0  -> 100 cm
+s1: pub telem t=3355801357 - 01 36 01 02 00 02 08 00 80 A3 60 2A FE F3 03
+obstacle:  90 deg  echo  5909 us  status 0  -> 102 cm
+raw L=4026 C=4049 R=4072  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5864 us  status 0  -> 101 cm
+obstacle:  90 deg  echo  5919 us  status 0  -> 102 cm
+DEMO: t=23658  zone=5 lost=0  cmd   80 mm/s steer   30  wheels L=   0 R=   0  dist=  539
+obstacle:  90 deg  echo  6016 us  status 0  -> 104 cm
+raw L=4018 C=4048 R=4069  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo  5793 us  status 0  -> 100 cm
+obstacle:  90 deg  echo  5889 us  status 0  -> 102 cm
+obstacle:  90 deg  echo  5904 us  status 0  -> 102 cm
+raw L=4013 C=4038 R=4058  zone=5 jn=1 lost=0
+obstacle:  90 deg  echo 45671 us  status 1  -> 511 cm
+s1: pub telem t=3355801858 - 01 3B 01 02 00 02 08 00 80 B3 60 2A FE F3 03
+s1: pub hb    t=3355801858 - 09 1F 02 00
+---- Closed the serial port COM3 ----
