@@ -1,0 +1,134 @@
+[HOST] S5-H01 PASS  echo time to cm (58 us/cm)
+[HOST] S5-H02 PASS  servo pulse 600/1500/2400 us and clamped
+[HOST] S5-H03 PASS  integer square root
+[HOST] S5-H04 PASS  clear scan: not detected, CONTINUE
+[HOST] S5-H05 PASS  cluster 5..7 found, closest 30 cm (tie: lowest index)
+[HOST] S5-H06 PASS  width about 8 cm (expected 7.8)
+[HOST] S5-H07 PASS  symmetric obstacle: clearances equal within 1 cm (integer rounding), tie goes right
+[HOST] S5-H08 PASS  obstacle on the right: left shift smaller, TURN_LEFT
+[HOST] S5-H09 PASS  obstacle on the left: right shift smaller, TURN_RIGHT
+[HOST] S5-H10 PASS  wall across all angles: partial, REVERSE_RETRY
+[HOST] S5-H11 PASS  closer than stop distance: STOP
+[HOST] S5-H12 PASS  single sample: partial, width = beam footprint
+[HOST] S5-H13 PASS  reading above detect_cm ignored
+[HOST] S5-H14a PASS  coarse hit at 6: next to measure are 5 and 7
+[HOST] S5-H14b PASS  index 4 already measured (coarse): right edge known
+[HOST] S5-H14c PASS  index 7 measured, not a hit: left edge known
+[HOST] S5-H15 PASS  obstacle at 0 degrees: no index below 0, next is 1
+[HOST] S5-H16 PASS  pack/unpack round trip at field limits
+[HOST] S5-H17 PASS  unused bits stay zero (31 + 18 bits used)
+[HOST] S5-H18 PASS  seq 16 wraps to 0 in 4 bits
+[HOST] S5-H19 PASS  median: outlier rejected, majority 'nothing' wins, n=1 and n=0 safe
+[HOST] S5-H20 PASS  reading equal to its background: not an obstacle
+[HOST] S5-H21 PASS  box in front of a wall: cluster 5..7, edges found against the wall
+[HOST] S5-H22a PASS  hysteresis: 4 cm closer extends the cluster, 2 cm closer does not
+[HOST] S5-H22b PASS  hysteresis: 4 cm closer alone cannot start an obstacle
+[HOST] S5-H23a PASS  no background: 53 cm (<= 50+5) stays in the cluster
+[HOST] S5-H23b PASS  no background: 57 cm is out of the cluster
+[HOST] S5-H24a PASS  3 background values ahead (5..7) forgotten
+[HOST] S5-H24b PASS  something 30 cm dead ahead at start-up is still an obstacle
+[HOST] S5-H25a PASS  measured width ~8 cm, planned ~25 cm (outer edge estimate, wider than the 20 cm floor): shift about 12 + 8 + 3
+[HOST] S5-H25b PASS  plan_width_cm = 0: the plan is still never narrower than the measured width
+[HOST] S5-H25c PASS  single sample at 30 cm: the 20 cm floor gives shift 10 + 8 + 3 = 21, without it about 15
+[HOST] S5-H25d PASS  a wide obstacle is never planned narrower than measured
+[HOST] S5-H26 PASS  width uncertainty at 30 cm is about +/-7 cm
+[HOST] S5-H27 sim 0..180 deg: 390 cases, 0 unsafe or missed, 0 reverse-retry/stop, worst clearance 3 cm
+[HOST] S5-H27 PASS  simulated boxes, full scan: every bypass clears the true edge, none missed
+[HOST] S5-H28 sim 60..120 deg: 390 cases, 0 unsafe or missed, 0 reverse-retry/stop, worst clearance 3 cm
+[HOST] S5-H28 PASS  simulated boxes, servo limited to 60..120 deg: every bypass clears the true edge, none missed
+[HOST] S5-H30 sim 30..150 deg: 390 cases, 0 unsafe or missed, 0 reverse-retry/stop, worst clearance 3 cm
+[HOST] S5-H30 PASS  simulated boxes, servo limited to 30..150 deg: every bypass clears the true edge, none missed
+[HOST] S5-H29 sim 45..135 deg: 390 cases, 0 unsafe or missed, 0 reverse-retry/stop, worst clearance 3 cm
+[HOST] S5-H29 PASS  simulated boxes, servo limited to 45..135 deg: every bypass clears the true edge, none missed
+[HOST] S5-H31 scan 2: clusters 3 closest 29 cm @90 deg, left 26 cm, right 510 cm, action 2
+[HOST] S5-H31 PASS  centre box + box on the right: turn LEFT (right is blocked by the second box)
+[HOST] S5-H32 scan 1: clusters 2 closest 31 cm @30 deg, left 510 cm, right 48 cm, action 3
+[HOST] S5-H32 PASS  boxes on both sides: neither side is free, REVERSE_RETRY (the old code said turn left 0 cm)
+[HOST] S5-H33 scan 3: clusters 1 width 38 cm, left 33 cm, right 48 cm, action 2
+[HOST] S5-H33 PASS  one wide obstacle from 30 to 120 deg: a single cluster, a bypass is chosen
+[HOST] S5-H34a PASS  from index 10: nearest unmeasured neighbour is 7
+[HOST] S5-H34b PASS  then 5
+[HOST] S5-H34c PASS  then 3 (between the two right-hand obstacles)
+[HOST] S5-H34d PASS  index 1 is outside the servo window: nothing left to measure
+[HOST] S5-H35 sim two boxes 30..150 deg: 980 cases, 0 unsafe or missed, 872 bypass chosen, 108 reverse-retry/stop
+[HOST] S5-H35 PASS  simulated TWO boxes: every chosen bypass clears both boxes, none missed
+[HOST] S5-H61a PASS  box dead ahead at 49 cm: creep 320 mm (to 17 cm)
+[HOST] S5-H61b PASS  closest point at 120 deg, 40 cm: 346 mm ahead, creep 176 mm
+[HOST] S5-H61c PASS  same at 60 deg (mirror)
+[HOST] S5-H62a PASS  gap 21 cm (above 20): creep 40 mm
+[HOST] S5-H62b PASS  gap 20 cm: inside the 15..20 band, no move
+[HOST] S5-H62c PASS  gap 15 cm: inside the band, no move
+[HOST] S5-H63a PASS  gap 14 cm (below 15): back away 30 mm
+[HOST] S5-H63b PASS  gap 10 cm: back away 70 mm
+[HOST] S5-H63c PASS  gap 5 cm: back away is limited to 100 mm
+[HOST] S5-H64a PASS  REVERSE_RETRY: no creep
+[HOST] S5-H64b PASS  STOP: no creep
+[HOST] S5-H64c PASS  CONTINUE: no creep
+[HOST] S5-H64d PASS  nothing detected: no creep
+[HOST] S5-H65 183 moves checked, 0 outside the band
+[HOST] S5-H65 PASS  every move ends with a gap of 16..18 cm; no move only when already about 14..20 cm (moves under 30 mm are skipped)
+[HOST] S5-H66 PASS  default band: aim 17 cm, back away below 15, creep above 20, guard 13, back at most 10 cm, trust readings from 3 cm
+[HOST] S5-H74a PASS  STOP at 6 cm: back away, limited to 100 mm
+[HOST] S5-H74b PASS  STOP at 3 cm (lowest trusted reading): back away 100 mm
+[HOST] S5-H74c PASS  STOP at 2 cm: reading not trusted, no move (the task faults)
+[HOST] S5-H74d PASS  STOP never creeps forward
+[HOST] S5-H74e PASS  bypass at 2 cm: reading not trusted, no move
+[HOST] subsystem5 SUMMARY 66 passed, 0 failed
+[HOST] S5-H36 PASS  no fault, obstacle idle: the robot is free to move
+[HOST] S5-H37 PASS  fault bit: latch set at once, exactly that bit cleared
+[HOST] S5-H38a PASS  still held 2999 ms after the fault
+[HOST] S5-H38b PASS  released at 3000 ms; a non-obstacle fault does not reset Obstacle Detection
+[HOST] S5-H39a PASS  obstacle fault: latch set, bit cleared
+[HOST] S5-H39b PASS  released: Obstacle Detection told to re-initialise
+[HOST] S5-H40 PASS  obstacle states 1..3 (scanning, profiling) hold the robot; 0 and 4..7 do not
+[HOST] S5-H41a PASS  100 ms after the scan: still held
+[HOST] S5-H41b PASS  500 ms after the last scan state: released
+[HOST] S5-H42a PASS  second fault at 2000 ms: not released at 4999 ms
+[HOST] S5-H42b PASS  released 3000 ms after the second fault
+[HOST] S5-H43a PASS  across the wrap: still held at 2999 ms
+[HOST] S5-H43b PASS  across the wrap: released at 3000 ms
+[HOST] S5-H44 PASS  flag bits above bit 3 are not ours: ignored
+[HOST] S5-H45 PASS  a 10 s scan never releases the latch
+[HOST] S5-H46a PASS  fault during a scan: held for the fault time
+[HOST] S5-H46b PASS  then released
+[HOST] safety SUMMARY 17 passed, 0 failed
+[HOST] S5-H47 PASS  line centred: DRIVE 100 mm/s, steer 0, epoch unchanged
+[HOST] S5-H48a PASS  zone 5: 80 mm/s steer +30 (same as the logged car run)
+[HOST] S5-H48b PASS  zone 3: 80 mm/s steer -30
+[HOST] S5-H49 PASS  zone 4 then 5: P 30 + D 20 = steer 50
+[HOST] S5-H50 PASS  zone 7 after 4: steer limited to 120, speed 40 (minimum)
+[HOST] S5-H51a PASS  lost, last zone 5: 40 mm/s, turn +100
+[HOST] S5-H51b PASS  lost, last zone 3: 40 mm/s, turn -100
+[HOST] S5-H52a PASS  lost for 1480 ms: still searching
+[HOST] S5-H52b PASS  lost for 1500 ms: STOP
+[HOST] S5-H52c PASS  the line comes back: still stopped (RESET needed)
+[HOST] S5-H53 PASS  line sensor silent: STOP, same epoch
+[HOST] S5-H54 PASS  obstacle states 1, 2, 3: STOP, held, epoch +1 once (same epoch all through the hold)
+[HOST] S5-H55 PASS  obstacle idle again: DRIVE with the newer epoch
+[HOST] S5-H56a PASS  stop latch set, obstacle idle: held, epoch +1
+[HOST] S5-H56b PASS  latch released: drive on, epoch 6
+[HOST] S5-H57 PASS  epoch 15 + 1 wraps to 0 (4 bits)
+[HOST] S5-H58 PASS  two separate holds: epoch 2 -> 3 -> 4
+[HOST] S5-H59 PASS  first cycle after a hold: P only (steer 30, not 50)
+[HOST] S5-H60 PASS  every Obstacle Detection state except idle holds the car
+[HOST] S5-H67a PASS  creep order +320 mm, line centred: DRIVE 40 mm/s, steer 0, not done
+[HOST] S5-H67b PASS  319 mm travelled: still going
+[HOST] S5-H67c PASS  320 mm travelled: STOP, creep_done
+[HOST] S5-H67d PASS  done stays done while the order is open
+[HOST] S5-H68a PASS  line one zone to the left: steer +12 (30 x 40 / 100)
+[HOST] S5-H68b PASS  line one zone to the right: steers the other way
+[HOST] S5-H68c PASS  no new line message: same speed and steer as before
+[HOST] S5-H69a PASS  back-away order -60 mm: DRIVE -40 mm/s, steer 1 (not 0: keeps the S2 straight-line hold off)
+[HOST] S5-H69b PASS  59 mm backwards (across the 16 bit wrap): still going
+[HOST] S5-H69c PASS  60 mm backwards: STOP, creep_done
+[HOST] S5-H70a PASS  creep order but scanning: held, epoch +1, nothing counted
+[HOST] S5-H70b PASS  stop latch set: still held, same epoch
+[HOST] S5-H70c PASS  latch released: the creep starts, newer epoch
+[HOST] S5-H70d PASS  counted from the start of the creep (2015), not from 2000
+[HOST] S5-H70e PASS  320 mm after the start: done
+[HOST] S5-H71a PASS  line sensor silent: no creep blind, not done
+[HOST] S5-H71b PASS  line lost for 1480 ms: still searching at 40 mm/s
+[HOST] S5-H71c PASS  line lost for 1500 ms: STOP and creep_done (rescan)
+[HOST] S5-H72 PASS  odometry 5 mm backwards at the start: not done
+[HOST] S5-H73 PASS  line again after a creep: back to line speed, P only (steer 30, not 50)
+[HOST] vehicle controller SUMMARY 39 passed, 0 failed

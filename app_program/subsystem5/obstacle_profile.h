@@ -65,6 +65,9 @@ typedef struct {
 					   this much closer (smaller than bg_enter_cm = hysteresis) */
 	uint16_t detect_hyst_cm;	/* no background: enter at detect_cm, keep going up to
 					   detect_cm + this */
+	uint16_t cluster_jump_cm;	/* a neighbouring angle joins the obstacle only if it is at
+					   most this much FARTHER than the reading next to it (a far
+					   wall behind a box is not part of the box) */
 	uint16_t approach_cm;		/* after the first scan the car moves to this gap
 					   and scans again from there (the middle of the band) */
 	uint16_t approach_near_cm;	/* gap below this: back away (band lower end) */
@@ -107,10 +110,17 @@ void obs_cfg_default(OBS_CFG *cfg);
 void obs_scan_init(OBS_SCAN *s);	/* clears the readings AND the background */
 void obs_scan_clear(OBS_SCAN *s);	/* clears the readings, keeps the background */
 void obs_scan_set_bg(OBS_SCAN *s, unsigned idx, uint16_t cm);
-/* The path straight ahead (indices 5..7) must be empty when the background is
-   taken. If a background value there is within detect range, forget it (so a
-   real obstacle can never be hidden as "background"). Returns how many. */
+/* The path ahead must be empty when the background is taken. A background value
+   is forgotten (so a real obstacle can never be hidden as "background") when it
+   is within detect range and either at indices 5..7, or on any other angle
+   inside the car's path (sideways reach at most robot_half_width_cm + margin_cm).
+   Returns how many. */
 unsigned obs_bg_clear_ahead(OBS_SCAN *s, const OBS_CFG *cfg);
+/* The car has moved since the background was taken. A background distance cannot
+   be carried to the new place (the same ray hits a different part of the wall,
+   and a wall along the path reads the same everywhere), so forget all of it: from
+   now on everything within detect range counts, which is the safe direction. */
+void obs_bg_forget(OBS_SCAN *s);
 /* Median of n (1..5) readings. OBS_DIST_NONE counts as the largest value, so
    one stray reading never wins and a majority of "nothing" gives "nothing". */
 uint16_t obs_median(const uint16_t *v, unsigned n);

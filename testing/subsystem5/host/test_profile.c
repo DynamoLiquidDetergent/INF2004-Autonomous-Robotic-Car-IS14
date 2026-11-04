@@ -278,10 +278,10 @@ int main(void)
 	CHECK("S5-H22b", !p.detected, "hysteresis: 4 cm closer alone cannot start an obstacle");
 
 	/* S5-H23 hysteresis without a background: enter 50, stay up to 55 */
-	{ int ix[] = {6,7}, cm[] = {40,53}; scan_with(&s, ix, cm, 2); }
+	{ int ix[] = {6,7}, cm[] = {46,53}; scan_with(&s, ix, cm, 2); }
 	obs_profile(&s, &cfg, &p);
 	CHECK("S5-H23a", p.detected && p.idx_left == 7, "no background: 53 cm (<= 50+5) stays in the cluster");
-	{ int ix[] = {6,7}, cm[] = {40,57}; scan_with(&s, ix, cm, 2); }
+	{ int ix[] = {6,7}, cm[] = {46,57}; scan_with(&s, ix, cm, 2); }
 	obs_profile(&s, &cfg, &p);
 	CHECK("S5-H23b", p.detected && p.idx_left == 6, "no background: 57 cm is out of the cluster");
 
@@ -295,6 +295,99 @@ int main(void)
 	obs_scan_set(&s, 6, 30);
 	obs_profile(&s, &cfg, &p);
 	CHECK("S5-H24b", p.detected, "something 30 cm dead ahead at start-up is still an obstacle");
+
+	/* S5-H75 background inside the car's path is never trusted, whatever the angle
+	   (a box already in front at power-up showed 6..9 cm at 60 and 120 deg) */
+	obs_scan_init(&s);
+	obs_scan_set_bg(&s, 4, 7);
+	obs_scan_set_bg(&s, 8, 7);
+	obs_scan_set_bg(&s, 2, 9);
+	obs_scan_set_bg(&s, 3, 30);
+	CHECK("S5-H75a", obs_bg_clear_ahead(&s, &cfg) == 3 && s.bg_cm[4] == OBS_DIST_NONE &&
+	      s.bg_cm[8] == OBS_DIST_NONE && s.bg_cm[2] == OBS_DIST_NONE && s.bg_cm[3] == 30,
+	      "7 cm at 60/120 deg and 9 cm at 30 deg are inside the path: forgotten; 30 cm at 45 deg is 21 cm to the side: kept");
+	obs_scan_init(&s);
+	obs_scan_set_bg(&s, 4, 40);
+	obs_scan_set_bg(&s, 8, 40);
+	CHECK("S5-H75b", obs_bg_clear_ahead(&s, &cfg) == 0 && s.bg_cm[4] == 40 && s.bg_cm[8] == 40,
+	      "a wall 20 cm to the side (40 cm at 60/120 deg) is outside the path: stays background");
+	{ /* the M21 situation: box 15 cm ahead, already there when the background was taken at 7..8 cm */
+	  int ix[] = {4,5,6,7,8}, cm[] = {15,15,15,15,16};
+	  scan_with(&s, ix, cm, 5);
+	  obs_scan_set_bg(&s, 4, 8); obs_scan_set_bg(&s, 5, 7); obs_scan_set_bg(&s, 6, 7);
+	  obs_scan_set_bg(&s, 7, 7); obs_scan_set_bg(&s, 8, 8);
+	  obs_bg_clear_ahead(&s, &cfg);
+	  obs_profile(&s, &cfg, &p);
+	  CHECK("S5-H75c", p.detected && p.idx_right == 4 && p.idx_left == 8,
+		"box in the background at start-up: it is seen across 60..120 deg after the background is cleaned");
+	}
+
+	/* S5-H76 a neighbour joins the obstacle only if it is not far behind the reading next to it */
+	{ int ix[] = {4,5,6,7}, cm[] = {51,18,18,18};
+	  scan_with(&s, ix, cm, 4); obs_profile(&s, &cfg, &p);
+	  CHECK("S5-H76a", p.detected && p.idx_right == 5 && p.idx_left == 7,
+		"a wall at 51 cm next to an 18 cm box is not part of the box (width stays that of 3 rays)");
+	}
+	{ int ix[] = {4,5,6,7,8}, cm[] = {20,18,17,18,20};
+	  scan_with(&s, ix, cm, 5); obs_profile(&s, &cfg, &p);
+	  CHECK("S5-H76b", p.detected && p.idx_right == 4 && p.idx_left == 8,
+		"flat face 17 cm ahead (neighbours 1..3 cm farther): all five rays join");
+	}
+	{ int ix[] = {4,5,6}, cm[] = {28,18,18};
+	  scan_with(&s, ix, cm, 3); obs_profile(&s, &cfg, &p);
+	  CHECK("S5-H76c", p.detected && p.idx_right == 4, "10 cm farther than its neighbour still joins");
+	  cm[0] = 29; scan_with(&s, ix, cm, 3); obs_profile(&s, &cfg, &p);
+	  CHECK("S5-H76d", p.detected && p.idx_right == 5, "11 cm farther does not");
+	}
+
+	/* S5-H77 the car moved: the old background no longer applies */
+	obs_scan_init(&s);
+	obs_scan_set_bg(&s, 3, 48);
+	CHECK("S5-H77a", !obs_dist_is_hit(&s, 3, 45, &cfg),
+	      "with the old background (48 cm) a reading of 45 cm is explained away");
+	obs_bg_forget(&s);
+	CHECK("S5-H77b", obs_dist_is_hit(&s, 3, 45, &cfg) && obs_dist_is_hit(&s, 4, 50, &cfg) && !obs_dist_is_hit(&s, 4, 51, &cfg),
+	      "after forgetting the background everything up to detect_cm (50 cm) is a hit again, 51 cm is not");
+
+	/* S5-H78 a side wall that the old background explained: after the move it is no longer
+	   hidden (safe direction), but it does not join an obstacle whose face is much nearer */
+	{ int ix[] = {3,4,5,6,7}, cm[] = {50,50,18,17,18};
+	  scan_with(&s, ix, cm, 5);
+	  obs_profile(&s, &cfg, &p);
+	  CHECK("S5-H78a", p.detected && p.idx_right == 5 && p.idx_left == 7 && p.clusters == 2,
+		"walls at 50 cm either side of an 18 cm box: the box keeps its own width and the walls are a second object");
+	}
+
+	/* S5-H79 the second-scan case: an 18 cm box 17 cm ahead with a flat wall 19 cm behind it
+	   (true geometry, 15 degree beam, rays 30..150 deg). The old code joined the wall to the box. */
+	{ int a, k, wd_new, wd_old, lo_new, hi_new;
+	  OBS_SCAN sc;
+	  OBS_CFG old = cfg;
+
+	  obs_scan_init(&sc);
+	  for (a = 2; a <= 10; a++) {
+		double best = 1e9;
+		for (k = -5; k <= 5; k++) {
+			double th = ((a * 15.0) + k * 1.5) * 3.14159265358979 / 180.0;
+			double sn = sin(th), cs = cos(th), x, t;
+			if (sn <= 0.05) continue;
+			t = 17.0 / sn; x = 17.0 * cs / sn;
+			if (x >= -9.0 && x <= 9.0 && t < best) best = t;
+			t = 36.0 / sn; x = 36.0 * cs / sn;	/* wall 36 cm from the sensor, 19 behind the box */
+			if (t < best && t < 55.0) best = t;
+		}
+		obs_scan_set(&sc, (unsigned)a, best > 1e8 ? OBS_DIST_NONE : (uint16_t)(best + 0.5));
+	  }
+	  obs_profile(&sc, &cfg, &p);
+	  wd_new = p.width_cm; lo_new = p.idx_right; hi_new = p.idx_left;
+	  old.cluster_jump_cm = 500;			/* rule off = the old behaviour */
+	  obs_profile(&sc, &old, &q);
+	  wd_old = q.width_cm;
+	  printf("[HOST] S5-H79 18 cm box at 17 cm, wall behind: width %d cm (rays %d..%d) with the rule, %d cm without\n",
+		 wd_new, lo_new, hi_new, wd_old);
+	  CHECK("S5-H79", p.detected && wd_new >= 10 && wd_new <= 26 && p.plan_width_cm >= 18 && wd_old > wd_new + 20,
+		"the wall behind the box is not added to its width (old code: far wider); the plan still covers the real 18 cm");
+	}
 
 	/* S5-H25 bypass is planned for the widest allowed obstacle (20 cm) */
 	{ int ix[] = {5,6,7}, cm[] = {30,30,30}; scan_with(&s, ix, cm, 3); }
@@ -455,7 +548,14 @@ int main(void)
 		a.closest_cm = 10;
 		CHECK("S5-H63b", obs_approach_mm(&a, &cfg) == -70, "gap 10 cm: back away 70 mm");
 		a.closest_cm = 5;
-		CHECK("S5-H63c", obs_approach_mm(&a, &cfg) == -100, "gap 5 cm: back away is limited to 100 mm");
+		CHECK("S5-H63c", obs_approach_mm(&a, &cfg) == -120, "gap 5 cm: back away 120 mm, to a gap of 17 cm");
+		{
+			OBS_CFG wide = cfg;
+
+			wide.approach_min_cm = 0;	/* only to reach the cap */
+			a.closest_cm = 1;
+			CHECK("S5-H63d", obs_approach_mm(&a, &wide) == -150, "gap 1 cm (reading trusted): back away is limited to 150 mm");
+		}
 
 		a.closest_cm = 49;
 		a.action = OBS_ACT_REVERSE_RETRY;
@@ -497,7 +597,7 @@ int main(void)
 		CHECK("S5-H65", errs == 0 && moves > 0, "every move ends with a gap of 16..18 cm; no move only when already about 14..20 cm (moves under 30 mm are skipped)");
 
 		CHECK("S5-H66", cfg.approach_cm == 17 && cfg.approach_near_cm == 15 && cfg.approach_far_cm == 20 &&
-		      cfg.approach_guard_cm == 13 && cfg.approach_back_max_cm == 10 && cfg.approach_min_cm == 3,
+		      cfg.approach_guard_cm == 13 && cfg.approach_back_max_cm == 15 && cfg.approach_min_cm == 3,
 		      "default band: aim 17 cm, back away below 15, creep above 20, guard 13, back at most 10 cm, trust readings from 3 cm");
 
 		/* H74: STOP (closer than stop_cm = 8 cm) backs straight away; it never goes forward */
@@ -505,9 +605,9 @@ int main(void)
 		a.closest_idx = 6;
 		a.action = OBS_ACT_STOP;
 		a.closest_cm = 6;
-		CHECK("S5-H74a", obs_approach_mm(&a, &cfg) == -100, "STOP at 6 cm: back away, limited to 100 mm");
+		CHECK("S5-H74a", obs_approach_mm(&a, &cfg) == -110, "STOP at 6 cm: back away 110 mm, to a gap of 17 cm");
 		a.closest_cm = 3;
-		CHECK("S5-H74b", obs_approach_mm(&a, &cfg) == -100, "STOP at 3 cm (lowest trusted reading): back away 100 mm");
+		CHECK("S5-H74b", obs_approach_mm(&a, &cfg) == -140, "STOP at 3 cm (lowest trusted reading): back away 140 mm");
 		a.closest_cm = 2;
 		CHECK("S5-H74c", obs_approach_mm(&a, &cfg) == 0, "STOP at 2 cm: reading not trusted, no move (the task faults)");
 		a.closest_cm = 40;

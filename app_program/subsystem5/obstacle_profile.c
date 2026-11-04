@@ -27,11 +27,12 @@ void obs_cfg_default(OBS_CFG *cfg)
 	cfg->bg_enter_cm = 6;		/* 2 x the sensor's typical +/-3 cm scatter */
 	cfg->bg_exit_cm = 3;
 	cfg->detect_hyst_cm = 5;
+	cfg->cluster_jump_cm = 10;	/* flat face at 17 cm: neighbours differ by at most 4 cm; a wall behind: 30+ */
 	cfg->approach_cm = 17;		/* aim for the middle of the band */
 	cfg->approach_near_cm = 15;	/* wanted gap before the bypass: 15..20 cm; closer: back away */
 	cfg->approach_far_cm = 20;	/* farther: creep forward */
 	cfg->approach_guard_cm = 13;	/* never closer than this while creeping */
-	cfg->approach_back_max_cm = 10;	/* back away at most 10 cm if stopped too close */
+	cfg->approach_back_max_cm = 15;	/* back away at most 15 cm if stopped too close */
 	cfg->approach_min_cm = 3;	/* HC-SR04 minimum range is 2 cm: closer than 3 is not trusted */
 }
 
@@ -71,12 +72,25 @@ static int bg_present(const OBS_SCAN *s, unsigned idx)
 	return ((s->bg_known >> idx) & 1u) && s->bg_cm[idx] != OBS_DIST_NONE;
 }
 
+static int32_t sin_k(int k);
+
 unsigned obs_bg_clear_ahead(OBS_SCAN *s, const OBS_CFG *cfg)
 {
 	unsigned i, n = 0;
+	int off, ahead, side;
 
-	for (i = OBS_IDX_AHEAD - 1; i <= OBS_IDX_AHEAD + 1; i++) {
-		if (bg_present(s, i) && s->bg_cm[i] <= cfg->detect_cm + cfg->detect_hyst_cm) {
+	for (i = 0; i < OBS_NUM_ANGLES; i++) {
+		if (!bg_present(s, i)) {
+			continue;
+		}
+		off = ((int)i > OBS_IDX_AHEAD) ? (int)i - OBS_IDX_AHEAD : OBS_IDX_AHEAD - (int)i;
+		/* straight ahead (5..7): always. Elsewhere: only when it lies in the path */
+		ahead = (int)(((int32_t)s->bg_cm[i] * cos_tab[2 * off]) / 1000);
+		side  = (int)(((int32_t)s->bg_cm[i] * sin_k(2 * off)) / 1000);
+		if (s->bg_cm[i] <= cfg->detect_cm + cfg->detect_hyst_cm &&
+		    (off <= 1 ||
+		     (ahead <= (int)(cfg->detect_cm + cfg->detect_hyst_cm) &&
+		      side <= (int)(cfg->robot_half_width_cm + cfg->margin_cm)))) {
 			s->bg_cm[i] = OBS_DIST_NONE;
 			n++;
 		}
@@ -158,6 +172,15 @@ static int is_stay(const OBS_SCAN *s, unsigned idx, const OBS_CFG *cfg)
 	return 1;
 }
 
+/* Two neighbouring angles belong to the same obstacle only if their distances are
+   close: a wall far behind a box is not part of the box. */
+static int same_surface(const OBS_SCAN *s, const OBS_CFG *cfg, int a, int b)
+{
+	int d = (int)s->dist_cm[a] - (int)s->dist_cm[b];
+
+	return (d < 0 ? -d : d) <= (int)cfg->cluster_jump_cm;
+}
+
 /* Find the obstacle: the closest hit, grown left and right over neighbouring
    measured hits.  Returns 0 if nothing was hit. */
 static int find_cluster(const OBS_SCAN *s, const OBS_CFG *cfg,
@@ -177,10 +200,12 @@ static int find_cluster(const OBS_SCAN *s, const OBS_CFG *cfg,
 	*closest = best;
 	*lo = best;
 	*hi = best;
-	while (*lo > 0 && is_stay(s, (unsigned)(*lo - 1), cfg)) {
+	while (*lo > 0 && is_stay(s, (unsigned)(*lo - 1), cfg) &&
+	       same_surface(s, cfg, *lo - 1, *lo)) {
 		(*lo)--;
 	}
-	while (*hi < OBS_NUM_ANGLES - 1 && is_stay(s, (unsigned)(*hi + 1), cfg)) {
+	while (*hi < OBS_NUM_ANGLES - 1 && is_stay(s, (unsigned)(*hi + 1), cfg) &&
+	       same_surface(s, cfg, *hi + 1, *hi)) {
 		(*hi)++;
 	}
 	return 1;
@@ -356,7 +381,8 @@ static int run_at(const OBS_SCAN *s, const OBS_CFG *cfg, int i, int *last)
 {
 	int j = i, hit = 0;
 
-	while (j < OBS_NUM_ANGLES && is_stay(s, (unsigned)j, cfg)) {
+	while (j < OBS_NUM_ANGLES && is_stay(s, (unsigned)j, cfg) &&
+	       (j == i || same_surface(s, cfg, j, j - 1))) {
 		hit |= obs_scan_is_hit(s, (unsigned)j, cfg);
 		j++;
 	}
@@ -600,4 +626,9 @@ int obs_approach_mm(const OBS_PROFILE *p, const OBS_CFG *cfg)
 		return 0;
 	}
 	return (travel_mm > 1023) ? 1023 : travel_mm;
+}
+
+void obs_bg_forget(OBS_SCAN *s)
+{
+	s->bg_known = 0;
 }

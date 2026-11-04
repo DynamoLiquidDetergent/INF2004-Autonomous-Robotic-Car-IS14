@@ -82,6 +82,8 @@ LOCAL UW		approach_t0;
 LOCAL UW		approach_limit_ms;
 LOCAL BOOL		approach_moving;	/* Motion Control has reported DRIVING_DIST */
 LOCAL UW		guard_hits;
+LOCAL UH		approach_odo0;		/* odometry when the move was ordered */
+LOCAL BOOL		bg_shift_pending;	/* a move happened: re-project the background before the next profile */
 #endif
 
 LOCAL UW now_ms(void)
@@ -399,6 +401,18 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 
 		case OBS_ST_PROFILING_AND_PLANNING:
 			servo_goto(90);			/* face forward again */
+#if S5_APPROACH
+			if (bg_shift_pending) {
+				/* the car has moved since the background was taken (the signed
+				   16 bit odometry difference, so the wrap is harmless) */
+				INT moved = (INT)(H)(UH)(s2_odo_dist_mm(s2_get_odometry()) - approach_odo0);
+
+				bg_shift_pending = FALSE;
+				obs_bg_forget(&scan);
+				tm_printf((UB*)"obstacle: the car moved %d mm, background forgotten (everything within %d cm counts)\n",
+					  moved, (INT)cfg.detect_cm);
+			}
+#endif
 			obs_profile(&scan, &cfg, &profile);
 			seq = (UB)((seq + 1) & 0xF);
 			obs_pack(&profile, seq, w);
@@ -425,6 +439,8 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 				guard_hits = 0;
 				tk_clr_flg(flg_s5_ctrl, ~S5_CTRL_APPROACH_DONE);	/* no stale 'done' */
 				approach_t0 = now_ms();
+				approach_odo0 = s2_odo_dist_mm(s2_get_odometry());
+				bg_shift_pending = TRUE;
 				approach_limit_ms = S5_APPROACH_START_MS +
 						    ((UW)((mm < 0) ? -mm : mm) * 1000u) / S5_APPROACH_SLOWEST +
 						    S5_APPROACH_EXTRA_MS;
