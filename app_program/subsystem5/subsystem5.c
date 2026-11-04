@@ -10,7 +10,7 @@
  *	  mbf_obstacle   message buffer    i8     obstacle profile -> Vehicle Controller
  *
  *	Tasks: s5_bringup_task (phases 1-4) or obstacle_detect_task and
- *	safety_monitor_task (phases 5-6). vehicle_controller_task comes next.
+ *	safety_monitor_task (phases 5-6), plus vehicle_controller_task (phase 6).
  */
 
 #include "subsystem5.h"
@@ -82,6 +82,12 @@ EXPORT ER subsystem5_start(void)
 	}
 #if S5_PHASE >= 5
 	tid = app_start_task(safety_monitor_task, S5_PRI_SAFETY, 0, "safety_monitor");
+	if (tid < E_OK) {
+		return tid;
+	}
+#endif
+#if S5_PHASE >= 6
+	tid = app_start_task(vehicle_controller_task, S5_PRI_VEHICLE, 0, "vehicle_ctrl");
 	if (tid < E_OK) {
 		return tid;
 	}

@@ -17,7 +17,7 @@
  *      "BARCODE: ch=.. cmd=.." prints in barcode_decode.c.
  *  MUST be 0 when committing.
  * --------------------------------------------------------------------- */
-#define S3_BC_DRIVE_DEMO    1
+#define S3_BC_DRIVE_DEMO    0 /* S5: the Vehicle Controller drives (S5_PHASE 6+); two senders to Motion Control would fight */
 
 /* ---------------------------------------------------------------------
  *  DEBUG SWITCH: line following (needs S3_BC_DRIVE_DEMO 1).

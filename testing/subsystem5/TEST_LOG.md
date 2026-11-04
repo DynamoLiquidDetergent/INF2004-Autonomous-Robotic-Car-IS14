@@ -60,6 +60,20 @@ Run from the repository root (WSL or Linux): `sh testing/subsystem5/host/run.sh`
 | S5-H44 | flag bits above bit 3 are not ours and are ignored | IF-12 | auto (PC) | as above | PASS |
 | S5-H45 | a 10 s scan never releases the inhibit | safety | auto (PC) | as above | PASS |
 | S5-H46 | a fault during a scan: the longer (fault) hold wins (a, b) | IF-11 | auto (PC) | as above | PASS |
+| S5-H47 | Vehicle Controller: line centred gives DRIVE 100 mm/s, steer 0, epoch unchanged | IF-05, IF-10 | auto (PC) | as above | PASS |
+| S5-H48 | one zone off the centre gives 80 mm/s and steer plus or minus 30, the same as the logged car run (a, b) | IF-05, IF-10 | auto (PC) | as above | PASS |
+| S5-H49 | the derivative term acts on the change since the last cycle (steer 50) | IF-05 | auto (PC) | as above | PASS |
+| S5-H50 | steering limit 120 mm/s and minimum speed 40 mm/s | IF-10 | auto (PC) | as above | PASS |
+| S5-H51 | line lost: slow search towards the side it was last seen on (a, b) | IF-05 | auto (PC) | as above | PASS |
+| S5-H52 | line lost for 1500 ms: stop for good, even if the line returns (a, b, c) | safety | auto (PC) | as above | PASS |
+| S5-H53 | no line message: stop, same epoch | safety | auto (PC) | as above | PASS |
+| S5-H54 | Obstacle Detection scanning (states 1 to 3): stop, held, epoch plus 1 once | IF-10, professor guidance (safe navigation) | auto (PC) | as above | PASS |
+| S5-H55 | obstacle idle again: drive on with the newer epoch | IF-10 | auto (PC) | as above | PASS |
+| S5-H56 | stop latch still set with the obstacle idle: stay stopped, drive on when it clears (a, b) | IF-11 | auto (PC) | as above | PASS |
+| S5-H57 | the epoch wraps 15 to 0 | IF-10 | auto (PC) | as above | PASS |
+| S5-H58 | every new hold raises the epoch again | IF-10 | auto (PC) | as above | PASS |
+| S5-H59 | the first cycle after a hold has no derivative kick | IF-05 | auto (PC) | as above | PASS |
+| S5-H60 | every Obstacle Detection state except idle holds the car | safety | auto (PC) | as above | PASS |
 
 ### Automatic, on the Pico (`make TEST=1`)
 
@@ -99,6 +113,9 @@ Do them in phase order (`BRINGUP.md`). Never wire the next part until the previo
 | S5-M14 | Safety Monitor on the car: something ahead stops the wheels | IF-11, FR-safety, professor guidance (safe navigation) | manual | Image `s5-integration`, `S5_PHASE 5`, `WIFI=none`. Car on a box, wheels in the air, line-follow demo running. Reset with nothing in front, wait for the 9 `background` lines. Then put a hand about 30 cm ahead | `safety: INHIBIT set` on the console and the wheels stop (S2 state INHIBITED). Record the time from the first `obstacle:` reading of the hand to the wheels stopping |
 | S5-M15 | Safety Monitor release: hand removed, the latch is released but the robot does not restart by itself | IF-11 | manual | Same set-up as S5-M14. Take the hand away | `safety: inhibit released` at least 500 ms after the scan ends. The wheels stay stopped because Motion Control needs a newer epoch |
 | S5-M16 | Safety Monitor on a sensor fault: an unplugged sensor stops the wheels | IF-12, Version C row 3 | manual | Same set-up. Unplug the sensor (also covers S5-M08) | `obstacle: FAULT (...)`, then `safety: INHIBIT set (faults 0x8 ...)` and the wheels stop; about 3 s later the inhibit is released and Obstacle Detection is reset, and it faults again while the sensor is unplugged |
+| S5-M17 | Vehicle Controller v1 on the track: the car follows the black line | FR (line following) | manual | Image `s5-integration`, `S5_PHASE 6`, `WIFI=none`, `S3_BC_DRIVE_DEMO 0`. Car on the line, nothing ahead. Calibrate when the console asks, then let it run | Follows the line at about 100 mm/s, `vc:` status lines every 500 ms, stops at the end when the line is lost for 1.5 s |
+| S5-M18 | Vehicle Controller v1: hand ahead holds the car, removing it lets the car go on (wheels in the air) | IF-10, IF-11, professor guidance (safe navigation) | manual | Same image, car on a box. Wheels turning, then a hand about 30 cm ahead for about 5 s, then take it away | `vc: HOLD`, wheels 0, the distance stops; after the hand is gone `vc: driving on` and the wheels turn again, the distance rises again |
+| S5-M19 | Vehicle Controller v1 on the floor: the car stops in front of an obstacle on the line | professor guidance (safe navigation) | manual | Same image, car on the line, a box about 15 cm wide on the line ahead | The car stops. Record the gap between the front of the car and the box (target at least 10 cm), then remove the box and check the car goes on |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **auto (PC)** = runs on a PC, prints `[HOST]` lines;

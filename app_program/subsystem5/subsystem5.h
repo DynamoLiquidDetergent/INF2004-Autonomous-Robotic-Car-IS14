@@ -16,7 +16,7 @@
 
 /* ---- Task priorities (TEAM.md section 4; PROPOSED, to agree with S2/S3) ---- */
 #define S5_PRI_SAFETY		5	/* Safety Monitor */
-#define S5_PRI_VEHICLE		7	/* Vehicle Controller (not written yet) */
+#define S5_PRI_VEHICLE		7	/* Vehicle Controller */
 #define S5_PRI_OBSTACLE		8	/* Obstacle Detection */
 
 /* ---- IF-12 / i14: fault flag group, owned by the Safety Monitor ----
@@ -58,11 +58,11 @@ IMPORT ID	mbf_obstacle;
 IMPORT volatile UB	s5_obs_state;
 
 /* ---- Build options (override with -D on the make line if needed) ---- */
-/* 1 = no Vehicle Controller yet: obstacle watch is on from power-up and a
-   finished scan just returns to monitoring. Set 0 once the Vehicle
-   Controller drives S5_CTRL_*. */
+/* 1 = the Vehicle Controller does not yet drive S5_CTRL_*: obstacle watch is
+   on from power-up and a finished scan just returns to monitoring (phases
+   5 and 6). Phase 7 (bypass) sets it to 0. */
 #ifndef S5_STANDALONE
-#define S5_STANDALONE		(S5_PHASE < 6)
+#define S5_STANDALONE		(S5_PHASE < 7)
 #endif
 /* 1 = print every reading and scan result on the console (bench bring-up) */
 #ifndef S5_VERBOSE
@@ -72,6 +72,7 @@ IMPORT volatile UB	s5_obs_state;
 /* Private to subsystem 5 */
 IMPORT void	obstacle_detect_task(INT stacd, void *exinf);	/* phases 5-6 */
 IMPORT void	s5_bringup_task(INT stacd, void *exinf);		/* phases 1-4 */
-IMPORT void	safety_monitor_task(INT stacd, void *exinf);		/* phases 5-6 */
+IMPORT void	safety_monitor_task(INT stacd, void *exinf);		/* phases 5-7 */
+IMPORT void	vehicle_controller_task(INT stacd, void *exinf);	/* phases 6-7 */
 
 #endif /* SUBSYSTEM5_H */

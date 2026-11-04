@@ -9,3 +9,6 @@ gcc -std=c99 -Wall -Wextra -Wpedantic -O1 -fsanitize=address,undefined \
 gcc -std=c99 -Wall -Wextra -Wpedantic -O1 -fsanitize=address,undefined \
     test_safety.c ../../../app_program/subsystem5/safety_logic.c -o /tmp/s5_host_safety
 /tmp/s5_host_safety
+gcc -std=c99 -Wall -Wextra -Wpedantic -O1 -fsanitize=address,undefined \
+    test_vc.c ../../../app_program/subsystem5/vc_logic.c -o /tmp/s5_host_vc
+/tmp/s5_host_vc

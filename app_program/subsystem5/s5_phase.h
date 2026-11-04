@@ -16,7 +16,11 @@
  *	     echo time and distance. No scanning.
  *	     Pins touched: GP12, GP16, GP17.
  *	  5  Full Obstacle Detection scan on its own (no Vehicle Controller).
- *	  6  Obstacle Detection driven by the Vehicle Controller (later).
+ *	  6  Vehicle Controller v1: follows the line, stands still while Obstacle
+ *	     Detection scans or the Safety Monitor's latch is set, then drives on.
+ *	     No bypass. Needs S3_BC_DRIVE_DEMO 0 (s3_private.h): only one task may
+ *	     send motion commands.
+ *	  7  Vehicle Controller does the bypass (later).
  */
 
 #ifndef S5_PHASE_H
