@@ -4,12 +4,14 @@
  *	can be tested on a moving robot instead of pushing it by hand.
  *
  *	Uses ONLY public interfaces (TEAM.md section 5):
- *	  IF-05  q_line_data   (S3)              -- line position (line follow)
- *	  IF-10  q_motion_cmd  + s2_cmd_pack()   -- DRIVE / STOP commands
- *	  IF-16  s2_get_status()                 -- current epoch and state
+ *	  IF-05  q_line_data   (S3)              -- line position + junction
+ *	  IF-07  q_barcode_cmd (S3)              -- what to do at the junction
+ *	  IF-10  q_motion_cmd  + s2_cmd_pack()   -- DRIVE / TURN / STOP commands
+ *	  IF-16  s2_get_status()                 -- epoch, state, wheel speeds
  *	  IF-17  s2_get_odometry()               -- distance driven
  *	exactly as the Vehicle Controller (S5) will.  No file of subsystem 2
- *	is changed.
+ *	is changed.  Everything here is meant to be copied into S5's Vehicle
+ *	Controller once it reads q_line_data itself.
  *
  *	Three modes:
  *
@@ -19,16 +21,23 @@
  *	       sensors see white and black.  Skip it and the default range is
  *	       kept.
  *	    2. DEMO_LF_PLACE_MS to put the robot down, centre sensor on the line
- *	    3. follow the line: every new LINE_DATA_MSG (20 ms) gives a zone
- *	       1..7 from the LEFT and CENTRE sensors only (4 = centre on black,
- *	       left on white; GP28 only reads barcodes).  One zone off is
- *	       treated as a straight: a small fixed nudge, full speed.  Further
- *	       off is a bend: the steering is proportional to how far off it
- *	       is (plus a little of how fast that changes), and the robot
- *	       slows down.  While the line is lost it keeps turning towards
- *	       the side it was last seen on, slowly; lost for
- *	       DEMO_LF_LOST_STOP_MS (end of the track) -> stop.
- *	    Barcodes are still decoded and counted on the way.
+ *	    3. follow the line (2026-11-04 controller, see lf_step()):
+ *	       - zones 1..7 (4 = centre on black, left on white; GP28 only
+ *	         reads barcodes / junctions): P + D on the zone in bends,
+ *	         near the line a gentle P damped by the measured rotation;
+ *	       - back on target, the car's measured rotation (IF-16 wheel
+ *	         speeds) is braked out BEFORE steering 0 is sent, because
+ *	         steering 0 makes subsystem 2 hold whatever heading the car has
+ *	         at that instant.  This is what makes it leave a curve straight;
+ *	       - while GP28 is inside a barcode, steering is kept small so the
+ *	         bars pass under GP28 at a steady speed;
+ *	       - at a junction (IF-05 bit 4) the zone is ignored: the robot
+ *	         drives straight through (FORWARD or no command), or drives to
+ *	         the junction centre and turns (LEFT / RIGHT / U-TURN), as the
+ *	         last barcode (IF-07) said.
+ *	       While the line is lost it keeps turning towards the side it was
+ *	       last seen on, slowly; lost for DEMO_LF_LOST_STOP_MS (end of the
+ *	       track) -> stop.
  *
  *	  DEMO_CONTINUOUS 1  (barcode decode test, S3-M02 / S3-M03)
  *	    1. wait DEMO_START_DELAY_MS so the robot can be put down
@@ -81,24 +90,41 @@
  *  Line following (S3_LINE_FOLLOW_DEMO).  Tune on the track.
  *
  *  err = zone - 4: -3..+3, + = the line is towards the LEFT sensor (GP26).
+ *  All seven zones occur (line_sensor.c, 2026-11-04), so the error grows
+ *  one step at a time.
  *
- *  Two regimes (2026-11-04, smoother following):
- *   |err| <= 1  straight: steering = -NUDGE*err, no D term, full speed.
- *               With steering 0, subsystem 2 holds a straight line on its
- *               encoders, so the speed stays steady for barcode reads.
- *   |err| >= 2  bend: steering = -(KP*err + KD*(err - err_prev)),
- *               speed = DEMO_LF_SPEED - DEMO_LF_SLOW_PER_ZONE*|err|,
- *               >= DEMO_LF_MIN_SPEED.
- *  The steering is then capped at CAP_NUM/CAP_DEN of the speed (4/4: the
- *  inner wheel may stop but never runs backwards), so the robot arcs
- *  through a bend instead of pivoting on the spot.
+ *  curve = curve memory (integral of err; fades on target)
+ *  |err| >= 2 (bend):   turn  = KP*err + KD*(err - err_prev), + curve
+ *  |err| <= 1 (near):   turn  = KP_NEAR*err, + curve, and
+ *                       steer -= KYAW% * (vL - vR - 2*curve) / 2
+ *  err == 0, |curve| <= CURVE_OFF, |vL - vR| <= YAW_OK:  steer = 0
  *
- *  Robot weaves on straights        -> lower DEMO_LF_NUDGE (0 = encoder hold only)
- *  Robot drifts off on straights    -> raise DEMO_LF_NUDGE
- *  Robot corrects twice in a bend   -> lower KP, or raise KD a little
+ *  Why: with steering 0, subsystem 2 holds the heading the car has at
+ *  that moment (any non-zero steering resets its reference).  Leaving a
+ *  curve, the car is still rotating; sending 0 right away locked that
+ *  crooked heading in and the car drove off the line again, several
+ *  times.  Now the rotation is braked out first (measured from the wheel
+ *  speeds, IF-16), then subsystem 2 takes over with the car pointing
+ *  along the line.  Near the target there is no D on the zone: a one-zone
+ *  step is a step, not a rate, and D made every boundary crossing a kick
+ *  (seen in a host simulation, 2026-11-04).
+ *
+ *  Speed: DEMO_LF_SPEED, minus DEMO_LF_SLOW_PER_ZONE per zone off in
+ *  bends (|err| >= 2) only, so straights keep a steady barcode speed.
+ *  Steering capped at CAP_NUM/CAP_DEN of the speed (4/4: the inner wheel
+ *  may stop but never runs backwards).
+ *
+ *  Robot weaves on straights           -> lower KP_NEAR, or raise KYAW_PCT
+ *  Robot drifts off slowly on straights -> raise KP_NEAR
+ *  Robot still swings out of a curve   -> raise DEMO_LF_KYAW_PCT (max ~90)
+ *  Robot keeps slipping off in curves  -> raise DEMO_LF_KI16
+ *  Robot drifts after a curve ends     -> lower DEMO_LF_CURVE_FADE (faster fade)
+ *  Robot shivers when centred          -> raise DEMO_LF_YAW_OK
+ *  Robot corrects twice in a bend      -> raise KD (bends only)
+ *  Robot loses the line in tight bends -> raise KP (bends only)
  *  Robot runs off on the outside of a bend -> lower DEMO_LF_MIN_SPEED or
- *                                      DEMO_LF_SPEED (the cap is already 4/4)
- *  Robot turns AWAY from the line   -> flip DEMO_LF_STEER_SIGN (see below)
+ *                                      DEMO_LF_SPEED
+ *  Robot turns AWAY from the line      -> flip DEMO_LF_STEER_SIGN (see below)
  * --------------------------------------------------------------------- */
 
 /* +1 = the LEFT sensor (GP26) is on the robot's left as it drives forward.
@@ -113,11 +139,24 @@
 #define DEMO_LF_PLACE_MS      3000   /* then time to put the robot on the line */
 #define DEMO_LF_SPEED         70     /* mm/s when centred (barcodes: 50..150)  */
 #define DEMO_LF_MIN_SPEED     40     /* mm/s at the sharpest correction        */
-#define DEMO_LF_SLOW_PER_ZONE 10     /* mm/s slower per zone off, bends only   */
-#define DEMO_LF_KP            20     /* mm/s steering per zone off, bends only */
-#define DEMO_LF_KD            15     /* mm/s per zone/cycle of change, bends only */
+#define DEMO_LF_SLOW_PER_ZONE 8      /* mm/s slower per zone off, bends only   */
+#define DEMO_LF_KP            12     /* mm/s steering per zone off, bends      */
+#define DEMO_LF_KD            25     /* mm/s per zone/cycle of change, bends   */
+#define DEMO_LF_KP_NEAR       8      /* mm/s steering per zone off, zones 3..5 */
+#define DEMO_LF_KI16          16     /* curve memory: x16 mm/s added per zone
+                                        off per cycle (16 = 1 mm/s)           */
+#define DEMO_LF_CURVE_FADE    16     /* on target it fades by 1/16 per cycle
+                                        (~0.3 s time constant)               */
+#define DEMO_LF_CURVE_MAX     50     /* mm/s limit of the curve memory        */
+#define DEMO_LF_CURVE_OFF     2      /* |curve| mm/s below which it counts as
+                                        a straight (S2 hold may take over)   */
+#define DEMO_LF_KYAW_PCT      60     /* % of the measured rotation braked out
+                                        per cycle when back on target          */
+#define DEMO_LF_YAW_OK        8      /* |vL - vR| mm/s that counts as "not
+                                        rotating": steering 0 from here on     */
+#define DEMO_LF_BC_STEER_MAX  8      /* mm/s steering limit while GP28 is in a
+                                        barcode and the line is <= 1 zone off  */
 #define DEMO_LF_STEER_MAX     70     /* mm/s steering limit                    */
-#define DEMO_LF_NUDGE         5      /* mm/s steering when 1 zone off (straights) */
 #define DEMO_LF_CAP_NUM       4      /* steering cap = speed * NUM / DEN:      */
 #define DEMO_LF_CAP_DEN       4      /* 4/4 = inner wheel may stop, 3/4 = never */
 #define DEMO_LF_SEARCH_SPEED  40     /* mm/s while the line is lost            */
@@ -125,6 +164,18 @@
 #define DEMO_LF_LOST_STOP_MS  1500   /* lost this long (after S3's 200 ms) -> stop */
 #define DEMO_LF_NODATA_MS     200    /* no LINE_DATA_MSG this long -> stop     */
 #define DEMO_LF_PRINT_MS      500    /* status line period                     */
+
+/* Junctions.  MEASURE DEMO_JN_AXLE_MM and DEMO_JN_BAR_MM on the car/track.
+   The flag rises when the sensors have just LEFT the crossbar's far edge. */
+#define DEMO_JN_BAR_MM        35     /* crossbar (line) width, 3-4 cm          */
+#define DEMO_JN_PASS_MM       25     /* straight on after the flag rises, until
+                                        the sensors are back on the line       */
+#define DEMO_JN_AXLE_MM       60     /* line sensors to the wheel axle         */
+/* driven after the flag before a turn, so the axle (the turning point) is
+   over the crossbar's centre line */
+#define DEMO_JN_APPROACH_MM   (DEMO_JN_AXLE_MM - DEMO_JN_BAR_MM / 2)
+#define DEMO_JN_TURN_MMPS     100    /* wheel speed for the TURN               */
+#define DEMO_JN_TURN_MAX_MS   3000   /* give up waiting for the TURN to finish */
 
 /* ---------------------------------------------------------------------
  *  Line-follow controller: pure logic, no kernel calls (host-testable).
@@ -136,6 +187,7 @@ typedef struct {
     bool have_prev;      /* err_prev is valid                               */
     UW   lost_ms;        /* how long LINE_LOST has been set                 */
     bool stopped;        /* gave up: line lost for DEMO_LF_LOST_STOP_MS     */
+    INT  curve16;        /* curve memory: steering the curve needs, mm/s x16 */
 } DEMO_LF;
 
 typedef struct {
@@ -154,12 +206,17 @@ LOCAL INT lf_abs(INT v)
     return (v < 0) ? -v : v;
 }
 
-/* One line cycle.  zone/lost from LINE_DATA_MSG, dt_ms since the last call. */
-LOCAL DEMO_LF_OUT lf_step(DEMO_LF *c, uint8_t zone, bool lost, UW dt_ms)
+/* One line cycle.
+     zone, lost : from LINE_DATA_MSG
+     yaw        : measured vL - vR (IF-16), mm/s, + = the car is turning right
+     bc_busy    : GP28 is inside a barcode (barcode_decode_busy())
+     dt_ms      : time since the last call */
+LOCAL DEMO_LF_OUT lf_step(DEMO_LF *c, uint8_t zone, bool lost, INT yaw,
+                          bool bc_busy, UW dt_ms)
 {
     DEMO_LF_OUT o = { 0, 0, false };
     INT         err = (INT)zone - (INT)LINE_ZONE_CENTRE;   /* + = line to the LEFT sensor */
-    INT         turn;                                     /* + = turn towards GP26 */
+    INT         derr, turn, aerr, curve;                   /* turn: + = towards GP26 */
 
     if (zone == 0u) err = 0;                              /* not a valid zone */
 
@@ -185,33 +242,66 @@ LOCAL DEMO_LF_OUT lf_step(DEMO_LF *c, uint8_t zone, bool lost, UW dt_ms)
 
     c->lost_ms = 0u;
 
-    if (lf_abs(err) <= 1) {
-        /* on target or one zone off: straight section.  Small fixed
-           nudge, no D kick, so the robot settles and S2's encoder hold
-           keeps it straight (steady speed for barcodes). */
-        turn = DEMO_LF_NUDGE * err;
-    } else {
-        /* clearly off the line: a bend, full correction */
-        turn = DEMO_LF_KP * err;
-        if (c->have_prev) {
-            turn += DEMO_LF_KD * (err - c->err_prev);
-        }
-    }
+    derr         = c->have_prev ? (err - c->err_prev) : 0;
     c->err_prev  = err;
     c->have_prev = true;
+    aerr         = lf_abs(err);
 
     /* Slow down in bends only, so straights keep a steady barcode speed */
     o.speed = DEMO_LF_SPEED;
-    if (lf_abs(err) > 1) {
-        o.speed -= DEMO_LF_SLOW_PER_ZONE * lf_abs(err);
+    if (aerr >= 2) {
+        o.speed -= DEMO_LF_SLOW_PER_ZONE * aerr;
     }
     if (o.speed < DEMO_LF_MIN_SPEED) o.speed = DEMO_LF_MIN_SPEED;
 
-    /* turning towards GP26 (the LEFT sensor) is a left turn when
-       DEMO_LF_STEER_SIGN is +1, i.e. negative steering.  Capped at
-       CAP_NUM/CAP_DEN of the speed so the inner wheel never runs
-       backwards (the robot arcs instead of pivoting). */
-    o.steer = lf_clamp(-DEMO_LF_STEER_SIGN * turn, DEMO_LF_STEER_MAX);
+    /* Curve memory (an integral term): every cycle off target adds to it,
+       towards the line; on target it slowly fades.  In a curve, err keeps
+       coming back with the same sign, so it builds up to the steering the
+       curve needs and keeps it while the zone reads 4.  Without it, zone 4
+       meant steering 0 = "drive straight" in the middle of a curve, the
+       line slid off again, and the car corrected over and over.  On a
+       straight it fades to 0 and subsystem 2's straight-line hold takes
+       over. */
+    c->curve16 += -DEMO_LF_STEER_SIGN * DEMO_LF_KI16 * err;
+    if (err == 0) {
+        c->curve16 -= c->curve16 / DEMO_LF_CURVE_FADE;
+    }
+    c->curve16 = lf_clamp(c->curve16, DEMO_LF_CURVE_MAX * 16);
+    curve      = c->curve16 / 16;
+
+    if (aerr >= 2) {
+        /* bend: P + D on the zone, plus the curve memory */
+        turn    = DEMO_LF_KP * err + DEMO_LF_KD * derr;
+        o.steer = -DEMO_LF_STEER_SIGN * turn + curve;
+    } else {
+        /* near target (zones 3..5).  No D on the zone here: a one-zone
+           step is a STEP, not a rate, and D turned every crossing of a
+           zone boundary into a steering kick.  Instead the car's measured
+           rotation is damped -- towards the rotation the curve memory
+           asks for (2 x curve), not towards 0, so it does not fight the
+           curve.  yaw is already in steering terms (+ = right), so
+           DEMO_LF_STEER_SIGN does not apply to it. */
+        o.steer = -DEMO_LF_STEER_SIGN * DEMO_LF_KP_NEAR * err + curve
+                  - ((yaw - 2 * curve) * DEMO_LF_KYAW_PCT) / 200;
+        if (err == 0 && lf_abs(curve) <= DEMO_LF_CURVE_OFF &&
+            lf_abs(yaw) <= DEMO_LF_YAW_OK) {
+            /* on target, no curve, not rotating: steering 0 hands over to
+               subsystem 2's straight-line hold, the car pointing along
+               the line */
+            o.steer = 0;
+        }
+    }
+
+    o.steer = lf_clamp(o.steer, DEMO_LF_STEER_MAX);
+
+    /* GP28 is off to the side of the car: steering changes its speed over
+       the bars.  Keep it small while a barcode is being read, unless the
+       line is really getting away (then following the line wins). */
+    if (bc_busy && aerr <= 1) {
+        o.steer = lf_clamp(o.steer, DEMO_LF_BC_STEER_MAX);
+    }
+
+    /* the inner wheel never runs backwards (the robot arcs, never pivots) */
     o.steer = lf_clamp(o.steer, (o.speed * DEMO_LF_CAP_NUM) / DEMO_LF_CAP_DEN);
     return o;
 }
@@ -239,55 +329,152 @@ LOCAL void demo_send(UW word)
 
 #if S3_LINE_FOLLOW_DEMO
 
+/* What the follower is doing */
+typedef enum {
+    LFM_FOLLOW,          /* following the line                              */
+    LFM_JN_PASS,         /* straight through a junction (DEMO_JN_PASS_MM)   */
+    LFM_JN_APPROACH,     /* to the junction centre before a turn            */
+    LFM_JN_TURN          /* turning on the spot                             */
+} LF_MODE;
+
+LOCAL const char *cmd_name(BARCODE_CMD c)
+{
+    switch (c) {
+    case BARCODE_CMD_FORWARD:    return "FORWARD";
+    case BARCODE_CMD_UTURN:      return "U-TURN";
+    case BARCODE_CMD_TURN_LEFT:  return "LEFT";
+    case BARCODE_CMD_TURN_RIGHT: return "RIGHT";
+    default:                     return "none";
+    }
+}
+
+/* TURN angle for a junction command, degrees, + = clockwise (right) */
+LOCAL INT cmd_turn_deg(BARCODE_CMD c)
+{
+    switch (c) {
+    case BARCODE_CMD_TURN_LEFT:  return -90;
+    case BARCODE_CMD_TURN_RIGHT: return 90;
+    case BARCODE_CMD_UTURN:      return 180;
+    default:                     return 0;
+    }
+}
+
 /* Follow the line until it is lost for good.  Never returns. */
 LOCAL void demo_follow_line(UINT epoch)
 {
-    DEMO_LF       c = { 0, false, 0u, false };
+    DEMO_LF       c = { 0, false, 0u, false, 0 };
     DEMO_LF_OUT   o = { 0, 0, true };
     LINE_DATA_MSG m, newer;
     uint8_t       zone = LINE_ZONE_CENTRE;
-    bool          lost = false, said_stop = false;
+    bool          lost = false, jn = false, jn_prev = false, said_stop = false;
+    bool          seen_turning = false;
     UW            start = demo_now_ms();
     UW            last_data = start, last_step = start, last_print = start;
     UW            seen = barcode_decode_count();
-    UW            now, count, st;
+    UW            now, count, st, mode_t0 = start;
     UINT          state, last_state = 0xFFFFu;
-    INT           rc;
+    UH            odo0 = 0u, moved;
+    INT           rc, yaw, turn_deg = 0;
+    LF_MODE       mode = LFM_FOLLOW;
+    BARCODE_CMD   pending = BARCODE_CMD_NONE, bc;
 
     /* old messages from the countdown are stale: start from fresh ones */
     while (tk_rcv_mbf(q_line_data, &newer, TMO_POL) == (INT)sizeof(newer)) { }
+    while (tk_rcv_mbf(q_barcode_cmd, &bc, TMO_POL) == (INT)sizeof(bc)) { }
 
-    tm_printf((UB *)"DEMO: following the line at up to %d mm/s (KP %d, KD %d, sign %d)\n",
-              DEMO_LF_SPEED, DEMO_LF_KP, DEMO_LF_KD, DEMO_LF_STEER_SIGN);
+    tm_printf((UB *)"DEMO: following the line at up to %d mm/s (KP %d, KD %d, KI16 %d, KYAW %d%%, sign %d)\n",
+              DEMO_LF_SPEED, DEMO_LF_KP, DEMO_LF_KD, DEMO_LF_KI16, DEMO_LF_KYAW_PCT, DEMO_LF_STEER_SIGN);
 
     while (1) {
         /* wait for the next line state (every 20 ms), but never longer than
            DEMO_SEND_MS so the motion command keeps being sent */
         rc  = tk_rcv_mbf(q_line_data, &m, DEMO_SEND_MS);
         now = demo_now_ms();
+        st  = s2_get_status();
+        yaw = s2_status_speed_l(st) - s2_status_speed_r(st);
+
+        /* newest barcode command: what to do at the next junction */
+        while (tk_rcv_mbf(q_barcode_cmd, &bc, TMO_POL) == (INT)sizeof(bc)) {
+            pending = bc;
+            tm_printf((UB *)"DEMO: next junction -> %s\n", cmd_name(pending));
+        }
 
         if (rc == (INT)sizeof(m)) {
-            /* fell behind: use the newest one */
+            /* fell behind: use the newest one (the junction flag is held
+               for >= 100 ms, so skipping a message cannot lose it) */
             while (tk_rcv_mbf(q_line_data, &newer, TMO_POL) == (INT)sizeof(newer)) {
                 m = newer;
             }
             zone      = line_data_zone(m);
             lost      = line_data_lost(m);
-            o         = lf_step(&c, zone, lost, now - last_step);
-            last_step = now;
+            jn        = line_data_junction(m);
             last_data = now;
+
+            /* ---- junction: rising edge of IF-05 bit 4 ---- */
+            if (jn && !jn_prev && mode == LFM_FOLLOW && !c.stopped) {
+                odo0     = s2_odo_dist_mm(s2_get_odometry());
+                mode_t0  = now;
+                turn_deg = cmd_turn_deg(pending);
+                mode     = (turn_deg == 0) ? LFM_JN_PASS : LFM_JN_APPROACH;
+                tm_printf((UB *)"DEMO: JUNCTION at t=%u ms -> %s\n",
+                          now - start, cmd_name(pending));
+                pending  = BARCODE_CMD_NONE;
+            }
+            jn_prev = jn;
+
+            if (mode == LFM_FOLLOW) {
+                o = lf_step(&c, zone, lost, yaw, barcode_decode_busy(), now - last_step);
+            }
+            last_step = now;
         } else if ((now - last_data) >= DEMO_LF_NODATA_MS) {
             o.stop = true;                     /* line sensor silent: do not drive blind */
+            mode   = LFM_FOLLOW;
         }
 
-        if (o.stop) {
+        /* ---- junction modes: the zone is ignored ---- */
+        moved = (UH)(s2_odo_dist_mm(s2_get_odometry()) - odo0);
+
+        if (mode == LFM_JN_PASS || mode == LFM_JN_APPROACH) {
+            /* steering 0: subsystem 2 holds the heading on its encoders */
+            o.stop  = false;
+            o.speed = DEMO_LF_SPEED;
+            o.steer = 0;
+            if (mode == LFM_JN_PASS && moved >= DEMO_JN_PASS_MM) {
+                mode = LFM_FOLLOW;
+                c.have_prev = false;           /* no D kick on re-acquire */
+                tm_printf((UB *)"DEMO: through the junction, following again\n");
+            } else if (mode == LFM_JN_APPROACH && (INT)moved >= DEMO_JN_APPROACH_MM) {
+                mode         = LFM_JN_TURN;
+                mode_t0      = now;
+                seen_turning = false;
+                tm_printf((UB *)"DEMO: at the junction centre, turning %d deg\n", turn_deg);
+            }
+        }
+
+        if (o.stop && mode == LFM_FOLLOW) {
             demo_send(s2_cmd_pack(S2_MODE_STOP, 0, 0, epoch));
             if (!said_stop) {
                 tm_printf((UB *)"DEMO: stopped (%s) -- press RESET to run again\n",
                           c.stopped ? "line lost" : "no line data");
                 said_stop = true;
             }
+        } else if (mode == LFM_JN_TURN) {
+            /* re-sending the same TURN word keeps it going, it does not restart */
+            demo_send(s2_cmd_pack(S2_MODE_TURN, DEMO_JN_TURN_MMPS, turn_deg, epoch));
+            state = s2_status_state(st);
+            if (state == S2_STATE_TURNING) {
+                seen_turning = true;
+            }
+            if ((seen_turning && state != S2_STATE_TURNING && s2_status_done(st)) ||
+                (now - mode_t0) >= DEMO_JN_TURN_MAX_MS) {
+                tm_printf((UB *)"DEMO: turn %s, following again\n",
+                          seen_turning ? "done" : "TIMED OUT");
+                mode        = LFM_FOLLOW;
+                c.have_prev = false;
+                c.lost_ms   = 0u;
+            }
         } else {
+            said_stop = false;
             demo_send(s2_cmd_pack(S2_MODE_DRIVE, o.speed, o.steer, epoch));
         }
 
@@ -297,7 +484,6 @@ LOCAL void demo_follow_line(UINT epoch)
             seen = count;
         }
 
-        st    = s2_get_status();
         state = s2_status_state(st);
         if (state != last_state) {
             tm_printf((UB *)"DEMO: motion state %u\n", state);   /* 6 = STALLED */
@@ -305,8 +491,10 @@ LOCAL void demo_follow_line(UINT epoch)
         }
 
         if ((now - last_print) >= DEMO_LF_PRINT_MS) {
-            tm_printf((UB *)"DEMO: t=%5u  zone=%u lost=%u  cmd %4d mm/s steer %4d  wheels L=%4d R=%4d  dist=%5u\n",
-                      now - start, (unsigned)zone, (unsigned)lost,
+            tm_printf((UB *)"DEMO: t=%5u  zone=%u lost=%u jn=%u bc=%u mode=%u  cmd %4d mm/s steer %4d  "
+                            "wheels L=%4d R=%4d  dist=%5u\n",
+                      now - start, (unsigned)zone, (unsigned)lost, (unsigned)jn,
+                      (unsigned)barcode_decode_busy(), (unsigned)mode,
                       o.stop ? 0 : o.speed, o.stop ? 0 : o.steer,
                       s2_status_speed_l(st), s2_status_speed_r(st),
                       s2_odo_dist_mm(s2_get_odometry()));

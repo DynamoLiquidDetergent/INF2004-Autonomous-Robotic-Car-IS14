@@ -164,6 +164,132 @@ static void test_code39_decode_symbol(void)
                "code39_decode_symbol: *A* decodes to 'A' forward and reversed");
 }
 
+/* ---------------------------------------------------------------------
+ *  S3-U09: s3_edge_zone() gives all seven zones from the analog levels
+ *  (2026-11-04).  Normalised readings: 0 = white, 1000 = black.
+ * --------------------------------------------------------------------- */
+static uint8_t zone_of(UW l, UW c, uint8_t prev, bool was_on, bool *on)
+{
+    return s3_edge_zone(l, c, prev, was_on, on);
+}
+
+static void test_edge_zone(void)
+{
+    bool on = false, on2 = false, off = true;
+    bool ok_steps, ok_lost;
+
+    ok_steps =
+        zone_of(   0u, 1000u, 4u, true, &on) == 4u &&   /* on target           */
+        zone_of( 300u, 1000u, 4u, true, &on) == 5u &&   /* left starts to see  */
+        zone_of( 600u,  700u, 4u, true, &on) == 6u &&   /* under both          */
+        zone_of( 700u,  100u, 4u, true, &on) == 7u &&   /* past the centre     */
+        zone_of(   0u,  600u, 4u, true, &on) == 3u &&   /* centre sliding off  */
+        zone_of(   0u,  300u, 4u, true, &on2) == 2u &&  /* centre half off ... */
+        on2;                                            /* ... still on line   */
+
+    ok_lost =
+        zone_of(0u, 0u, 3u, true,  &off) == 1u && !off &&   /* slid off to GP28 side   */
+        zone_of(0u, 0u, 6u, true,  &on)  == 7u &&           /* went past left sensor   */
+        zone_of(0u, 0u, 1u, false, &on)  == 1u;             /* still lost: guess held  */
+
+    TEST_CHECK("S3-U09a", ok_steps,
+               "s3_edge_zone: zones 2..7 from the analog levels, zone 2 counts as on line");
+    TEST_CHECK("S3-U09b", ok_lost,
+               "s3_edge_zone: line lost -> 1 or 7 from the previous zone, then held");
+}
+
+/* ---------------------------------------------------------------------
+ *  S3-U10: s3_junction_step() -- a run of "GP26 and centre both fully
+ *  black" of a crossbar's length, with GP28 dark near it, gives exactly
+ *  one flag pulse; a short or long run, a run with GP28 white (the line
+ *  drifted under GP26), or a robot standing still give none.
+ *  One step = one 20 ms line cycle at 70 mm/s = 1.4 mm.
+ * --------------------------------------------------------------------- */
+static uint32_t jn_um;              /* simulated odometry, micrometres */
+static UINT     jn_ev;              /* OR of the event bits of the last call */
+
+static UW jn_run(S3_JN *j, bool full, bool r, UW cycles, UW um_per_cycle, UW *up)
+{
+    UW   i, rises = 0u;
+    UINT ev;
+
+    for (i = 0u; i < cycles; i++) {
+        jn_um += um_per_cycle;
+        ev = s3_junction_step(j, full, r, (uint16_t)(jn_um / 1000u));
+        jn_ev |= ev;
+        if (ev & S3_JN_RISE) rises++;
+        if (j->active && up != NULL) (*up)++;
+    }
+    return rises;
+}
+
+#define JN_V   1400u                /* um per cycle: 70 mm/s */
+
+/* a square crossbar at 70 mm/s: both full ~25 mm (18 cycles), GP28 dark
+   for the middle 8 cycles of it */
+static UW jn_bar(S3_JN *j, UW *up)
+{
+    return jn_run(j, true, false, 5u, JN_V, up) + jn_run(j, true, true, 8u, JN_V, up)
+         + jn_run(j, true, false, 5u, JN_V, up);
+}
+
+static void test_junction(void)
+{
+    S3_JN j;
+    UW    rises, up, first;
+    bool  held;
+
+    /* a: crossbar: zone held over it, one pulse right after it */
+    s3_junction_init(&j);  jn_um = 0u;  up = 0u;  jn_ev = 0u;
+    rises = jn_run(&j, false, false, 10u, JN_V, &up) + jn_bar(&j, &up);
+    held  = (jn_ev & S3_JN_HOLDZONE) != 0u && rises == 0u;
+    rises += jn_run(&j, false, false, 30u, JN_V, &up);
+    TEST_CHECK("S3-U10a",
+               held && rises == 1u && up >= S3_JN_HOLD_CYCLES && !j.active,
+               "junction: crossbar (both full 25 mm + GP28 dark) -> zone held, one pulse after it");
+
+    /* b: line swept across both by a correction: 4 mm */
+    s3_junction_init(&j);  jn_um = 0u;
+    rises = jn_run(&j, true, true, 3u, JN_V, NULL) + jn_run(&j, false, false, 20u, JN_V, NULL);
+    TEST_CHECK("S3-U10b", rises == 0u, "junction: 4 mm both-full -> no flag");
+
+    /* c: main line under both for 100 mm (a curve): no flag, zone let through past S3_JN_MAX_MM */
+    s3_junction_init(&j);  jn_um = 0u;
+    rises = jn_run(&j, true, false, 70u, JN_V, NULL);
+    jn_ev = 0u;
+    rises += jn_run(&j, true, false, 2u, JN_V, NULL);
+    held  = (jn_ev & S3_JN_HOLDZONE) != 0u;
+    rises += jn_run(&j, false, false, 20u, JN_V, NULL);
+    TEST_CHECK("S3-U10c", rises == 0u && !held,
+               "junction: 100 mm both-full (main line in a curve) -> no flag, zone released");
+
+    /* d: bar-length both-full run but GP28 white throughout (line drifted under GP26) */
+    s3_junction_init(&j);  jn_um = 0u;  jn_ev = 0u;
+    rises = jn_run(&j, true, false, 18u, JN_V, NULL) + jn_run(&j, false, false, 30u, JN_V, NULL);
+    TEST_CHECK("S3-U10d", rises == 0u && (jn_ev & S3_JN_NO_GP28) != 0u,
+               "junction: 25 mm both-full with GP28 white -> no flag (drift, not a crossbar)");
+
+    /* e: crooked approach: GP28 meets the bar 8 mm AFTER GP26/centre left it */
+    s3_junction_init(&j);  jn_um = 0u;
+    rises = jn_run(&j, true, false, 18u, JN_V, NULL) + jn_run(&j, false, false, 6u, JN_V, NULL)
+          + jn_run(&j, false, true, 6u, JN_V, NULL) + jn_run(&j, false, false, 20u, JN_V, NULL);
+    TEST_CHECK("S3-U10e", rises == 1u, "junction: GP28 meets the bar just after (crooked) -> one pulse");
+
+    /* f: robot standing still with everything dark -> never a junction */
+    s3_junction_init(&j);  jn_um = 0u;
+    rises = jn_run(&j, true, true, 50u, 0u, NULL) + jn_run(&j, false, false, 10u, 0u, NULL);
+    TEST_CHECK("S3-U10f", rises == 0u, "junction: dark but not moving -> no flag");
+
+    /* g: one pulse per junction; a bar right after is ignored, a later one is not */
+    s3_junction_init(&j);  jn_um = 0u;
+    first = jn_bar(&j, NULL) + jn_run(&j, false, false, 8u, JN_V, NULL)
+          + jn_bar(&j, NULL) + jn_run(&j, false, false, 2u, JN_V, NULL);
+    rises = jn_run(&j, false, false, 40u, JN_V, NULL) + jn_bar(&j, NULL)
+          + jn_run(&j, false, false, 2u, JN_V, NULL);
+    TEST_CHECK("S3-U10g", first == 1u && rises == 1u,
+               "junction: one pulse per junction (refractory), next junction flagged again");
+}
+
 #if S3_RUN_INT_TESTS
 // Integration test: check that line data flows from line_sensor_task to q_line_data within 100 ms
 static void test_line_data_flow(void)
@@ -326,6 +452,8 @@ EXPORT void subsystem3_test(void)
     test_char_map_validation();
     test_code39_lut();             /* S3-U05 (Commit 2) */
     test_code39_decode_symbol();   /* S3-U06 (Commit 2) */
+    test_edge_zone();              /* S3-U09 (2026-11-04) */
+    test_junction();               /* S3-U10 (2026-11-04) */
 
 #if S3_RUN_INT_TESTS
     /* Integration tests — require line_sensor_task to be running.
