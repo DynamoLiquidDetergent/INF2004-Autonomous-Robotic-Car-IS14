@@ -43,6 +43,7 @@ Run from the repository root (WSL or Linux): `sh testing/subsystem5/host/run.sh`
 | S5-H27 | simulation: 390 flat-faced boxes (10 to 20 cm wide, 20 to 40 cm away, offset -30 to +30 cm, 15 degree beam, 1 cm rounding). Every chosen bypass must keep the robot's half width clear of the true edge and no box in the lane may be missed | professor guidance (consistently safe path) | auto (PC) | as above | PASS, 0 unsafe, 0 missed |
 | S5-H28 | same simulation with the servo limited to 60 to 120 degrees (the window the car body allows). Unmeasured edges make the profile partial and the bypass wider | professor guidance (consistently safe path) | auto (PC) | as above | PASS, 0 unsafe, 0 missed |
 | S5-H29 | same simulation with the servo limited to 45 to 135 degrees | professor guidance (consistently safe path) | auto (PC) | as above | PASS, 0 unsafe, 0 missed |
+| S5-H30 | same simulation with the servo limited to 30 to 150 degrees (sensor moved forward so it clears the car body) | professor guidance (consistently safe path) | auto (PC) | as above | PASS, 0 unsafe, 0 missed |
 
 ### Automatic, on the Pico (`make TEST=1`)
 

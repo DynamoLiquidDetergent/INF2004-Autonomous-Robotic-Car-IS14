@@ -281,6 +281,15 @@ int main(void)
 		CHECK("S5-H28", bad == 0, "simulated boxes, servo limited to 60..120 deg: every bypass clears the true edge, none missed");
 	}
 
+	/* S5-H30 and the full 30..150 degree window */
+	{
+		int cases, retry, worst, bad = sim_boxes(2, 10, &cases, &retry, &worst);
+
+		printf("[HOST] S5-H30 sim 30..150 deg: %d cases, %d unsafe or missed, %d reverse-retry/stop, worst clearance %d cm\n",
+		       cases, bad, retry, worst);
+		CHECK("S5-H30", bad == 0, "simulated boxes, servo limited to 30..150 deg: every bypass clears the true edge, none missed");
+	}
+
 	/* S5-H29 and a window of 45..135 */
 	{
 		int cases, retry, worst, bad = sim_boxes(3, 9, &cases, &retry, &worst);

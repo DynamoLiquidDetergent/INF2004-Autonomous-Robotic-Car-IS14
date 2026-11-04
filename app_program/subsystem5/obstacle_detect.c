@@ -35,11 +35,12 @@
 #define S5_SERVO_SETTLE_BASE_MS	40	/* assumption A-servo: no SG90 datasheet supplied */
 #define S5_SERVO_SETTLE_PER_DEG	2	/* ms per degree moved (SG90 is about 100 ms / 60 deg) */
 #define S5_STANDALONE_REST_MS	1500	/* bench mode: pause after a scan before watching again */
-#define S5_IDX_MIN		4	/* the servo is only ever sent between these scan indices:  */
-#define S5_IDX_MAX		8	/* 4..8 = 60..120 degrees (index x 15). At 0/180 the sensor was
-					   thrown off its mount, and at 30/150 it hit the car body.
-					   Keep MIN <= 5 and MAX >= 7 (the lane ahead is 5..7).
-					   Widen only after checking by hand that nothing touches. */
+#define S5_IDX_MIN		2	/* the servo is only ever sent between these scan indices:  */
+#define S5_IDX_MAX		10	/* 2..10 = 30..150 degrees (index x 15). Never 0/180: at those
+					   the sensor was thrown off its mount. The sensor was moved
+					   forward on its bracket so it clears the car body at 30/150;
+					   if it touches anything again, narrow these (4 and 8 = 60..120).
+					   Keep MIN <= 5 and MAX >= 7 (the lane ahead is 5..7). */
 /* coarse scan: every second index, starting so that index 6 (straight ahead) is included */
 #define S5_COARSE_FIRST		(OBS_IDX_AHEAD - 2 * ((OBS_IDX_AHEAD - S5_IDX_MIN) / 2))
 #define S5_SERVO_STEP_DEG	15	/* the servo is moved at most this far per command, so it
