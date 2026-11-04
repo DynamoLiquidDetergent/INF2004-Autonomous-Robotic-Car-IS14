@@ -1,0 +1,86 @@
+---- Opened the serial port COM3 ----
+s1: tx telem t=3355771366 01 0A 00 01 00 02 08 00 80 23 00 FF FE F3 03
+s1: tx telem t=3355771866 01 0F 00 01 00 02 08 00 80 33 00 FF FE F3 03
+s1: tx hb    t=3355771866 09 01 01 00
+s1: tx telem t=3355772366 01 14 00 01 00 02 08 00 80 43 00 FF FE F3 03
+monitor: batch  n=10 last=90 from core 1
+monitor: t=3355772646 ms  samples=10  min=0 max=90 avg=45  free slots=4  free blocks=4
+s1: tx telem t=3355772866 01 19 00 01 00 02 08 00 80 53 00 FF FE F3 03
+s1: tx hb    t=3355772866 09 02 01 00
+s1: tx telem t=3355773366 01 1E 00 01 00 02 08 00 80 63 00 FF FE F3 03
+s1: tx telem t=3355773866 01 23 00 01 00 02 08 00 80 73 00 FF FE F3 03
+s1: tx hb    t=3355773866 09 03 01 00
+monitor: batch  n=15 last=60 from core 1
+monitor: t=3355774196 ms  samples=15  min=0 max=100 avg=56  free slots=4  free blocks=4
+s1: tx telem t=3355774366 01 28 00 01 00 02 08 00 80 83 00 FF FE F3 03
+s1: tx telem t=3355774866 01 2D 00 01 00 02 08 00 80 93 00 FF FE F3 03
+s1: tx hb    t=3355774866 09 04 01 00
+s1: tx telem t=3355775366 01 32 00 01 00 02 08 00 80 A3 10 FF FE F3 03
+monitor: batch  n=20 last=10 from core 1
+monitor: t=3355775746 ms  samples=20  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: tx telem t=3355775866 01 37 00 01 00 02 08 00 80 B3 10 FF FE F3 03
+s1: tx hb    t=3355775866 09 05 01 00
+s1: tx telem t=3355776366 01 3C 00 01 00 02 08 00 80 C3 10 FF FE F3 03
+s1: tx telem t=3355776866 01 41 00 01 00 02 08 00 80 D3 10 FF FE F3 03
+s1: tx hb    t=3355776866 09 06 01 00
+monitor: batch  n=25 last=40 from core 1
+monitor: t=3355777296 ms  samples=25  min=0 max=100 avg=44  free slots=4  free blocks=4
+s1: tx telem t=3355777366 01 46 00 01 00 02 08 00 80 E3 10 FF FE F3 03
+s1: tx telem t=3355777866 01 4B 00 01 00 02 08 00 80 F3 10 FF FE F3 03
+s1: tx hb    t=3355777866 09 07 01 00
+s1: tx telem t=3355778366 01 50 00 01 00 02 08 00 80 03 11 FF FE F3 03
+monitor: batch  n=30 last=90 from core 1
+monitor: t=3355778846 ms  samples=30  min=0 max=100 avg=48  free slots=4  free blocks=4
+monitor: LED task paused, state=WAIT+SUSPEND, pri=23
+s1: tx telem t=3355778866 01 55 00 01 00 02 08 00 80 13 11 FF FE F3 03
+s1: tx hb    t=3355778866 09 08 01 00
+s1: tx telem t=3355779366 01 5A 00 01 00 02 08 00 80 23 11 FF FE F3 03
+s1: tx telem t=3355779866 01 5F 00 01 00 02 08 00 80 33 11 FF FE F3 03
+s1: tx hb    t=3355779866 09 09 01 00
+s1: tx evt   t=3355780066 11 96 00
+s1: tx telem t=3355780366 01 64 00 02 00 02 08 00 80 43 21 FF FE F3 03
+monitor: batch  n=35 last=60 from core 1
+monitor: t=3355780396 ms  samples=35  min=0 max=100 avg=52  free slots=4  free blocks=4
+s1: tx telem t=3355780866 01 69 00 02 00 02 08 00 80 53 21 FF FE F3 03
+s1: tx hb    t=3355780866 09 0A 02 00
+s1: tx telem t=3355781366 01 6E 00 02 00 02 08 00 80 63 21 FF FE F3 03
+s1: tx telem t=3355781866 01 73 00 02 00 02 08 00 80 73 21 FF FE F3 03
+s1: tx hb    t=3355781866 09 0B 02 00
+monitor: batch  n=40 last=10 from core 1
+monitor: t=3355781946 ms  samples=40  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: tx telem t=3355782366 01 78 00 02 00 02 08 00 80 83 21 FF FE F3 03
+s1: tx telem t=3355782866 01 7D 00 02 00 02 08 00 80 93 21 FF FE F3 03
+s1: tx hb    t=3355782866 09 0C 02 00
+s1: tx telem t=3355783366 01 82 00 02 00 02 08 00 80 03 20 FF FE F3 03
+monitor: batch  n=45 last=40 from core 1
+monitor: t=3355783496 ms  samples=45  min=0 max=100 avg=46  free slots=4  free blocks=4
+s1: tx telem t=3355783866 01 87 00 02 00 02 08 00 80 13 20 FF FE F3 03
+s1: tx hb    t=3355783866 09 0D 02 00
+s1: tx telem t=3355784366 01 8C 00 02 00 02 08 00 80 23 20 FF FE F3 03
+s1: tx telem t=3355784866 01 91 00 02 00 02 08 00 80 33 20 FF FE F3 03
+s1: tx hb    t=3355784866 09 0E 02 00
+monitor: batch  n=50 last=90 from core 1
+monitor: t=3355785046 ms  samples=50  min=0 max=100 avg=49  free slots=4  free blocks=4
+s1: tx telem t=3355785366 01 96 00 02 00 02 08 00 80 43 30 FF FE F3 03
+s1: tx telem t=3355785866 01 9B 00 02 00 02 08 00 80 53 30 FF FE F3 03
+s1: tx hb    t=3355785866 09 0F 02 00
+s1: tx telem t=3355786366 01 A0 00 02 00 02 08 00 80 63 30 FF FE F3 03
+monitor: batch  n=55 last=60 from core 1
+monitor: t=3355786596 ms  samples=55  min=0 max=100 avg=51  free slots=4  free blocks=4
+s1: tx telem t=3355786866 01 A5 00 02 00 02 08 00 80 73 30 FF FE F3 03
+s1: tx hb    t=3355786866 09 10 02 00
+s1: tx telem t=3355787366 01 AA 00 02 00 02 08 00 80 83 30 FF FE F3 03
+s1: tx telem t=3355787866 01 AF 00 02 00 02 08 00 80 93 30 FF FE F3 03
+s1: tx hb    t=3355787866 09 11 02 00
+monitor: batch  n=60 last=10 from core 1
+monitor: t=3355788146 ms  samples=60  min=0 max=100 avg=50  free slots=4  free blocks=4
+monitor: LED task resumed, state=WAIT, pri=22
+s1: tx telem t=3355788366 01 B4 00 02 00 02 08 00 80 A3 30 FF FE F3 03
+s1: tx telem t=3355788866 01 B9 00 02 00 02 08 00 80 B3 30 FF FE F3 03
+s1: tx hb    t=3355788866 09 12 02 00
+s1: tx telem t=3355789366 01 BE 00 02 00 02 08 00 80 C3 30 FF FE F3 03
+monitor: batch  n=65 last=40 from core 1
+monitor: t=3355789696 ms  samples=65  min=0 max=100 avg=47  free slots=4  free blocks=4
+s1: tx telem t=3355789866 01 C3 00 02 00 02 08 00 80 D3 30 FF FE F3 03
+s1: tx hb    t=3355789866 09 13 02 00
+---- Closed the serial port COM3 ----

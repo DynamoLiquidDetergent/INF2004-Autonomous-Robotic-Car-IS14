@@ -1,0 +1,19 @@
+[TEST] S1-U02 PASS  LED task sleeps between ticks
+[TEST] subsystem1 SUMMARY 2 passed, 0 failed
+[TEST] S2-U01 PASS  sample values stay within 0..100
+[TEST] S2-U02 PASS  free slots and free blocks within pool size
+[TEST] S2-U03 PASS  IF-10 command pack/unpack at field limits (27 bits)
+[TEST] S2-U04 PASS  stale epochs detected, wrap 15 -> 0 handled
+monitor: batch  n=5 last=40 from core 1
+monitor: t=3355771096 ms  samples=5  min=0 max=40 avg=20  free slots=4  free blocks=4
+[TEST] S2-U05 PASS  motion_task runs about every 20 ms (8+ cycles in 200 ms)
+[TEST] S2 timing: cycles=115 max_exec_us=215 max_late_us=343
+[TEST] S2-U06 PASS  cycle WCET < 1 ms and release jitter < 2 ms
+[TEST] S2-U07 PASS  STOP accepted: epoch reported, state IDLE, PWM 0
+[TEST] S2-U08 PASS  command with an older epoch is discarded
+[TEST] S2-U09 PASS  no command for 100 ms -> state TIMEOUT (motors stopped)
+monitor: batch  n=10 last=90 from core 1
+monitor: t=3355772646 ms  samples=10  min=0 max=90 avg=45  free slots=4  free blocks=4
+[TEST] S2-U10 PASS  inhibit: commands discarded, PWM 0, released only by a newer epoch
+[TEST] S2-U11 PASS  GPIO hook rejects encoder pins and bad pin numbers
+[TEST] subsystem2 SUMMARY 11 passed, 0 failed

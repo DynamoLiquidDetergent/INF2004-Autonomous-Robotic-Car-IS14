@@ -1,0 +1,658 @@
+A:
+1793212612: New connection from 127.0.0.1:51465 on port 1883.
+1793212612: New client connected from 127.0.0.1:51465 as auto-1BD4D68E-D3D4-03C0-C04E-F33C7F7AAE40 (p4, c1, k60).
+1793212612: No will message specified.
+1793212612: Sending CONNACK to auto-1BD4D68E-D3D4-03C0-C04E-F33C7F7AAE40 (0, 0)
+1793212612: Received PUBLISH from auto-1BD4D68E-D3D4-03C0-C04E-F33C7F7AAE40 (d0, q1, r0, m1, 'is14/car/cmd', ... (1 bytes))
+1793212612: Sending PUBLISH to auto-038B3738-F6C0-658F-ED25-32D638CD98B5 (d0, q0, r0, m0, 'is14/car/cmd', ... (1 bytes))
+1793212612: Sending PUBLISH to mtk3smp-pico (d0, q1, r0, m1, 'is14/car/cmd', ... (1 bytes))
+1793212612: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/cmd', ... (1 bytes))
+1793212612: Sending PUBACK to auto-1BD4D68E-D3D4-03C0-C04E-F33C7F7AAE40 (m1, rc0)
+1793212612: Client auto-1BD4D68E-D3D4-03C0-C04E-F33C7F7AAE40 [127.0.0.1:51465] disconnected: connection closed by client.
+1793212612: Received PUBACK from mtk3smp-pico (Mid: 1, RC:0)
+1793212612: Received PUBLISH from mtk3smp-pico (d0, q1, r0, m5, 'is14/car/evt', ... (3 bytes))
+1793212612: Sending PUBLISH to auto-038B3738-F6C0-658F-ED25-32D638CD98B5 (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212612: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212612: Sending PUBACK to mtk3smp-pico (m5, rc0)
+1793212612: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212612: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212612: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212612: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212613: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212613: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212613: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212613: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212613: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212613: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212614: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212614: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212614: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212614: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212614: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212614: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212615: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212615: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212615: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212615: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212615: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212615: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212616: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212616: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212616: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212616: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212616: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212616: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212617: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212617: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212617: Received PUBLISH from mtk3smp-pico (d0, q1, r0, m6, 'is14/car/evt', ... (3 bytes))
+1793212617: Sending PUBLISH to auto-038B3738-F6C0-658F-ED25-32D638CD98B5 (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212617: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212617: Sending PUBACK to mtk3smp-pico (m6, rc0)
+1793212617: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212617: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212617: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212617: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212618: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212618: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212618: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212618: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212618: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212618: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212619: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212619: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212619: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212619: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212619: Received PINGREQ from auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE
+1793212619: Sending PINGRESP to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE
+1793212619: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212619: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212620: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212620: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212620: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212620: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212621: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212621: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212621: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212621: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212621: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212621: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212621: New connection from 127.0.0.1:51469 on port 1883.
+1793212621: New client connected from 127.0.0.1:51469 as auto-474FD68B-325D-9A47-F730-5E833D45AC90 (p4, c1, k60).
+1793212621: No will message specified.
+1793212621: Sending CONNACK to auto-474FD68B-325D-9A47-F730-5E833D45AC90 (0, 0)
+1793212621: Received PUBLISH from auto-474FD68B-325D-9A47-F730-5E833D45AC90 (d0, q1, r0, m1, 'is14/car/cmd', ... (1 bytes))
+1793212621: Sending PUBLISH to auto-038B3738-F6C0-658F-ED25-32D638CD98B5 (d0, q0, r0, m0, 'is14/car/cmd', ... (1 bytes))
+1793212621: Sending PUBLISH to mtk3smp-pico (d0, q1, r0, m2, 'is14/car/cmd', ... (1 bytes))
+1793212621: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/cmd', ... (1 bytes))
+1793212621: Sending PUBACK to auto-474FD68B-325D-9A47-F730-5E833D45AC90 (m1, rc0)
+1793212621: Client auto-474FD68B-325D-9A47-F730-5E833D45AC90 [127.0.0.1:51469] disconnected: connection closed by client.
+1793212621: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212621: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212621: Received PUBACK from mtk3smp-pico (Mid: 2, RC:0)
+1793212621: Received PUBLISH from mtk3smp-pico (d0, q1, r0, m7, 'is14/car/evt', ... (3 bytes))
+1793212621: Sending PUBLISH to auto-038B3738-F6C0-658F-ED25-32D638CD98B5 (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212621: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212621: Sending PUBACK to mtk3smp-pico (m7, rc0)
+1793212622: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212622: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212622: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212622: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212622: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212622: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212623: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212623: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212623: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212623: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212623: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212623: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212623: Received PINGREQ from auto-038B3738-F6C0-658F-ED25-32D638CD98B5
+1793212623: Sending PINGRESP to auto-038B3738-F6C0-658F-ED25-32D638CD98B5
+1793212624: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212624: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212624: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212624: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212625: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212625: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212625: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212625: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212625: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212625: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212625: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212625: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212626: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212626: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212626: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212626: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212626: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212626: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212627: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212627: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212627: Received PUBLISH from mtk3smp-pico (d0, q1, r0, m8, 'is14/car/evt', ... (3 bytes))
+1793212627: Sending PUBLISH to auto-038B3738-F6C0-658F-ED25-32D638CD98B5 (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212627: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212627: Sending PUBACK to mtk3smp-pico (m8, rc0)
+1793212627: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212627: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212627: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212627: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212628: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212628: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212628: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212628: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212628: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212628: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212629: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212629: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212629: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212629: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212629: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212629: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212630: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212630: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212630: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212630: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212630: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212630: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212631: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212631: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212631: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212631: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212631: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212631: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212632: New connection from 127.0.0.1:51473 on port 1883.
+1793212632: New client connected from 127.0.0.1:51473 as auto-ED311B16-E683-CEB6-5412-393323334810 (p4, c1, k60).
+1793212632: No will message specified.
+1793212632: Sending CONNACK to auto-ED311B16-E683-CEB6-5412-393323334810 (0, 0)
+1793212632: Received PUBLISH from auto-ED311B16-E683-CEB6-5412-393323334810 (d0, q1, r0, m1, 'is14/car/cmd', ... (5 bytes))
+1793212632: Sending PUBLISH to auto-038B3738-F6C0-658F-ED25-32D638CD98B5 (d0, q0, r0, m0, 'is14/car/cmd', ... (5 bytes))
+1793212632: Sending PUBLISH to mtk3smp-pico (d0, q1, r0, m3, 'is14/car/cmd', ... (5 bytes))
+1793212632: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/cmd', ... (5 bytes))
+1793212632: Sending PUBACK to auto-ED311B16-E683-CEB6-5412-393323334810 (m1, rc0)
+1793212632: Client auto-ED311B16-E683-CEB6-5412-393323334810 [127.0.0.1:51473] disconnected: connection closed by client.
+1793212632: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212632: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212632: Received PUBACK from mtk3smp-pico (Mid: 3, RC:0)
+1793212632: Received PUBLISH from mtk3smp-pico (d0, q1, r0, m9, 'is14/car/evt', ... (3 bytes))
+1793212632: Sending PUBLISH to auto-038B3738-F6C0-658F-ED25-32D638CD98B5 (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212632: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212632: Sending PUBACK to mtk3smp-pico (m9, rc0)
+1793212632: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212632: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212632: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212632: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212633: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212633: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212633: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212633: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212633: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212633: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212634: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212634: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212634: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212634: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212634: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212634: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212635: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212635: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212635: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212635: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212635: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212635: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212636: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212636: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212636: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212636: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212636: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212636: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212637: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212637: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212637: Received PUBLISH from mtk3smp-pico (d0, q1, r0, m10, 'is14/car/evt', ... (3 bytes))
+1793212637: Sending PUBLISH to auto-038B3738-F6C0-658F-ED25-32D638CD98B5 (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212637: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212637: Sending PUBACK to mtk3smp-pico (m10, rc0)
+1793212637: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212637: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212637: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212637: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212638: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212638: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212638: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212638: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212638: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212638: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212639: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212639: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212639: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212639: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212639: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212639: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212640: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212640: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212640: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212640: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212640: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212640: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212641: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212641: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212641: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212641: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212641: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212641: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212642: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212642: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212642: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212642: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212642: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212642: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212643: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212643: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212643: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212643: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212643: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212643: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212644: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212644: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212644: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212644: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212644: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212644: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212645: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212645: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212645: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212645: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212646: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212646: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212646: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212646: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212646: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212646: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212646: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212646: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212647: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212647: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212647: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212647: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212647: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212647: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212647: Received PUBLISH from mtk3smp-pico (d0, q1, r0, m11, 'is14/car/evt', ... (3 bytes))
+1793212647: Sending PUBLISH to auto-038B3738-F6C0-658F-ED25-32D638CD98B5 (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212647: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212647: Sending PUBACK to mtk3smp-pico (m11, rc0)
+1793212648: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212648: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212648: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212648: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212648: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212648: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212649: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212649: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212649: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212649: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212649: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212649: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212650: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212650: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212650: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212650: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212650: New connection from 127.0.0.1:51479 on port 1883.
+1793212650: New client connected from 127.0.0.1:51479 as auto-0AF60E9A-EDE7-EE69-F055-75967F5EC903 (p4, c1, k60).
+1793212650: No will message specified.
+1793212650: Sending CONNACK to auto-0AF60E9A-EDE7-EE69-F055-75967F5EC903 (0, 0)
+1793212650: Received PUBLISH from auto-0AF60E9A-EDE7-EE69-F055-75967F5EC903 (d0, q1, r0, m1, 'is14/car/map', ... (3 bytes))
+1793212650: Sending PUBLISH to auto-038B3738-F6C0-658F-ED25-32D638CD98B5 (d0, q0, r0, m0, 'is14/car/map', ... (3 bytes))
+1793212650: Sending PUBLISH to mtk3smp-pico (d0, q1, r0, m4, 'is14/car/map', ... (3 bytes))
+1793212650: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/map', ... (3 bytes))
+1793212650: Sending PUBACK to auto-0AF60E9A-EDE7-EE69-F055-75967F5EC903 (m1, rc0)
+1793212650: Client auto-0AF60E9A-EDE7-EE69-F055-75967F5EC903 [127.0.0.1:51479] disconnected: connection closed by client.
+1793212650: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212650: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212650: Received PUBACK from mtk3smp-pico (Mid: 4, RC:0)
+1793212651: Received PUBLISH from mtk3smp-pico (d0, q1, r0, m12, 'is14/car/evt', ... (3 bytes))
+1793212651: Sending PUBLISH to auto-038B3738-F6C0-658F-ED25-32D638CD98B5 (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212651: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212651: Sending PUBACK to mtk3smp-pico (m12, rc0)
+1793212651: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212651: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212651: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212651: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212651: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212651: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212652: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212652: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212652: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212652: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212652: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212652: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212653: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212653: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212653: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212653: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212653: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212653: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212654: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212654: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212654: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212654: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212654: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212654: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212655: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212655: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212655: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212655: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212655: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212655: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212656: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212656: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212656: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212656: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212656: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212656: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212657: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212657: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212657: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212657: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212657: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212657: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212658: Received PUBLISH from mtk3smp-pico (d0, q1, r0, m13, 'is14/car/evt', ... (3 bytes))
+1793212658: Sending PUBLISH to auto-038B3738-F6C0-658F-ED25-32D638CD98B5 (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212658: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212658: Sending PUBACK to mtk3smp-pico (m13, rc0)
+1793212658: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212658: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212658: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212658: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212658: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212658: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212659: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212659: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212659: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212659: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212659: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212659: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212660: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212660: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212660: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212660: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212660: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212660: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212661: New connection from 127.0.0.1:51484 on port 1883.
+1793212661: New client connected from 127.0.0.1:51484 as auto-397630C7-3838-E2B0-B5B2-AA93307D6E9C (p4, c1, k60).
+1793212661: No will message specified.
+1793212661: Sending CONNACK to auto-397630C7-3838-E2B0-B5B2-AA93307D6E9C (0, 0)
+1793212661: Received PUBLISH from auto-397630C7-3838-E2B0-B5B2-AA93307D6E9C (d0, q1, r0, m1, 'is14/car/map', ... (3 bytes))
+1793212661: Sending PUBLISH to auto-038B3738-F6C0-658F-ED25-32D638CD98B5 (d0, q0, r0, m0, 'is14/car/map', ... (3 bytes))
+1793212661: Sending PUBLISH to mtk3smp-pico (d0, q1, r0, m5, 'is14/car/map', ... (3 bytes))
+1793212661: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/map', ... (3 bytes))
+1793212661: Sending PUBACK to auto-397630C7-3838-E2B0-B5B2-AA93307D6E9C (m1, rc0)
+1793212661: Client auto-397630C7-3838-E2B0-B5B2-AA93307D6E9C [127.0.0.1:51484] disconnected: connection closed by client.
+1793212661: Received PUBACK from mtk3smp-pico (Mid: 5, RC:0)
+1793212661: Received PUBLISH from mtk3smp-pico (d0, q1, r0, m14, 'is14/car/evt', ... (3 bytes))
+1793212661: Sending PUBLISH to auto-038B3738-F6C0-658F-ED25-32D638CD98B5 (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212661: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212661: Sending PUBACK to mtk3smp-pico (m14, rc0)
+1793212661: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212661: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212661: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212661: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212661: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212661: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212662: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212662: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212662: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212662: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212662: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212662: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212663: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212663: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212663: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212663: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212663: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212663: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212664: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212664: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212664: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212664: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212664: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212664: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212665: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212665: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212665: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212665: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212665: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212665: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212666: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212666: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212666: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212666: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212666: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212666: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212667: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212667: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212667: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212667: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212667: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212667: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212668: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212668: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212668: Received PUBLISH from mtk3smp-pico (d0, q1, r0, m15, 'is14/car/evt', ... (3 bytes))
+1793212668: Sending PUBLISH to auto-038B3738-F6C0-658F-ED25-32D638CD98B5 (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212668: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/evt', ... (3 bytes))
+1793212668: Sending PUBACK to mtk3smp-pico (m15, rc0)
+1793212668: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212668: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212668: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212668: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/hb', ... (4 bytes))
+1793212669: Received PUBLISH from mtk3smp-pico (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+1793212669: Sending PUBLISH to auto-754AE2AB-79B7-78ED-9FE2-33710E9B74AE (d0, q0, r0, m0, 'is14/car/telem', ... (15 bytes))
+
+B:
+02:36:52.455000000 is14/car/cmd 1 01
+02:36:52.681000000 is14/car/evt 3 112b00
+02:36:52.697000000 is14/car/telem 15 01ff000100020800809351fffef303
+02:36:52.796000000 is14/car/hb 4 09130106
+02:36:53.245000000 is14/car/telem 15 01ff000100020800809351fffef303
+02:36:53.771000000 is14/car/telem 15 0104010100020800800350fffef303
+02:36:53.850000000 is14/car/hb 4 09140106
+02:36:54.273000000 is14/car/telem 15 0109010100020800801350fffef303
+02:36:54.794000000 is14/car/telem 15 010e010100020800802350fffef303
+02:36:54.870000000 is14/car/hb 4 09150106
+02:36:55.309000000 is14/car/telem 15 0113010100020800803350fffef303
+02:36:55.813000000 is14/car/telem 15 0118010100020800804350fffef303
+02:36:55.893000000 is14/car/hb 4 09160106
+02:36:56.331000000 is14/car/telem 15 011d010100020800805350fffef303
+02:36:56.833000000 is14/car/telem 15 0122010100020800806350fffef303
+02:36:56.907000000 is14/car/hb 4 09170106
+02:36:57.250000000 is14/car/telem 15 0127010100020800807350fffef303
+02:36:57.365000000 is14/car/evt 3 119600
+02:36:57.762000000 is14/car/telem 15 012c010200020800808360fffef303
+02:36:57.851000000 is14/car/hb 4 09180206
+02:36:58.274000000 is14/car/telem 15 0131010200020800809360fffef303
+02:36:58.785000000 is14/car/telem 15 013601020002080080a360fffef303
+02:36:58.850000000 is14/car/hb 4 09190206
+02:36:59.292000000 is14/car/telem 15 013b01020002080080b360fffef303
+02:36:59.811000000 is14/car/telem 15 014001020002080080c360fffef303
+02:36:59.973000000 is14/car/hb 4 091a0206
+02:37:00.331000000 is14/car/telem 15 014501020002080080d360fffef303
+02:37:00.928000000 is14/car/telem 15 014a01020002080080e360fffef303
+02:37:01.052000000 is14/car/hb 4 091b0206
+02:37:01.233000000 is14/car/telem 15 014f01020002080080f360fffef303
+02:37:01.753000000 is14/car/telem 15 0154010200020800800361fffef303
+02:37:01.781000000 is14/car/cmd 1 07
+02:37:01.811000000 is14/car/hb 4 091c0206
+02:37:01.933000000 is14/car/evt 3 110300
+02:37:02.219000000 is14/car/telem 15 0159010200020800801361fffef303
+02:37:02.782000000 is14/car/telem 15 015e010200020800802371fffef303
+02:37:02.843000000 is14/car/hb 4 091d0216
+02:37:03.283000000 is14/car/telem 15 0163010200020800803371fffef303
+02:37:03.801000000 is14/car/telem 15 0168010200020800804371fffef303
+02:37:03.887000000 is14/car/hb 4 091e0216
+02:37:04.313000000 is14/car/telem 15 016d010200020800805371fffef303
+02:37:04.933000000 is14/car/telem 15 0172010200020800806371fffef303
+02:37:05.031000000 is14/car/hb 4 091f0216
+02:37:05.231000000 is14/car/telem 15 0177010200020800807371fffef303
+02:37:05.747000000 is14/car/telem 15 017c010200020800808371fffef303
+02:37:05.812000000 is14/car/hb 4 09200216
+02:37:06.257000000 is14/car/telem 15 0181010200020800809371fffef303
+02:37:06.777000000 is14/car/telem 15 0186010200020800800370fffef303
+02:37:06.838000000 is14/car/hb 4 09210216
+02:37:07.286000000 is14/car/telem 15 018b010200020800801370fffef303
+02:37:07.591000000 is14/car/evt 3 110e01
+02:37:07.724000000 is14/car/telem 15 0190010100020800802380fffef303
+02:37:07.831000000 is14/car/hb 4 09220116
+02:37:08.308000000 is14/car/telem 15 0195010100020800803380fffef303
+02:37:08.821000000 is14/car/telem 15 019a010100020800804380fffef303
+02:37:08.921000000 is14/car/hb 4 09230116
+02:37:09.326000000 is14/car/telem 15 019f010100020800805380fffef303
+02:37:09.847000000 is14/car/telem 15 01a4010100020800806380fffef303
+02:37:09.904000000 is14/car/hb 4 09240116
+02:37:10.242000000 is14/car/telem 15 01a9010100020800807380fffef303
+02:37:10.730000000 is14/car/telem 15 01ae010100020800808380fffef303
+02:37:10.812000000 is14/car/hb 4 09250116
+02:37:11.278000000 is14/car/telem 15 01b3010100020800809380fffef303
+02:37:11.790000000 is14/car/telem 15 01b801010002080080a380fffef303
+02:37:11.936000000 is14/car/hb 4 09260116
+02:37:12.224000000 is14/car/cmd 5 0102030405
+02:37:12.239000000 is14/car/telem 15 01bd01010002080080b380fffef303
+02:37:12.410000000 is14/car/evt 3 110300
+02:37:12.728000000 is14/car/telem 15 01c201010002080080c390fffef303
+02:37:12.810000000 is14/car/hb 4 09270126
+02:37:13.326000000 is14/car/telem 15 01c701010002080080d390fffef303
+02:37:13.838000000 is14/car/telem 15 01cc01010002080080e390fffef303
+02:37:13.917000000 is14/car/hb 4 09280126
+02:37:14.247000000 is14/car/telem 15 01d101010002080080f390fffef303
+02:37:14.864000000 is14/car/telem 15 01d6010100020800800391fffef303
+02:37:14.929000000 is14/car/hb 4 09290126
+02:37:15.268000000 is14/car/telem 15 01db010100020800801391fffef303
+02:37:15.785000000 is14/car/telem 15 01e0010100020800802391fffef303
+02:37:15.845000000 is14/car/hb 4 092a0126
+02:37:16.302000000 is14/car/telem 15 01e5010100020800803391fffef303
+02:37:16.808000000 is14/car/telem 15 01ea010100020800804391fffef303
+02:37:16.871000000 is14/car/hb 4 092b0126
+02:37:17.425000000 is14/car/telem 15 01ef010100020800805391fffef303
+02:37:17.698000000 is14/car/evt 3 119600
+02:37:17.725000000 is14/car/telem 15 01f40102000208008063a1fffef303
+02:37:17.725000000 is14/car/hb 4 092c0226
+02:37:18.345000000 is14/car/telem 15 01f90102000208008073a1fffef303
+02:37:18.755000000 is14/car/telem 15 01f90102000208008073a1fffef303
+02:37:18.830000000 is14/car/hb 4 092d0226
+02:37:19.264000000 is14/car/telem 15 01fe0102000208008083a1fffef303
+02:37:19.779000000 is14/car/telem 15 01030202000208008093a1fffef303
+02:37:19.850000000 is14/car/hb 4 092e0226
+02:37:20.388000000 is14/car/telem 15 01080202000208008003a0fffef303
+02:37:20.810000000 is14/car/telem 15 010d0202000208008013a0fffef303
+02:37:20.869000000 is14/car/hb 4 092f0226
+02:37:21.234000000 is14/car/telem 15 01120202000208008023a0fffef303
+02:37:21.779000000 is14/car/telem 15 01170202000208008033a0fffef303
+02:37:21.844000000 is14/car/hb 4 09300226
+02:37:22.347000000 is14/car/telem 15 011c0202000208008043a0fffef303
+02:37:22.735000000 is14/car/telem 15 01210202000208008053a0fffef303
+02:37:22.811000000 is14/car/hb 4 09310226
+02:37:23.250000000 is14/car/telem 15 01260202000208008063b0fffef303
+02:37:23.728000000 is14/car/telem 15 012b0202000208008073b0fffef303
+02:37:23.814000000 is14/car/hb 4 09320226
+02:37:24.233000000 is14/car/telem 15 01300202000208008083b0fffef303
+02:37:24.796000000 is14/car/telem 15 01350202000208008093b0fffef303
+02:37:24.868000000 is14/car/hb 4 09330226
+02:37:25.232000000 is14/car/telem 15 013a02020002080080a3b0fffef303
+02:37:25.926000000 is14/car/telem 15 013f02020002080080b3b0fffef303
+02:37:26.025000000 is14/car/hb 4 09340226
+02:37:26.228000000 is14/car/telem 15 014402020002080080c3b0fffef303
+02:37:26.739000000 is14/car/telem 15 014902020002080080d3b0fffef303
+02:37:26.810000000 is14/car/hb 4 09350226
+02:37:27.352000000 is14/car/telem 15 014e02020002080080e3b0fffef303
+02:37:27.756000000 is14/car/telem 15 015302020002080080f3b0fffef303
+02:37:27.853000000 is14/car/hb 4 09360226
+02:37:27.930000000 is14/car/evt 3 110e01
+02:37:28.289000000 is14/car/telem 15 01580201000208008003c1fffef303
+02:37:28.789000000 is14/car/telem 15 015d0201000208008013c1fffef303
+02:37:28.849000000 is14/car/hb 4 09370126
+02:37:29.301000000 is14/car/telem 15 01620201000208008023c1fffef303
+02:37:29.808000000 is14/car/telem 15 01670201000208008033c1fffef303
+02:37:29.890000000 is14/car/hb 4 09380126
+02:37:30.320000000 is14/car/telem 15 016c0201000208008043c1fffef303
+02:37:30.837000000 is14/car/telem 15 01710201000208008053c1fffef303
+02:37:30.899000000 is14/car/map 3 6a800c
+02:37:30.908000000 is14/car/hb 4 09390126
+02:37:31.067000000 is14/car/evt 3 110a00
+02:37:31.342000000 is14/car/telem 15 01760201000208008063c9fffef303
+02:37:31.747000000 is14/car/telem 15 017b0201000208008073c9fffef303
+02:37:31.833000000 is14/car/hb 4 093a012e
+02:37:32.373000000 is14/car/telem 15 01800201000208008083c9fffef303
+02:37:32.813000000 is14/car/telem 15 01850201000208008093c9fffef303
+02:37:32.907000000 is14/car/hb 4 093b012e
+02:37:33.285000000 is14/car/telem 15 018a0201000208008003d8fffef303
+02:37:33.797000000 is14/car/telem 15 018f0201000208008013d8fffef303
+02:37:33.890000000 is14/car/hb 4 093c012e
+02:37:34.322000000 is14/car/telem 15 01940201000208008023d8fffef303
+02:37:34.817000000 is14/car/telem 15 01990201000208008033d8fffef303
+02:37:34.897000000 is14/car/hb 4 093d012e
+02:37:35.452000000 is14/car/telem 15 019e0201000208008043d8fffef303
+02:37:35.840000000 is14/car/telem 15 01a30201000208008053d8fffef303
+02:37:35.951000000 is14/car/hb 4 093e012e
+02:37:36.270000000 is14/car/telem 15 01a80201000208008063d8fffef303
+02:37:36.761000000 is14/car/telem 15 01ad0201000208008073d8fffef303
+02:37:36.846000000 is14/car/hb 4 093f012e
+02:37:37.286000000 is14/car/telem 15 01b20201000208008083d8fffef303
+02:37:37.795000000 is14/car/telem 15 01b70201000208008093d8fffef303
+02:37:37.873000000 is14/car/hb 4 0940012e
+02:37:38.208000000 is14/car/evt 3 119600
+02:37:38.377000000 is14/car/telem 15 01bc02020002080080a3e8fffef303
+02:37:38.824000000 is14/car/telem 15 01c102020002080080b3e8fffef303
+02:37:38.891000000 is14/car/hb 4 0941022e
+02:37:39.338000000 is14/car/telem 15 01c602020002080080c3e8fffef303
+02:37:39.847000000 is14/car/telem 15 01cb02020002080080d3e8fffef303
+02:37:39.910000000 is14/car/hb 4 0942022e
+02:37:40.255000000 is14/car/telem 15 01d002020002080080e3e8fffef303
+02:37:40.756000000 is14/car/telem 15 01d502020002080080f3e8fffef303
+02:37:40.890000000 is14/car/hb 4 0943022e
+02:37:41.117000000 is14/car/map 3 6a800c
+02:37:41.229000000 is14/car/evt 3 113200
+02:37:41.262000000 is14/car/telem 15 01da0202000208008003e9fffef303
+02:37:41.792000000 is14/car/telem 15 01df0202000208008013e9fffef303
+02:37:41.857000000 is14/car/hb 4 0944023e
+02:37:42.301000000 is14/car/telem 15 01e40202000208008023e9fffef303
+02:37:42.815000000 is14/car/telem 15 01e90202000208008033e9fffef303
+02:37:42.884000000 is14/car/hb 4 0945023e
+02:37:43.326000000 is14/car/telem 15 01ee0202000208008043f9fffef303
+02:37:43.740000000 is14/car/telem 15 01f30202000208008053f9fffef303
+02:37:43.836000000 is14/car/hb 4 0946023e
+02:37:44.250000000 is14/car/telem 15 01f30202000208008053f9fffef303
+02:37:44.758000000 is14/car/telem 15 01f80202000208008063f9fffef303
+02:37:44.846000000 is14/car/hb 4 0947023e
+02:37:45.272000000 is14/car/telem 15 01fd0202000208008073f9fffef303
+02:37:45.778000000 is14/car/telem 15 01020302000208008083f9fffef303
+02:37:45.869000000 is14/car/hb 4 0948023e
+02:37:46.498000000 is14/car/telem 15 01070302000208008093f9fffef303
+02:37:46.810000000 is14/car/telem 15 010c0302000208008003f8fffef303
+02:37:46.888000000 is14/car/hb 4 0949023e
+02:37:47.311000000 is14/car/telem 15 01110302000208008013f8fffef303
+02:37:47.735000000 is14/car/telem 15 01160302000208008023f8fffef303
+02:37:47.788000000 is14/car/hb 4 094a023e
+02:37:48.228000000 is14/car/telem 15 011b0302000208008033f8fffef303
+02:37:48.318000000 is14/car/evt 3 110e01
+02:37:48.755000000 is14/car/telem 15 0120030100020800804308fffef303
+02:37:48.868000000 is14/car/hb 4 094b013e
+02:37:49.254000000 is14/car/telem 15 0125030100020800805308fffef303
+
+D:
+PS C:\Program Files\Mosquitto> cd "C:\Program Files\Mosquitto"; while ($true) { .\mosquitto_sub.exe -h localhost -t is14/car/evt -t is14/car/cmd -t is14/car/map -F "@H:@M:@S.@N %t %l %x"; Start-Sleep 1 }
+02:36:36.916000000 is14/car/evt 3 119600
+02:36:47.208000000 is14/car/evt 3 110e01
+02:36:52.455000000 is14/car/cmd 1 01
+02:36:52.681000000 is14/car/evt 3 112b00
+02:36:57.365000000 is14/car/evt 3 119600
+02:37:01.781000000 is14/car/cmd 1 07
+02:37:01.933000000 is14/car/evt 3 110300
+02:37:07.591000000 is14/car/evt 3 110e01
+02:37:12.224000000 is14/car/cmd 5 0102030405
+02:37:12.410000000 is14/car/evt 3 110300
+02:37:17.698000000 is14/car/evt 3 119600
+02:37:27.930000000 is14/car/evt 3 110e01
+02:37:30.899000000 is14/car/map 3 6a800c
+02:37:31.067000000 is14/car/evt 3 110a00
+02:37:38.208000000 is14/car/evt 3 119600
+02:37:41.116000000 is14/car/map 3 6a800c
+02:37:41.229000000 is14/car/evt 3 113200
+02:37:48.317000000 is14/car/evt 3 110e01
+02:38:08.722000000 is14/car/evt 3 110e01
+PS C:\Program Files\Mosquitto>

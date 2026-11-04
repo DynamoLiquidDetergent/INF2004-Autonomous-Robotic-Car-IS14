@@ -1,0 +1,35 @@
+[TEST] === test run start ===
+monitor: I am task 7
+[TEST] S1-U01 PASS  cyclic handler is running
+wifi: cyw43_utk_task starting (proc 1)
+wifi: cyw43_init() ...
+wifi: cyw43_init() returned, bringing interface up ...
+[TEST] S1-U02 PASS  LED task sleeps between ticks
+[TEST] subsystem1 SUMMARY 2 passed, 0 failed
+[TEST] S2-U01 PASS  sample values stay within 0..100
+[TEST] S2-U02 PASS  free slots and free blocks within pool size
+[TEST] subsystem2 SUMMARY 2 passed, 0 failed
+[TEST] S3-U01 PASS  all S3 queue IDs are valid after init
+[TEST] S3-U02a PASS  line_data_pack: centre, no junction, no lost
+[TEST] S3-U02b PASS  line_data_pack: zone 2, junction + lost both set
+[TEST] S3-U02c PASS  line_data_pack: zone 7 stored correctly
+[TEST] S3-U03a PASS  gp28_pack: max ADC and max slot round-trip
+[TEST] S3-U03b PASS  gp28_pack: zero ADC and zero slot round-trip
+[TEST] S3-U03c PASS  gp28_pack: mid ADC and mid slot round-trip
+[TEST] S3-U04a PASS  char_map: four distinct A–Z letters accepted
+[TEST] S3-U04b PASS  char_map: duplicate letter rejected
+[TEST] S3-U04c PASS  char_map: non-letter character rejected
+[TEST] subsystem3 SUMMARY 10 passed, 0 failed
+[TEST] S4-U01 PASS  message buffer max line = S4_SUMMARY_MAX
+monitor: batch  n=5 last=40 from core 1
+monitor: t=3355771096 ms  samples=5  min=0 max=40 avg=20  free slots=4  free blocks=4
+monitor: batch  n=10 last=90 from core 1
+monitor: t=3355772646 ms  samples=10  min=0 max=90 avg=45  free slots=4  free blocks=4
+monitor: batch  n=15 last=60 from core 1
+monitor: t=3355774196 ms  samples=15  min=0 max=100 avg=56  free slots=4  free blocks=4
+[TEST] INT-02 PASS  summary lines flow from subsystem 3 to subsystem 4
+[TEST] subsystem4 SUMMARY 2 passed, 0 failed
+[TEST] S5-U01 PASS  example: running in a task context
+[TEST] subsystem5 SUMMARY 1 passed, 0 failed
+[TEST] === test run end ===
+---- Closed the serial port COM7 ----

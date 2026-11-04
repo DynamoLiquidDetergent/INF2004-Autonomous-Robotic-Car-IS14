@@ -1,42 +1,104 @@
 /*
  *	subsystem3.c
- *	Subsystem 3 -- Consumer: creates its objects and starts its task.
+ *	Subsystem 3 -- IR Perception: creates its kernel objects and starts its tasks.
  *
- *	APIs shown: tk_cre_mbx, tk_cre_mtx
+ *	COMMIT 4:
+ *	  subsystem3_init()   fills the Code 39 table, creates the five S3
+ *	                      queues and the line sensor's objects (phase 1).
+ *	  subsystem3_start()  starts line_sensor_task, barcode_decode_task and
+ *	                      the legacy example consumer (phase 2).
+ *
+ *	APIs used: tk_cre_mbf, tk_cre_mbx, tk_cre_mtx
  */
 
-#include "subsystem3.h"
+#include "s3_private.h"     /* line_sensor_*, barcode_decode_start */
+#include "code39.h"         /* code39_init() -- Code 39 lookup table */
 
-EXPORT ID		mbx_samples;	/* IF-01 */
-EXPORT ID		mtx_stats;	/* IF-04 */
-EXPORT APP_STATS	app_stats;
+/* ---- S3 interface objects (declared IMPORT in subsystem3.h) ---- */
+EXPORT ID q_line_data;      /* IF-05 */
+EXPORT ID q_gp28_samples;   /* IF-06 */
+EXPORT ID q_decoded_char;   /* IF-07 */
+EXPORT ID q_barcode_cmd;    /* IF-07 */
+
+/* ---- Legacy template objects (still used by S2 and S4) ---- */
+EXPORT ID        mbx_samples;
+EXPORT ID        mtx_stats;
+EXPORT APP_STATS app_stats;
+
+/* Each message in a message buffer takes a 4-byte header plus the
+   message rounded up to 4 bytes. */
+#define MBF_SLOT(sz)   ((((sz) + 3) & ~3) + 4)
+
+LOCAL ID make_mbf(INT msgsz, INT depth)
+{
+    T_CMBF cmbf = {0};
+
+    cmbf.mbfatr = TA_TFIFO;
+    cmbf.maxmsz = msgsz;
+    cmbf.bufsz  = depth * MBF_SLOT(msgsz);
+    return tk_cre_mbf(&cmbf);
+}
 
 EXPORT ER subsystem3_init(void)
 {
-	T_CMBX	cmbx = {0};
-	T_CMTX	cmtx = {0};
+    T_CMBX cmbx = {0};
+    T_CMTX cmtx = {0};
+    ER     er;
 
-	/* Mailbox: passes a POINTER to a message (zero copy).  The message
-	   memory must stay valid until the receiver is done with it, which
-	   is why subsystem 2 takes it from its memory pool. */
-	cmbx.mbxatr = TA_TFIFO | TA_MFIFO;	/* FIFO waiters, FIFO messages */
-	mbx_samples = tk_cre_mbx(&cmbx);
-	if (mbx_samples < E_OK) {
-		return mbx_samples;
-	}
+    /* Fill the 512-entry Code 39 lookup table before anything can decode.
+       Pure computation: no kernel objects, cannot fail. */
+    code39_init();
 
-	/* Mutex: only one task at a time may touch app_stats.  TA_INHERIT
-	   (priority inheritance) avoids priority inversion: a low-priority
-	   holder is temporarily raised to the waiter's priority. */
-	cmtx.mtxatr = TA_INHERIT;
-	mtx_stats = tk_cre_mtx(&cmtx);
-	return (mtx_stats < E_OK) ? mtx_stats : E_OK;
+    /* S3 queues */
+    q_line_data = make_mbf(sizeof(LINE_DATA_MSG), 8);
+    if (q_line_data < E_OK) return q_line_data;
+
+    q_gp28_samples = make_mbf(sizeof(GP28_SAMPLE_MSG), 64);
+    if (q_gp28_samples < E_OK) return q_gp28_samples;
+
+    q_decoded_char = make_mbf(sizeof(uint8_t), 4);
+    if (q_decoded_char < E_OK) return q_decoded_char;
+
+    q_barcode_cmd = make_mbf(sizeof(BARCODE_CMD), 4);
+    if (q_barcode_cmd < E_OK) return q_barcode_cmd;
+
+    /* Line sensor's own objects (calibration handshake flag) */
+    er = line_sensor_init();
+    if (er < E_OK) return er;
+
+    /* Legacy: mailbox that S2's producer sends sample pointers into */
+    cmbx.mbxatr = TA_TFIFO | TA_MFIFO;
+    mbx_samples = tk_cre_mbx(&cmbx);
+    if (mbx_samples < E_OK) return mbx_samples;
+
+    /* Legacy: mutex guarding app_stats (read by S4) */
+    cmtx.mtxatr = TA_INHERIT;
+    mtx_stats = tk_cre_mtx(&cmtx);
+    if (mtx_stats < E_OK) return mtx_stats;
+
+    return E_OK;
 }
 
 EXPORT ER subsystem3_start(void)
 {
-	/* Pinned to core 0 (TP_PRC1): opposite core to the producer */
-	ID tid = app_start_task(consumer_task, S3_PRI_CONSUMER, TP_PRC1,
-				"consumer_task");
-	return (tid < E_OK) ? tid : E_OK;
+    ER er;
+    ID tid;
+
+    /* Line sensor task: owns the ADC, 20 ms line / 2 ms GP28 cycles */
+    er = line_sensor_start();
+    if (er < E_OK) return er;
+
+    /* Barcode decode task: reads q_gp28_samples, writes q_decoded_char /
+       q_barcode_cmd, reads the IF-18 map from S1 */
+    er = barcode_decode_start();
+    if (er < E_OK) return er;
+
+    /* Debug only: drives the robot over a barcode (S3_BC_DRIVE_DEMO in
+       s3_private.h).  Does nothing when the switch is 0. */
+    er = s3_drive_demo_start();
+    if (er < E_OK) return er;
+
+    /* Legacy example consumer, keeps S2/S4 working until they are replaced */
+    tid = app_start_task(consumer_task, S3_PRI_CONSUMER, 0, "consumer_task");
+    return (tid < E_OK) ? tid : E_OK;
 }
