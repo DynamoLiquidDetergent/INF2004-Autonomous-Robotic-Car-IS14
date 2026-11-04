@@ -598,7 +598,7 @@ int main(void)
 
 		CHECK("S5-H66", cfg.approach_cm == 17 && cfg.approach_near_cm == 15 && cfg.approach_far_cm == 20 &&
 		      cfg.approach_guard_cm == 13 && cfg.approach_back_max_cm == 15 && cfg.approach_min_cm == 3,
-		      "default band: aim 17 cm, back away below 15, creep above 20, guard 13, back at most 10 cm, trust readings from 3 cm");
+		      "default band: aim 17 cm, back away below 15, creep above 20, guard 13, back at most 15 cm, trust readings from 3 cm");
 
 		/* H74: STOP (closer than stop_cm = 8 cm) backs straight away; it never goes forward */
 		a.detected = 1;

@@ -55,7 +55,11 @@
 #define VC_APPROACH_SPEED	40	/* mm/s while creeping up to the obstacle */
 /* Reverse: a steer of 0 would switch on the S2 straight-line hold, which flips its
    correction when reversing and then pushes the wheels APART (seen on the car: L -109,
-   R +38 mm/s). A steer of 1 mm/s switches the hold off and is far too small to turn the car. */
+   R +38 mm/s). A steer of 1 mm/s switches the hold off and is far too small to turn the car.
+   The back-away does NOT steer by the line sensors: they are ahead of the wheels, so
+   backing up on them is unstable and a simulation (testing/subsystem5/host/reverse_sim.py,
+   S5-H80) shows it is no better than reversing straight. The car stays on the line because
+   it was already aligned with it when it stopped. */
 #define VC_REVERSE_STEER	1
 
 typedef struct {
