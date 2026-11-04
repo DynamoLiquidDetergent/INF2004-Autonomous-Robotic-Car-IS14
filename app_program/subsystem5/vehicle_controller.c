@@ -241,6 +241,7 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 		in.approach_mm  = s5_approach_mm;
 		in.odo_mm       = s2_odo_dist_mm(s2_get_odometry());
 		in.fault_mask   = s5_fault_mask;
+		in.obst_present = obs_summary_present(s5_obs_summary) ? 1 : 0;
 		in.wheel_l      = s2_status_speed_l(st);
 		in.wheel_r      = s2_status_speed_r(st);
 		in.motion_done  = s2_status_done(st) ? 1 : 0;
@@ -322,6 +323,17 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 				if ((o.event & VC_EV_JN_DONE) && v.jn_cmd != VC_BC_FORWARD) {
 					tm_printf((UB*)"vc: junction done, turned about %d degrees\n",
 						  (INT)(((v.turn_arc_um * v.turn_dir * 573) / (VC_TRACK_MM * 1000)) / 10));
+				}
+				if (o.event & VC_EV_SEARCH) {
+					tm_printf((UB*)"vc: line lost, spinning on the spot to look for it (%s first)\n",
+						  (v.search_dir > 0) ? "right" : "left");
+				}
+				if (o.event & VC_EV_FOUND) {
+					tm_printf((UB*)"vc: line found again by the search\n");
+				}
+				if (o.event & VC_EV_GAVE_UP) {
+					tm_printf((UB*)"vc: line not found, stopped (line fault reported)\n");
+					(void)tk_set_flg(flg_fault_i14, FLT_LINE_BIT);
 				}
 				if (o.event & VC_EV_BC_EXPIRED) {
 					tm_printf((UB*)"vc: barcode command dropped, no junction within %d mm\n",

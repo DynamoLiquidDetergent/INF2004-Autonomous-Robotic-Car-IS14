@@ -104,12 +104,22 @@
 #define VC_TRACK_MM		120	/* S2_TRACK_WIDTH_MM */
 #define VC_MOTION_IDLE		0u	/* S2_STATE_IDLE */
 
+/* ---- Line search: when the line has been lost for VC_LF_LOST_STOP_MS (after the creeping
+   search towards the side it was last seen) the car spins on the spot: VC_SEARCH_DEG towards
+   that side, twice as far the other way, and back to where it started. It stops as soon as the
+   line has been seen again. Only one sweep per loss; then it gives up and reports a line fault. ---- */
+#define VC_SEARCH_DEG		60
+#define VC_SEARCH_FOUND_MSGS	2	/* line seen in this many line messages in a row */
+
 /* ---- Events, for the log (VC_OUT.event) ---- */
 #define VC_EV_BC_TAKEN		0x01u	/* a barcode command was taken */
 #define VC_EV_JN_START		0x02u	/* junction found, manoeuvre started */
 #define VC_EV_JN_DONE		0x04u	/* manoeuvre finished */
 #define VC_EV_TURN_TIMEOUT	0x08u	/* the turn did not finish in time */
 #define VC_EV_BC_EXPIRED	0x10u	/* command dropped: no junction within VC_BC_EXPIRE_MM */
+#define VC_EV_SEARCH		0x20u	/* line lost: the spin search starts */
+#define VC_EV_FOUND		0x40u	/* line found again by the spin search */
+#define VC_EV_GAVE_UP		0x80u	/* search over, line not found: stopped, line fault */
 
 /* ---- Mission state, reported to subsystem 1 in IF-13 (0..14; S1 proposes 1 = READY) ---- */
 #define VC_MS_INIT		0u	/* power-up: calibrating, being placed on the line */
@@ -165,6 +175,10 @@ typedef struct {
 	int		turn_live;	/* the TURN command is being sent */
 	unsigned	turn_ms;	/* time since the TURN command was first sent */
 	int32_t		turn_arc_um;	/* sum of (left - right) wheel travel while turning, micrometres */
+	int		search_leg;	/* 0 = not searching, 1..3 = leg of the spin search */
+	int		search_dir;	/* +1 right first, -1 left first */
+	int		search_used;	/* the one sweep of this loss is used */
+	int		found_cnt;	/* line messages in a row with the line seen, during the search */
 } VC_STATE;
 
 typedef struct {
@@ -181,6 +195,7 @@ typedef struct {
 	int		auto_start;	/* 1 = start by itself once ready (bench); 0 = wait for RESUME */
 	unsigned	fault_mask;	/* faults the Safety Monitor is handling now (IF-12 bits) */
 	int		junction;	/* junction flag of the newest line message */
+	int		obst_present;	/* Obstacle Detection has an obstacle (no spinning near it) */
 	unsigned	bc_cmd;		/* newest IF-07 command taken this cycle (VC_BC_*, NONE if none) */
 	unsigned	bc_n;		/* how many were taken this cycle */
 	int		wheel_l;	/* measured wheel speeds (IF-16), mm/s */

@@ -65,7 +65,7 @@ Run from the repository root (WSL or Linux): `sh testing/subsystem5/host/run.sh`
 | S5-H49 | the derivative term acts on the change since the last cycle (steer 50) | IF-05 | auto (PC) | as above | PASS |
 | S5-H50 | steering limit 120 mm/s and minimum speed 40 mm/s | IF-10 | auto (PC) | as above | PASS |
 | S5-H51 | line lost: slow search towards the side it was last seen on (a, b) | IF-05 | auto (PC) | as above | PASS |
-| S5-H52 | line lost for 1500 ms: stop for good, even if the line returns (a, b, c) | safety | auto (PC) | as above | PASS |
+| S5-H52 | line lost for 1500 ms with an obstacle present (no spinning next to it): stop for good, even if the line returns (a, b, c); without an obstacle the car spins to look for the line, see S5-H101 | safety | auto (PC) | as above | PASS |
 | S5-H53 | no line message: stop, same epoch | safety | auto (PC) | as above | PASS |
 | S5-H54 | Obstacle Detection scanning (states 1 to 3): stop, held, epoch plus 1 once | IF-10, professor guidance (safe navigation) | auto (PC) | as above | PASS |
 | S5-H55 | obstacle idle again: drive on with the newer epoch | IF-10 | auto (PC) | as above | PASS |
@@ -115,6 +115,12 @@ Run from the repository root (WSL or Linux): `sh testing/subsystem5/host/run.sh`
 | S5-H98 | PAUSE and obstacle scan during a manoeuvre: a pause in the drive-on drives only the rest of the 55 mm (a to d); a pause half-way through a turn turns only the rest, about 52 of 90 degrees, also after an obstacle scan (e to h); a U-turn that was 172 of 180 degrees done is finished at once (i) | IF-14, IF-07 | auto (PC) | as above | PASS |
 | S5-H99 | a turn with no done flag is given up after 4 s (a); a turn that goes 15 degrees past the target is stopped as finished (b); a done flag left from an earlier move is not believed in the first 100 ms (c) | IF-10, IF-16 | auto (PC) | as above | PASS |
 | S5-H100 | the status carries the barcode count (two commands in one cycle count 2) and the last action, RIGHT once that manoeuvre starts | IF-13 | auto (PC) | as above | PASS |
+| S5-H101 | line lost for 1500 ms with no obstacle: the car spins on the spot towards the side the line was last seen, +60 degrees for a last zone of 5, -60 for a last zone of 3 (a, b); TURNING, not given up | safety, NFR28 | auto (PC) | as above | PASS |
+| S5-H102 | line not found: legs +60, -120, +60 degrees in order (a); then STOP, mission state FAULT and the give-up event that reports the line fault (b); stays stopped when the line shows up later (c) | safety | auto (PC) | as above | PASS |
+| S5-H103 | line seen during the search: one message is not enough (b), the second stops the search and line following goes on, RUNNING (c); a later loss gets a new sweep (d) | safety | auto (PC) | as above | PASS |
+| S5-H104 | obstacle present: no spin search, stopped as before | safety | auto (PC) | as above | PASS |
+| S5-H105 | pause in the middle of a search leg: only the rest of the leg is turned (about 41 of 60 degrees) | IF-14 | auto (PC) | as above | PASS |
+| S5-H106 | line lost in the middle of a creep: the creep ends for a rescan (a) but the car is not stopped for good, line following goes on when the line is back (b) | safety | auto (PC) | as above | PASS |
 
 ### Automatic, on the Pico (`make TEST=1`)
 
@@ -169,6 +175,7 @@ Do them in phase order (`BRINGUP.md`). Never wire the next part until the previo
 | S5-M29 | Barcode U-TURN on the floor (as S5-M27, map with U-TURN) | IF-07, IF-10 | manual | 5 runs on a straight line with a barcode and a junction mark | `junction -> U-TURN`, turned about 180 degrees (170 to 190) and the car follows the line back the way it came; 5 of 5 |
 | S5-M30 | No false start: a barcode is read, then the car passes ordinary left corrections (a curve) before the junction | IF-05, IF-07 | manual | Read a barcode on a curve with no junction for at least 60 cm, watch the console | No `vc: junction ->` line before the real junction. If one appears the flag of subsystem 3 was held for 80 ms by a correction: record the zone values and report it to subsystem 3 (the junction flag needs the right sensor) |
 | S5-M31 | PAUSE in the middle of a turn on the floor (S5-M28 image with the dashboard or `VC_BENCH_SCRIPT` PAUSE and RESUME while the car is turning) | IF-14, IF-10 | manual | Start a LEFT turn, send PAUSE about halfway, wait 3 s, RESUME | The car stops, then turns only the rest (about 45 degrees) and ends on the branch; `turned about` in the console is near 90 in total, not 135 |
+| S5-M32 | Line lost on the floor (image `S5_PHASE 6`, `WIFI=none`): the car follows the line, you lift it onto white floor (or the line ends) | safety, NFR28 | manual | 1. Lift the car off the line onto white floor and put it down about 2 cm to the left of the line, centre sensor off the line. 2. Repeat with the line 2 cm to the right. 3. Put it on plain white floor far from the line | 1 and 2: after about 1.5 s of creeping `vc: line lost, spinning on the spot to look for it (left first)` (right first for the other side), the car spins, stops when the line is under the sensors (`vc: line found again by the search`) and follows it; 3: the car spins +60, -120, +60 degrees, then `vc: line not found, stopped (line fault reported)`, mission state FAULT, the motors stay off (the Safety Monitor holds 3 s and releases, the car stays stopped) |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **auto (PC)** = runs on a PC, prints `[HOST]` lines;

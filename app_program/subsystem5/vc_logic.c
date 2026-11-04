@@ -61,6 +61,10 @@ void vc_init(VC_STATE *v, unsigned epoch)
 	v->turn_live    = 0;
 	v->turn_ms      = 0;
 	v->turn_arc_um  = 0;
+	v->search_leg   = 0;
+	v->search_dir   = 1;
+	v->search_used  = 0;
+	v->found_cnt    = 0;
 }
 
 /* The line controller: one cycle. Fills speed and steer. Returns 1 to stop. */
@@ -75,8 +79,7 @@ static int follow_line(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 	if (in->lost) {
 		v->lost_ms += in->dt_ms;
 		if (v->lost_ms >= VC_LF_LOST_STOP_MS) {
-			v->line_gave_up = 1;
-			return 1;
+			return 1;		/* the caller decides: spin search, or give up */
 		}
 		/* the last zone is repeated while lost: turn towards that side */
 		turn        = (err > 0) ? VC_LF_SEARCH_STEER : ((err < 0) ? -VC_LF_SEARCH_STEER : 0);
@@ -86,6 +89,7 @@ static int follow_line(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 		return 0;
 	}
 	v->lost_ms = 0;
+	v->search_used = 0;		/* line seen: a new loss gets a new sweep */
 	turn = VC_LF_KP * err;
 	if (v->have_prev) {
 		turn += VC_LF_KD * (err - v->err_prev);
@@ -143,7 +147,7 @@ static VC_OUT creep_step(VC_STATE *v, const VC_IN *in, VC_OUT o)
 		return o;			/* no line data: do not creep blind (it times out) */
 	}
 	if (in->dt_ms > 0 || !v->creep_have_cmd) {
-		if (follow_line(v, in, &o)) {
+		if (follow_line(v, in, &o)) {		/* line lost: stop the creep and rescan from here */
 			v->creep_done = 1;
 			o.creep_done  = 1;
 			o.speed = 0;
@@ -173,6 +177,9 @@ static unsigned mission_of(const VC_STATE *v, const VC_IN *in)
 	}
 	if (!v->started) {
 		return in->ready ? VC_MS_READY : VC_MS_INIT;
+	}
+	if (v->line_gave_up) {
+		return VC_MS_FAULT;		/* line lost for good: stopped */
 	}
 	if (in->fault_mask != 0 || in->obs_state == VC_OBS_FAULT) {
 		return VC_MS_FAULT;
@@ -232,6 +239,36 @@ static int turned_d10(const VC_STATE *v)
 	return (int)(((int64_t)v->turn_arc_um * v->turn_dir * 573) / ((int64_t)VC_TRACK_MM * 1000));
 }
 
+
+/* One leg of the spin search: the first and last go VC_SEARCH_DEG towards the side the line
+   was lost on, the middle one twice as far the other way. */
+static void search_leg_set(VC_STATE *v)
+{
+	v->turn_dir        = (v->search_leg == 2) ? -v->search_dir : v->search_dir;
+	v->turn_target_d10 = ((v->search_leg == 2) ? 2 : 1) * VC_SEARCH_DEG * 10;
+	v->turn_arc_um     = 0;
+	v->turn_live       = 0;
+}
+
+static int search_begin(VC_STATE *v, const VC_IN *in, VC_OUT *o)
+{
+	int err = in->zone - VC_ZONE_CENTRE;	/* + = line towards the LEFT sensor */
+
+	if (in->obst_present || v->search_used) {
+		return 0;			/* no spinning next to an obstacle, one sweep per loss */
+	}
+	v->search_used = 1;
+	v->search_leg  = 1;
+	v->search_dir  = (err > 0) ? -VC_LF_STEER_SIGN : ((err < 0) ? VC_LF_STEER_SIGN : 1);
+	v->found_cnt   = 0;
+	v->jn_state    = JN_TURN;
+	v->jn_cmd      = VC_BC_NONE;
+	v->jn_on       = 0;
+	search_leg_set(v);
+	o->event      |= VC_EV_SEARCH;
+	return 1;
+}
+
 static void jn_finish(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 {
 	v->jn_state     = JN_NONE;
@@ -277,8 +314,29 @@ static void jn_start(VC_STATE *v, VC_OUT *o)
 	o->event |= VC_EV_JN_START;
 }
 
-/* Junction handling in normal driving. Returns 1 when it has filled the command,
-   0 to go on with line following. */
+static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o);
+
+/* A turn (junction turn or one leg of the search) is over. */
+static int turn_over(VC_STATE *v, const VC_IN *in, VC_OUT *o)
+{
+	if (v->search_leg == 0) {
+		jn_finish(v, in, o);
+		return 0;
+	}
+	if (v->search_leg < 3) {
+		v->search_leg++;
+		search_leg_set(v);
+		return jn_step(v, in, o);	/* next leg */
+	}
+	v->search_leg   = 0;			/* swept both ways and back: the line is not there */
+	jn_finish(v, in, o);
+	v->line_gave_up = 1;
+	o->event       |= VC_EV_GAVE_UP;
+	return 0;
+}
+
+/* Junction handling in normal driving, and the spin search. Returns 1 when it has
+   filled the command, 0 to go on with line following. */
 static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 {
 	if (v->jn_state == JN_NONE) {
@@ -327,12 +385,26 @@ static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 		v->turn_live = 0;
 	}
 	/* JN_TURN */
+	if (v->search_leg != 0) {		/* the line is looked for while spinning */
+		if (in->dt_ms > 0) {
+			if (in->line_fresh && !in->lost && in->zone != 0) {
+				v->found_cnt++;
+			} else {
+				v->found_cnt = 0;
+			}
+		}
+		if (v->found_cnt >= VC_SEARCH_FOUND_MSGS) {
+			v->search_leg = 0;
+			jn_finish(v, in, o);
+			o->event |= VC_EV_FOUND;
+			return 0;
+		}
+	}
 	if (!v->turn_live) {
 		int left = v->turn_target_d10 - turned_d10(v);
 
 		if (left < VC_TURN_LEFTOVER_D10) {	/* stopped just short of the end: done */
-			jn_finish(v, in, o);
-			return 0;
+			return turn_over(v, in, o);
 		}
 		v->turn_cmd_deg = (left + 5) / 10;
 		if (v->turn_cmd_deg > 180) {
@@ -344,13 +416,11 @@ static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 	v->turn_ms += in->elapsed_ms;
 	if ((in->motion_done && in->motion_state == VC_MOTION_IDLE && v->turn_ms >= VC_TURN_MIN_MS) ||
 	    turned_d10(v) >= v->turn_target_d10 + VC_TURN_OVERSHOOT_D10) {
-		jn_finish(v, in, o);
-		return 0;
+		return turn_over(v, in, o);
 	}
 	if (v->turn_ms >= VC_TURN_TIMEOUT_MS) {
 		o->event |= VC_EV_TURN_TIMEOUT;
-		jn_finish(v, in, o);
-		return 0;
+		return turn_over(v, in, o);
 	}
 	o->mode     = VC_MODE_TURN;
 	o->speed    = VC_TURN_SPEED;
@@ -455,6 +525,12 @@ static VC_OUT vc_step_inner(VC_STATE *v, const VC_IN *in)
 	} else {
 		o.speed = 0;
 		o.steer = 0;
+		if (search_begin(v, in, &o)) {		/* spin on the spot to find the line again */
+			(void)jn_step(v, in, &o);
+		} else {
+			v->line_gave_up = 1;
+			o.event |= VC_EV_GAVE_UP;
+		}
 	}
 	return o;
 }

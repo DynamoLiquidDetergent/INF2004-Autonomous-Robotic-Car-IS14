@@ -32,6 +32,7 @@ static VC_IN line_in(int zone, int lost)
 	in.auto_start = 1;		/* the older tests run without waiting for START */
 	in.fault_mask = 0;
 	in.junction = 0;
+	in.obst_present = 0;
 	in.bc_cmd = VC_BC_NONE;
 	in.bc_n = 0;
 	in.wheel_l = 0;
@@ -98,16 +99,19 @@ int main(void)
 	o = vc_step(&v, &in);
 	CHECK("S5-H51b", o.speed == 40 && o.steer == -100, "lost, last zone 3: 40 mm/s, turn -100");
 
-	/* H52: lost for 1500 ms: stop for good, even if the line comes back */
+	/* H52: lost for 1500 ms with an obstacle present (no spinning next to it): stop for good,
+	   even if the line comes back. Without an obstacle the car spins to look for the line: H101 */
 	vc_init(&v, 0);
 	ok = 1;
 	for (i = 0; i < 74; i++) {
 		in = line_in(5, 1);
+		in.obst_present = 1;
 		o = vc_step(&v, &in);
 		if (o.mode != VC_MODE_DRIVE) ok = 0;
 	}
 	CHECK("S5-H52a", ok, "lost for 1480 ms: still searching");
 	in = line_in(5, 1);
+	in.obst_present = 1;
 	o = vc_step(&v, &in);
 	CHECK("S5-H52b", o.mode == VC_MODE_STOP && v.line_gave_up, "lost for 1500 ms: STOP");
 	in = line_in(4, 0);
@@ -746,6 +750,90 @@ int main(void)
 		CHECK("S5-H100a", o.barcodes == 2 && o.last_action == VC_ACT_FORWARD, "two commands in one cycle: counted 2");
 		for (k = 0; k < 4; k++) { b = line_in(5, 0); b.junction = 1; o = vc_step(&v, &b); }
 		CHECK("S5-H100b", o.last_action == VC_ACT_RIGHT && o.barcodes == 2, "last action RIGHT once the manoeuvre starts");
+	}
+
+	/* H101 to H107: the spin search for a lost line */
+	{
+		VC_IN b;
+		int k, leg, sawturn[4];
+
+		/* H101: lost 1500 ms, no obstacle: spin towards the side the line was last on */
+		vc_init(&v, 0);
+		for (k = 0; k < 74; k++) { b = line_in(5, 1); o = vc_step(&v, &b); }
+		b = line_in(5, 1); o = vc_step(&v, &b);
+		CHECK("S5-H101a", (o.event & VC_EV_SEARCH) && o.mode == VC_MODE_TURN && o.turn_deg == 60 &&
+		      o.speed == VC_TURN_SPEED && o.mission_state == VC_MS_TURNING && !v.line_gave_up && o.busy,
+		      "lost 1500 ms, last zone 5 (line towards the right of the robot): spin +60 degrees, TURNING, not given up");
+		vc_init(&v, 0);
+		for (k = 0; k < 75; k++) { b = line_in(3, 1); o = vc_step(&v, &b); }
+		CHECK("S5-H101b", o.mode == VC_MODE_TURN && o.turn_deg == -60, "last zone 3: spin -60 degrees (left first)");
+
+		/* H102: not found: legs +60, -120, +60 (each ends on the done flag), then stopped with a line fault */
+		vc_init(&v, 0);
+		for (k = 0; k < 75; k++) { b = line_in(5, 1); o = vc_step(&v, &b); }
+		for (leg = 0; leg < 4; leg++) { sawturn[leg] = 0; }
+		leg = 0;
+		for (k = 0; k < 400 && !v.line_gave_up; k++) {
+			b = line_in(5, 1);
+			b.motion_state = 2;
+			if (o.mode == VC_MODE_TURN && v.turn_ms >= 200) {	/* S2 reports done after 200 ms */
+				b.motion_state = 0; b.motion_done = 1;
+			}
+			o = vc_step(&v, &b);
+			if (o.mode == VC_MODE_TURN && leg < 3 && (o.turn_deg == 60 || o.turn_deg == -120) && sawturn[leg] == 0 &&
+			    ((leg == 0 && o.turn_deg == 60) || (leg == 1 && o.turn_deg == -120) || (leg == 2 && o.turn_deg == 60))) {
+				sawturn[leg] = 1;
+				leg++;
+			}
+		}
+		CHECK("S5-H102a", sawturn[0] && sawturn[1] && sawturn[2], "three legs sent in order: +60, -120, +60");
+		CHECK("S5-H102b", v.line_gave_up && (o.event & VC_EV_GAVE_UP) && o.mode == VC_MODE_STOP && !o.busy &&
+		      o.mission_state == VC_MS_FAULT, "legs done, line not found: STOP, FAULT, give-up event for the line fault");
+		b = line_in(4, 0); o = vc_step(&v, &b);
+		CHECK("S5-H102c", o.mode == VC_MODE_STOP && o.mission_state == VC_MS_FAULT, "the line comes back later: stays stopped (RESET needed)");
+
+		/* H103: the line is seen during the second leg (2 line messages): stop searching, follow it */
+		vc_init(&v, 0);
+		for (k = 0; k < 75; k++) { b = line_in(5, 1); o = vc_step(&v, &b); }
+		for (k = 0; k < 400 && o.turn_deg != -120; k++) {
+			b = line_in(5, 1); b.motion_state = 2;
+			if (o.mode == VC_MODE_TURN && v.turn_ms >= 200) { b.motion_state = 0; b.motion_done = 1; }
+			o = vc_step(&v, &b);
+		}
+		CHECK("S5-H103a", o.turn_deg == -120, "second leg reached");
+		b = line_in(4, 0); b.motion_state = 2; o = vc_step(&v, &b);
+		CHECK("S5-H103b", o.mode == VC_MODE_TURN, "line seen in one message only: still turning");
+		b = line_in(4, 0); b.motion_state = 2; o = vc_step(&v, &b);
+		CHECK("S5-H103c", (o.event & VC_EV_FOUND) && !o.busy && o.mode == VC_MODE_DRIVE && !v.line_gave_up &&
+		      o.mission_state == VC_MS_RUNNING, "second message: line found, line following again, RUNNING");
+		/* a new loss gets a new sweep */
+		for (k = 0; k < 75; k++) { b = line_in(4, 1); o = vc_step(&v, &b); }
+		CHECK("S5-H103d", o.mode == VC_MODE_TURN && (v.search_leg == 1), "lost again later: a new sweep starts");
+
+		/* H104: no spinning next to an obstacle, one sweep per loss */
+		vc_init(&v, 0);
+		for (k = 0; k < 75; k++) { b = line_in(5, 1); b.obst_present = 1; o = vc_step(&v, &b); }
+		CHECK("S5-H104", o.mode == VC_MODE_STOP && v.line_gave_up && !(o.event & VC_EV_SEARCH),
+		      "obstacle present: no spin search, stopped");
+
+		/* H105: pause in the middle of the first leg: only the rest is turned */
+		vc_init(&v, 0);
+		for (k = 0; k < 75; k++) { b = line_in(5, 1); o = vc_step(&v, &b); }
+		for (k = 0; k < 10; k++) {		/* 10 x 20 ms x 200 mm/s = 40 mm = 19 degrees */
+			b = line_in(5, 1); b.wheel_l = 100; b.wheel_r = -100; b.motion_state = 2; o = vc_step(&v, &b);
+		}
+		b = line_in(5, 1); b.sup_cmd = VC_SUP_PAUSE; o = vc_step(&v, &b);
+		b = line_in(5, 1); b.sup_cmd = VC_SUP_RESUME; o = vc_step(&v, &b);
+		CHECK("S5-H105", o.mode == VC_MODE_TURN && o.turn_deg >= 40 && o.turn_deg <= 42,
+		      "paused after 19 of 60 degrees: resumed with the rest, about 41");
+
+		/* H106: line lost in a creep: the creep ends (for a rescan) but the car is not stopped for good */
+		vc_init(&v, 0);
+		b = line_in(4, 0); b.approach_mm = 150; b.odo_mm = 0; o = vc_step(&v, &b);
+		for (k = 0; k < 80; k++) { b = line_in(5, 1); b.approach_mm = 150; b.odo_mm = 5; o = vc_step(&v, &b); }
+		CHECK("S5-H106a", o.creep_done && !v.line_gave_up, "line lost 1.6 s into a creep: creep ends, not given up for good");
+		b = line_in(4, 0); b.approach_mm = 0; b.odo_mm = 5; o = vc_step(&v, &b);
+		CHECK("S5-H106b", o.mode == VC_MODE_DRIVE && !v.line_gave_up, "line back after the rescan: line following goes on");
 	}
 
 	printf("[HOST] vehicle controller SUMMARY %d passed, %d failed\n", pass_n, fail_n);
