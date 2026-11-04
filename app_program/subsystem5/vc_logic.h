@@ -18,6 +18,17 @@
  *	the odometry, stops when it is reached and reports creep_done. Holding for
  *	a scan or for the stop latch still comes first.
  *
+ *	Barcode turns (IF-07): the movement command of a barcode is kept until the
+ *	next junction. The junction flag of subsystem 3 also rises on ordinary left
+ *	corrections (its own note says it needs arming by a barcode), so it is only
+ *	looked at while a command is waiting, and has to stay up for a few line
+ *	messages. Then: FORWARD drives straight over the junction without steering
+ *	by the sensors; LEFT / RIGHT drive on a little (the sensors are ahead of
+ *	the wheels), turn 90 degrees on the spot with the Motion Control TURN
+ *	command and go back to line following; U-TURN turns 180 degrees on the spot.
+ *	The angle turned is also estimated from the wheel speeds, so a turn that
+ *	is stopped half-way (pause, obstacle) is finished with the rest only.
+ *
  *	Epoch (IF-10): Motion Control drops commands older than the newest it
  *	has seen, and after an inhibit accepts only a NEWER epoch. So the epoch
  *	goes up by one (mod 16) each time the controller starts to hold, and the
@@ -35,6 +46,7 @@
 /* ---- Motion Control (subsystem2.h), repeated so this file stays pure ---- */
 #define VC_MODE_STOP		0u
 #define VC_MODE_DRIVE		1u
+#define VC_MODE_TURN		2u
 #define VC_STATE_INHIBITED	5u	/* S2_STATE_INHIBITED */
 
 /* ---- Obstacle Detection state that lets the car drive ---- */
@@ -61,6 +73,43 @@
    S5-H80) shows it is no better than reversing straight. The car stays on the line because
    it was already aligned with it when it stopped. */
 #define VC_REVERSE_STEER	1
+
+/* ---- Barcode command (IF-07), the numbers subsystem 3 sends (subsystem3.h) ---- */
+#define VC_BC_NONE		0u
+#define VC_BC_FORWARD		1u
+#define VC_BC_UTURN		2u
+#define VC_BC_LEFT		3u
+#define VC_BC_RIGHT		4u
+
+/* ---- Last action reported to subsystem 1 (S1_MOVE_*) ---- */
+#define VC_ACT_FORWARD		0u
+#define VC_ACT_UTURN		1u
+#define VC_ACT_LEFT		2u
+#define VC_ACT_RIGHT		3u
+
+/* ---- Junction manoeuvre (tune on the track, tests S5-M27 to M29) ---- */
+#define VC_JN_CONFIRM_MSGS	4	/* junction flag in this many line messages in a row (80 ms) */
+#define VC_JN_ADVANCE_MM	55	/* drive on after the flag before a turn: sensors to wheel axle */
+#define VC_JN_CROSS_MM		80	/* FORWARD: straight over the junction, no steering by sensors */
+#define VC_JN_SPEED		60	/* mm/s for those two */
+#define VC_JN_REARM_MM		100	/* after a manoeuvre: flag low and this far before the next */
+#define VC_BC_EXPIRE_MM		1500	/* a command not used by a junction this far on is dropped */
+#define VC_TURN_SPEED		100	/* wheel speed during the spin, mm/s */
+#define VC_TURN_DEG		90
+#define VC_UTURN_DEG		180
+#define VC_TURN_MIN_MS		100	/* ignore the "done" flag this long after sending (it may be old) */
+#define VC_TURN_TIMEOUT_MS	4000	/* give up a turn after this long */
+#define VC_TURN_LEFTOVER_D10	100	/* less than 10 degrees left after a stop: call it done */
+#define VC_TURN_OVERSHOOT_D10	150	/* 15 degrees past the target: stop turning */
+#define VC_TRACK_MM		120	/* S2_TRACK_WIDTH_MM */
+#define VC_MOTION_IDLE		0u	/* S2_STATE_IDLE */
+
+/* ---- Events, for the log (VC_OUT.event) ---- */
+#define VC_EV_BC_TAKEN		0x01u	/* a barcode command was taken */
+#define VC_EV_JN_START		0x02u	/* junction found, manoeuvre started */
+#define VC_EV_JN_DONE		0x04u	/* manoeuvre finished */
+#define VC_EV_TURN_TIMEOUT	0x08u	/* the turn did not finish in time */
+#define VC_EV_BC_EXPIRED	0x10u	/* command dropped: no junction within VC_BC_EXPIRE_MM */
 
 /* ---- Mission state, reported to subsystem 1 in IF-13 (0..14; S1 proposes 1 = READY) ---- */
 #define VC_MS_INIT		0u	/* power-up: calibrating, being placed on the line */
@@ -98,6 +147,24 @@ typedef struct {
 	int		started;	/* START given (RESUME in READY, or auto start) */
 	int		paused;		/* PAUSE given, RESUME not yet */
 	int		aborted;	/* ABORT given: stays until reset */
+	unsigned	bc_pending;	/* barcode command waiting for a junction (VC_BC_*) */
+	unsigned	bc_odo;		/* odometry when it arrived */
+	unsigned	barcodes;	/* commands taken so far (stops at 255) */
+	unsigned	last_action;	/* VC_ACT_* of the last manoeuvre */
+	int		jn_armed;	/* a new junction may start a manoeuvre */
+	int		jn_conf;	/* line messages in a row with the junction flag */
+	unsigned	jn_rearm_odo;	/* odometry at the end of the last manoeuvre */
+	unsigned	jn_state;	/* 0 none, 1 driving on, 2 turning */
+	unsigned	jn_cmd;		/* the command being carried out */
+	int		jn_on;		/* the drive-on has its start recorded */
+	unsigned	jn_odo0;
+	unsigned	jn_acc;		/* mm of the drive-on done before a stop */
+	int		turn_dir;	/* +1 right (clockwise), -1 left */
+	int		turn_target_d10;	/* tenths of a degree, positive */
+	int		turn_cmd_deg;	/* degrees in the TURN command now sent */
+	int		turn_live;	/* the TURN command is being sent */
+	unsigned	turn_ms;	/* time since the TURN command was first sent */
+	int32_t		turn_arc_um;	/* sum of (left - right) wheel travel while turning, micrometres */
 } VC_STATE;
 
 typedef struct {
@@ -113,6 +180,13 @@ typedef struct {
 	int		ready;		/* power-up work (calibration, placing) is finished */
 	int		auto_start;	/* 1 = start by itself once ready (bench); 0 = wait for RESUME */
 	unsigned	fault_mask;	/* faults the Safety Monitor is handling now (IF-12 bits) */
+	int		junction;	/* junction flag of the newest line message */
+	unsigned	bc_cmd;		/* newest IF-07 command taken this cycle (VC_BC_*, NONE if none) */
+	unsigned	bc_n;		/* how many were taken this cycle */
+	int		wheel_l;	/* measured wheel speeds (IF-16), mm/s */
+	int		wheel_r;
+	int		motion_done;	/* IF-16 done flag */
+	uint32_t	elapsed_ms;	/* time since the last vc_step call (capped) */
 } VC_IN;
 
 typedef struct {
@@ -123,6 +197,11 @@ typedef struct {
 	int		holding;	/* 1 = held for an obstacle or the stop latch */
 	int		creep_done;	/* 1 = the ordered creep / back-away distance is reached */
 	unsigned	mission_state;	/* VC_MS_*, for IF-13 telemetry */
+	int		turn_deg;	/* VC_MODE_TURN: signed degrees, + = clockwise */
+	int		busy;		/* a junction manoeuvre is under way: call vc_step every cycle */
+	unsigned	barcodes;	/* commands taken so far */
+	unsigned	last_action;	/* VC_ACT_* */
+	unsigned	event;		/* VC_EV_* bits of this call */
 } VC_OUT;
 
 /* ---- Status to subsystem 1 (IF-13), every 500 ms ----

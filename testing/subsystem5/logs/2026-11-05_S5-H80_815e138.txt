@@ -1,0 +1,3 @@
+same sign, 3 mm/s per zone: as good or better 97, worse 38 of 135; worst final offset 38.9 mm with the control, 30.9 mm straight
+flipped sign: as good or better 47, worse 88; worst final offset 48.7 mm
+S5-H80 PASS  line feedback in reverse is not better than straight (sensors ahead of the axle)

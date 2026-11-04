@@ -31,7 +31,20 @@ static VC_IN line_in(int zone, int lost)
 	in.ready = 1;
 	in.auto_start = 1;		/* the older tests run without waiting for START */
 	in.fault_mask = 0;
+	in.junction = 0;
+	in.bc_cmd = VC_BC_NONE;
+	in.bc_n = 0;
+	in.wheel_l = 0;
+	in.wheel_r = 0;
+	in.motion_done = 0;
+	in.elapsed_ms = 20;
 	return in;
+}
+
+/* angle turned so far (tenths of a degree), same formula as the controller */
+static int turned_est_d10(const VC_STATE *st)
+{
+	return (int)(((long long)st->turn_arc_um * st->turn_dir * 573) / (120LL * 1000));
 }
 
 int main(void)
@@ -483,6 +496,256 @@ int main(void)
 		CHECK("S5-H88d", vs.mission_state == VC_MS_RUNNING && vs.mission_time_ds == 123 && vs.letter == 3 &&
 		      vs.last_action == 2 && vs.barcodes == 4 && vs.hump_peak_mm == VC_NO_HUMP,
 		      "values in range pass through: time 12345 ms = 123 ds, hump -1 = none (255)");
+	}
+
+
+	/* H90 to H97: barcode commands (IF-07) and junction manoeuvres */
+	{
+		VC_IN b;
+		unsigned odo = 0;
+		int k, turning_seen, drive_mm;
+
+		/* H90: a junction flag without a waiting barcode command is ignored (S3 raises it on
+		   ordinary left corrections), however long it stays up */
+		vc_init(&v, 0);
+		ok = 1;
+		for (k = 0; k < 20; k++) {
+			b = line_in(5, 0);
+			b.junction = 1;
+			b.odo_mm = (unsigned)(k * 2);
+			o = vc_step(&v, &b);
+			if (o.mode != VC_MODE_DRIVE || o.busy || o.mission_state != VC_MS_RUNNING) {
+				ok = 0;
+			}
+		}
+		CHECK("S5-H90", ok && v.jn_state == 0, "junction flag with no barcode command: line following goes on, no manoeuvre");
+
+		/* H91: the command is kept; one short flag (fewer than 4 messages) does not start it */
+		vc_init(&v, 0);
+		b = line_in(4, 0);
+		b.bc_cmd = VC_BC_RIGHT; b.bc_n = 1;
+		o = vc_step(&v, &b);
+		CHECK("S5-H91a", o.barcodes == 1 && (o.event & VC_EV_BC_TAKEN) && !o.busy,
+		      "barcode command taken and counted, nothing happens yet");
+		for (k = 0; k < 3; k++) {
+			b = line_in(5, 0);
+			b.junction = 1;
+			o = vc_step(&v, &b);
+		}
+		b = line_in(4, 0);
+		o = vc_step(&v, &b);
+		CHECK("S5-H91b", !o.busy && o.mode == VC_MODE_DRIVE && v.bc_pending == VC_BC_RIGHT,
+		      "flag for only 3 line messages: no manoeuvre, command still waiting");
+
+		/* H92: RIGHT. Flag for 4 messages starts it: drive on 55 mm straight (steer 0, 60 mm/s),
+		   then TURN +90 at 100 mm/s, TURNING all the time; when S2 reports done, back to the line */
+		vc_init(&v, 0);
+		b = line_in(4, 0);
+		b.bc_cmd = VC_BC_RIGHT; b.bc_n = 1;
+		o = vc_step(&v, &b);
+		odo = 1000;
+		for (k = 0; k < 4; k++) {
+			b = line_in(5, 0);
+			b.junction = 1;
+			b.odo_mm = odo;
+			o = vc_step(&v, &b);
+		}
+		CHECK("S5-H92a", (o.event & VC_EV_JN_START) && o.busy && o.mode == VC_MODE_DRIVE &&
+		      o.speed == VC_JN_SPEED && o.steer == 0 && o.mission_state == VC_MS_TURNING &&
+		      o.last_action == VC_ACT_RIGHT,
+		      "4th message with the flag: manoeuvre starts, driving on straight (steer 0, 60 mm/s), TURNING");
+		b = line_in(4, 0);
+		b.odo_mm = odo + 30;
+		o = vc_step(&v, &b);
+		CHECK("S5-H92b", o.mode == VC_MODE_DRIVE && o.steer == 0 && o.mission_state == VC_MS_TURNING,
+		      "30 mm of 55 mm driven: still driving on, mission state TURNING");
+		b = line_in(4, 0);
+		b.odo_mm = odo + 56;
+		o = vc_step(&v, &b);
+		CHECK("S5-H92c", o.mode == VC_MODE_TURN && o.turn_deg == 90 && o.speed == VC_TURN_SPEED && o.busy,
+		      "55 mm reached: TURN +90 degrees (clockwise) at 100 mm/s");
+		/* wheels spin: left +100, right -100 for 20 ms steps. 120 mm track: 90 degrees = 188.5 mm differential */
+		turning_seen = 1;
+		for (k = 0; k < 40; k++) {
+			b = line_in(4, 0);
+			b.odo_mm = odo + 56;
+			b.wheel_l = 100; b.wheel_r = -100;
+			b.motion_state = 2;
+			o = vc_step(&v, &b);
+			if (o.mode != VC_MODE_TURN) {
+				turning_seen = 0;
+			}
+			if (turned_est_d10(&v) >= 880) {
+				break;
+			}
+		}
+		CHECK("S5-H92d", turning_seen && o.mode == VC_MODE_TURN, "turning on the spot while S2 has not said done");
+		b = line_in(4, 0);
+		b.odo_mm = odo + 56; b.motion_state = 0; b.motion_done = 1;
+		o = vc_step(&v, &b);
+		CHECK("S5-H92e", (o.event & VC_EV_JN_DONE) && !o.busy && o.mode == VC_MODE_DRIVE &&
+		      o.mission_state == VC_MS_RUNNING,
+		      "S2 done: manoeuvre over, line following again, RUNNING");
+
+		/* H93: LEFT turns anticlockwise: negative degrees */
+		vc_init(&v, 0);
+		b = line_in(4, 0); b.bc_cmd = VC_BC_LEFT; b.bc_n = 1; o = vc_step(&v, &b);
+		for (k = 0; k < 4; k++) { b = line_in(5, 0); b.junction = 1; o = vc_step(&v, &b); }
+		b = line_in(4, 0); b.odo_mm = 60; o = vc_step(&v, &b);
+		CHECK("S5-H93", o.mode == VC_MODE_TURN && o.turn_deg == -90 && v.last_action == VC_ACT_LEFT,
+		      "LEFT: TURN -90, last action LEFT");
+
+		/* H94: U-TURN: turns at once (no drive-on), 180 degrees */
+		vc_init(&v, 0);
+		b = line_in(4, 0); b.bc_cmd = VC_BC_UTURN; b.bc_n = 1; o = vc_step(&v, &b);
+		for (k = 0; k < 4; k++) { b = line_in(5, 0); b.junction = 1; o = vc_step(&v, &b); }
+		CHECK("S5-H94", o.mode == VC_MODE_TURN && o.turn_deg == 180 && v.last_action == VC_ACT_UTURN &&
+		      o.mission_state == VC_MS_TURNING, "U-TURN: TURN 180 straight away, TURNING");
+
+		/* H95: FORWARD: straight over the junction (steer 0, no sensor steering) for 80 mm, no TURN,
+		   RUNNING state, then back to the line */
+		vc_init(&v, 0);
+		b = line_in(4, 0); b.bc_cmd = VC_BC_FORWARD; b.bc_n = 1; b.odo_mm = 500; o = vc_step(&v, &b);
+		for (k = 0; k < 4; k++) { b = line_in(6, 0); b.junction = 1; b.odo_mm = 500; o = vc_step(&v, &b); }
+		CHECK("S5-H95a", o.mode == VC_MODE_DRIVE && o.steer == 0 && o.busy && o.mission_state == VC_MS_RUNNING &&
+		      v.last_action == VC_ACT_FORWARD, "FORWARD: straight on, zone 6 pull ignored, RUNNING");
+		b = line_in(6, 0); b.junction = 1; b.odo_mm = 500 + 60; o = vc_step(&v, &b);
+		CHECK("S5-H95b", o.steer == 0 && o.busy, "60 mm of 80: still straight");
+		b = line_in(4, 0); b.junction = 1; b.odo_mm = 500 + 82; o = vc_step(&v, &b);
+		CHECK("S5-H95c", !o.busy && (o.event & VC_EV_JN_DONE) && o.mode == VC_MODE_DRIVE,
+		      "80 mm reached: done, line following");
+
+		/* H96: no second trigger on the same junction: flag still up after the manoeuvre, then low,
+		   then the next junction needs a new command and 100 mm */
+		vc_init(&v, 0);
+		b = line_in(4, 0); b.bc_cmd = VC_BC_FORWARD; b.bc_n = 1; b.odo_mm = 0; o = vc_step(&v, &b);
+		for (k = 0; k < 4; k++) { b = line_in(5, 0); b.junction = 1; b.odo_mm = 0; o = vc_step(&v, &b); }
+		b = line_in(4, 0); b.junction = 1; b.odo_mm = 85; o = vc_step(&v, &b);
+		b = line_in(4, 0); b.bc_cmd = VC_BC_LEFT; b.bc_n = 1; b.junction = 1; b.odo_mm = 90; o = vc_step(&v, &b);
+		for (k = 0; k < 6; k++) { b = line_in(5, 0); b.junction = 1; b.odo_mm = 95; o = vc_step(&v, &b); }
+		CHECK("S5-H96a", !o.busy && v.bc_pending == VC_BC_LEFT, "new command while the flag is still up from the last junction: not started");
+		for (k = 0; k < 3; k++) { b = line_in(4, 0); b.junction = 0; b.odo_mm = 120; o = vc_step(&v, &b); }
+		for (k = 0; k < 6; k++) { b = line_in(5, 0); b.junction = 1; b.odo_mm = 120; o = vc_step(&v, &b); }
+		CHECK("S5-H96b", !o.busy, "flag low but only 35 mm since the last manoeuvre: not re-armed yet");
+		for (k = 0; k < 3; k++) { b = line_in(4, 0); b.junction = 0; b.odo_mm = 200; o = vc_step(&v, &b); }
+		for (k = 0; k < 4; k++) { b = line_in(5, 0); b.junction = 1; b.odo_mm = 200; o = vc_step(&v, &b); }
+		CHECK("S5-H96c", o.busy && v.jn_cmd == VC_BC_LEFT, "flag low, 100 mm and more since: the next junction starts the waiting LEFT");
+
+		/* H97: a command with no junction for 1500 mm is dropped; a newer command replaces an older one */
+		vc_init(&v, 0);
+		b = line_in(4, 0); b.bc_cmd = VC_BC_LEFT; b.bc_n = 1; b.odo_mm = 0; o = vc_step(&v, &b);
+		b = line_in(4, 0); b.bc_cmd = VC_BC_RIGHT; b.bc_n = 1; b.odo_mm = 100; o = vc_step(&v, &b);
+		CHECK("S5-H97a", v.bc_pending == VC_BC_RIGHT && v.barcodes == 2, "newer command replaces the older one; both counted");
+		b = line_in(4, 0); b.odo_mm = 100 + 1400; o = vc_step(&v, &b);
+		CHECK("S5-H97b", v.bc_pending == VC_BC_RIGHT && !(o.event & VC_EV_BC_EXPIRED), "1400 mm on: still waiting");
+		b = line_in(4, 0); b.odo_mm = 100 + 1600; o = vc_step(&v, &b);
+		CHECK("S5-H97c", v.bc_pending == VC_BC_NONE && (o.event & VC_EV_BC_EXPIRED), "1600 mm on: dropped");
+		vc_init(&v, 0);
+		b = line_in(4, 0); b.bc_cmd = VC_BC_LEFT; b.bc_n = 1; b.odo_mm = 1000; o = vc_step(&v, &b);
+		b = line_in(4, 0); b.odo_mm = 1000 - 150; o = vc_step(&v, &b);
+		CHECK("S5-H97d", v.bc_pending == VC_BC_LEFT, "backing away (odometry going down) does not use up the distance");
+		(void)drive_mm;
+	}
+
+	/* H98: pause and obstacle during a manoeuvre */
+	{
+		VC_IN b;
+		int k;
+
+		/* PAUSE in the drive-on: after RESUME only the rest of the 55 mm is driven */
+		vc_init(&v, 0);
+		b = line_in(4, 0); b.bc_cmd = VC_BC_RIGHT; b.bc_n = 1; b.odo_mm = 0; o = vc_step(&v, &b);
+		for (k = 0; k < 4; k++) { b = line_in(5, 0); b.junction = 1; b.odo_mm = 0; o = vc_step(&v, &b); }
+		b = line_in(4, 0); b.odo_mm = 30; o = vc_step(&v, &b);
+		b = line_in(4, 0); b.odo_mm = 30; b.sup_cmd = VC_SUP_PAUSE; o = vc_step(&v, &b);
+		CHECK("S5-H98a", o.mode == VC_MODE_STOP && o.holding && o.busy && o.mission_state == VC_MS_PAUSED,
+		      "PAUSE during the drive-on: stopped, manoeuvre kept");
+		b = line_in(4, 0); b.odo_mm = 30; b.sup_cmd = VC_SUP_RESUME; o = vc_step(&v, &b);
+		CHECK("S5-H98b", o.mode == VC_MODE_DRIVE && o.speed == VC_JN_SPEED, "RESUME: driving on again");
+		b = line_in(4, 0); b.odo_mm = 30 + 20; o = vc_step(&v, &b);
+		CHECK("S5-H98c", o.mode == VC_MODE_DRIVE, "30 + 20 = 50 mm: not yet 55");
+		b = line_in(4, 0); b.odo_mm = 30 + 26; o = vc_step(&v, &b);
+		CHECK("S5-H98d", o.mode == VC_MODE_TURN && o.turn_deg == 90, "30 + 26 = 56 mm: the turn starts");
+
+		/* PAUSE half-way through the turn: after RESUME only the rest is turned */
+		for (k = 0; k < 20; k++) {			/* 20 x 20 ms at +-100 mm/s = 80 mm = 38 degrees */
+			b = line_in(4, 0); b.odo_mm = 56; b.wheel_l = 100; b.wheel_r = -100; b.motion_state = 2;
+			o = vc_step(&v, &b);
+		}
+		b = line_in(4, 0); b.odo_mm = 56; b.sup_cmd = VC_SUP_PAUSE; b.motion_state = 2; o = vc_step(&v, &b);
+		CHECK("S5-H98e", o.mode == VC_MODE_STOP && o.holding, "PAUSE during the turn: stopped");
+		b = line_in(4, 0); b.odo_mm = 56; b.sup_cmd = VC_SUP_RESUME; o = vc_step(&v, &b);
+		CHECK("S5-H98f", o.mode == VC_MODE_TURN && o.turn_deg >= 50 && o.turn_deg <= 54,
+		      "RESUME: TURN with the rest, about 52 degrees (90 minus the 38 already turned), not 90");
+		/* obstacle scan in the middle: held, then the same */
+		b = line_in(4, 0); b.odo_mm = 56; b.obs_state = 3; b.motion_state = 2; o = vc_step(&v, &b);
+		CHECK("S5-H98g", o.mode == VC_MODE_STOP && o.holding && o.mission_state == VC_MS_AVOIDING,
+		      "obstacle scan during the turn: held, AVOIDING");
+		b = line_in(4, 0); b.odo_mm = 56; o = vc_step(&v, &b);
+		CHECK("S5-H98h", o.mode == VC_MODE_TURN && o.turn_deg >= 50 && o.turn_deg <= 54,
+		      "scan over: TURN with the rest again");
+
+		/* turned all but 6 degrees before the stop: nothing is left to turn, back to the line */
+		vc_init(&v, 0);
+		b = line_in(4, 0); b.bc_cmd = VC_BC_UTURN; b.bc_n = 1; o = vc_step(&v, &b);
+		for (k = 0; k < 4; k++) { b = line_in(5, 0); b.junction = 1; o = vc_step(&v, &b); }
+		for (k = 0; k < 90; k++) {			/* 90 x 20 ms x 200 mm/s = 360 mm = 172 degrees */
+			b = line_in(4, 0); b.wheel_l = 100; b.wheel_r = -100; b.motion_state = 2;
+			o = vc_step(&v, &b);
+		}
+		b = line_in(4, 0); b.sup_cmd = VC_SUP_PAUSE; o = vc_step(&v, &b);
+		b = line_in(4, 0); b.sup_cmd = VC_SUP_RESUME; o = vc_step(&v, &b);
+		CHECK("S5-H98i", (o.event & VC_EV_JN_DONE) && !o.busy && o.mode == VC_MODE_DRIVE,
+		      "U-turn 172 of 180 degrees turned before a pause: less than 10 left, finished, line following");
+	}
+
+	/* H99: a turn that never reports done is given up, and one that overshoots is stopped */
+	{
+		VC_IN b;
+		int k;
+
+		vc_init(&v, 0);
+		b = line_in(4, 0); b.bc_cmd = VC_BC_UTURN; b.bc_n = 1; o = vc_step(&v, &b);
+		for (k = 0; k < 4; k++) { b = line_in(5, 0); b.junction = 1; o = vc_step(&v, &b); }
+		for (k = 0; k < 250; k++) {			/* 250 x 20 ms = 5 s, wheels stuck (0 mm/s) */
+			b = line_in(4, 0); b.motion_state = 2; o = vc_step(&v, &b);
+			if (o.event & VC_EV_TURN_TIMEOUT) {
+				break;
+			}
+		}
+		CHECK("S5-H99a", (o.event & VC_EV_TURN_TIMEOUT) && k >= 195 && k <= 205 && !o.busy,
+		      "wheels not turning: turn given up after 4 s");
+		vc_init(&v, 0);
+		b = line_in(4, 0); b.bc_cmd = VC_BC_LEFT; b.bc_n = 1; o = vc_step(&v, &b);
+		for (k = 0; k < 4; k++) { b = line_in(5, 0); b.junction = 1; o = vc_step(&v, &b); }
+		b = line_in(4, 0); b.odo_mm = 60; o = vc_step(&v, &b);
+		for (k = 0; k < 90; k++) {			/* spins anticlockwise and S2 never says done */
+			b = line_in(4, 0); b.odo_mm = 60; b.wheel_l = -100; b.wheel_r = 100; b.motion_state = 2;
+			o = vc_step(&v, &b);
+			if (o.event & VC_EV_JN_DONE) {
+				break;
+			}
+		}
+		CHECK("S5-H99b", (o.event & VC_EV_JN_DONE) && !(o.event & VC_EV_TURN_TIMEOUT) && k >= 50 && k <= 60,
+		      "past 90 + 15 degrees (about 55 steps of 20 ms at 200 mm/s) without done: stopped as finished");
+		/* done flag from an earlier move is not believed in the first 100 ms */
+		vc_init(&v, 0);
+		b = line_in(4, 0); b.bc_cmd = VC_BC_UTURN; b.bc_n = 1; o = vc_step(&v, &b);
+		for (k = 0; k < 4; k++) { b = line_in(5, 0); b.junction = 1; o = vc_step(&v, &b); }
+		b = line_in(4, 0); b.motion_state = 0; b.motion_done = 1; o = vc_step(&v, &b);
+		CHECK("S5-H99c", o.mode == VC_MODE_TURN && o.busy, "old 'done' right after the TURN was sent: ignored");
+	}
+
+	/* H100: the status shows the barcode count and the last action */
+	{
+		VC_IN b;
+		int k;
+
+		vc_init(&v, 0);
+		b = line_in(4, 0); b.bc_cmd = VC_BC_RIGHT; b.bc_n = 2; o = vc_step(&v, &b);
+		CHECK("S5-H100a", o.barcodes == 2 && o.last_action == VC_ACT_FORWARD, "two commands in one cycle: counted 2");
+		for (k = 0; k < 4; k++) { b = line_in(5, 0); b.junction = 1; o = vc_step(&v, &b); }
+		CHECK("S5-H100b", o.last_action == VC_ACT_RIGHT && o.barcodes == 2, "last action RIGHT once the manoeuvre starts");
 	}
 
 	printf("[HOST] vehicle controller SUMMARY %d passed, %d failed\n", pass_n, fail_n);

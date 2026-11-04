@@ -2,7 +2,8 @@
  *	vehicle_controller.c
  *	Subsystem 5 -- Vehicle Controller task (priority S5_PRI_VEHICLE).
  *
- *	Version 1 (S5_PHASE 6): follows the line (IF-05), stands still while
+ *	Version 3 (S5_PHASE 6): follows the line (IF-05), carries out the barcode
+ *	commands (IF-07) at junctions, stands still while
  *	Obstacle Detection is scanning or the Safety Monitor's stop latch is set,
  *	then drives on with a newer epoch. It is the only sender to Motion
  *	Control (IF-10): subsystem 3's drive demo MUST be off (S3_BC_DRIVE_DEMO 0
@@ -41,6 +42,17 @@ LOCAL const struct { UW t_ms; UB cmd; } bench_script[] = {
 };
 #endif
 
+/* Bench only: no barcode strip needed. With VC_BENCH_INJECT 1 this task puts a barcode
+   command into q_barcode_cmd by itself, in turn LEFT, RIGHT, U-TURN, FORWARD: the first
+   3 s after START, the next 3 s after each junction is done (or the command was dropped).
+   The car then takes the next junction of the track with it. */
+#ifndef VC_BENCH_INJECT
+#define VC_BENCH_INJECT		0
+#endif
+#if VC_BENCH_INJECT
+LOCAL const UB bench_inject[] = { VC_BC_LEFT, VC_BC_RIGHT, VC_BC_UTURN, VC_BC_FORWARD };
+#endif
+
 LOCAL const char *ms_name(UINT ms)
 {
 	static const char *const n[] = { "INIT", "READY", "RUNNING", "PAUSED", "AVOIDING",
@@ -50,7 +62,7 @@ LOCAL const char *ms_name(UINT ms)
 }
 
 /* IF-13: build the status and hand it to subsystem 1 (non-blocking; S1 keeps the newest) */
-LOCAL void send_status(UINT ms, UW run_ms, UINT barcodes, UINT last_action)
+LOCAL void send_status(UINT ms, UW run_ms, UINT barcodes, UINT last_action, INT letter)
 {
 	VC_STATUS_IN	si;
 	VC_STATUS	vs;
@@ -64,7 +76,7 @@ LOCAL void send_status(UINT ms, UW run_ms, UINT barcodes, UINT last_action)
 	si.mission_state = ms;
 	si.fault_mask    = s5_fault_mask;
 	si.run_ms        = run_ms;
-	si.letter        = -1;			/* subsystem 3 sends the movement, not the letter */
+	si.letter        = letter;		/* 0 = A .. 25 = Z, -1 none yet */
 	si.last_action   = last_action;
 	si.barcodes      = barcodes;
 	si.hump_mm       = -1;			/* subsystem 4 has no hump interface yet */
@@ -101,6 +113,39 @@ LOCAL UINT take_sup_cmd(int *link)
 	return cmd;
 }
 
+/* IF-07: take every waiting barcode command; the newest counts, all are counted.
+   Also the newest decoded letter (ASCII 'A'..'Z') for the status. */
+LOCAL UINT take_barcode_cmd(UINT *n)
+{
+	UB	b;
+	UINT	cmd = VC_BC_NONE;
+
+	*n = 0;
+	while (tk_rcv_mbf(q_barcode_cmd, &b, TMO_POL) == (INT)sizeof(b)) {
+		if (b >= VC_BC_FORWARD && b <= VC_BC_RIGHT) {
+			cmd = b;
+			(*n)++;
+		}
+	}
+	return cmd;
+}
+
+LOCAL void take_letter(INT *letter)
+{
+	UB	c;
+
+	while (tk_rcv_mbf(q_decoded_char, &c, TMO_POL) == (INT)sizeof(c)) {
+		*letter = (c >= 'A' && c <= 'Z') ? (INT)(c - 'A') : -1;
+	}
+}
+
+LOCAL const char *bc_name(UINT c)
+{
+	static const char *const n[] = { "NONE", "FORWARD", "U-TURN", "LEFT", "RIGHT" };
+
+	return (c < (sizeof(n) / sizeof(n[0]))) ? n[c] : "?";
+}
+
 LOCAL UW now_ms(void)
 {
 	SYSTIM t;
@@ -117,11 +162,12 @@ LOCAL void send_cmd(UW word)
 EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 {
 	VC_STATE	v;
-	VC_IN		in = {0, VC_ZONE_CENTRE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	VC_OUT		o = {VC_MODE_STOP, 0, 0, 0, 0, 0, VC_MS_INIT};
-	UW		last_status = 0, run_start = 0, run_frozen = 0;
+	VC_IN		in = {0};
+	VC_OUT		o = {0};
+	UW		last_status = 0, run_start = 0, run_frozen = 0, last_vc = 0;
+	INT		letter = -1;
+	UINT		bc_n;
 	int		run_on = 0;
-	UINT		barcodes = 0, last_action = 0;
 	int		link = -1;
 	int		new_link = -1;
 	UINT		last_ms = 0xFFu;
@@ -136,6 +182,9 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 	(void)stacd;
 	(void)exinf;
 
+	in.zone = VC_ZONE_CENTRE;
+	o.mode = VC_MODE_STOP;
+	o.mission_state = VC_MS_INIT;
 	s5_mission_state = VC_MS_INIT;
 	tm_printf((UB*)"vc: calibrating the line sensor for %d s -- sweep the robot slowly "
 		  "side to side across the black line (or leave it: defaults kept)\n",
@@ -155,7 +204,7 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 	/* old messages from the countdown are stale */
 	while (tk_rcv_mbf(q_line_data, &newer, TMO_POL) == (INT)sizeof(newer)) { }
 
-	start = last_data = last_step = last_print = now_ms();
+	start = last_data = last_step = last_print = last_vc = now_ms();
 	in.ready      = 1;
 	in.auto_start = VC_AUTO_START;
 #if VC_AUTO_START
@@ -178,6 +227,7 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 			}
 			in.zone       = line_data_zone(m);
 			in.lost       = line_data_lost(m) ? 1 : 0;
+			in.junction   = line_data_junction(m) ? 1 : 0;
 			in.line_fresh = 1;
 			in.dt_ms      = now - last_step;
 			last_step     = now;
@@ -191,6 +241,40 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 		in.approach_mm  = s5_approach_mm;
 		in.odo_mm       = s2_odo_dist_mm(s2_get_odometry());
 		in.fault_mask   = s5_fault_mask;
+		in.wheel_l      = s2_status_speed_l(st);
+		in.wheel_r      = s2_status_speed_r(st);
+		in.motion_done  = s2_status_done(st) ? 1 : 0;
+#if VC_BENCH_INJECT
+		{
+			static UINT inj_i;
+			static UW inj_at;
+			static int inj_wait = 1;
+
+			if (v.started && inj_at == 0) {
+				inj_at = now + 3000;
+			}
+			if (inj_at != 0 && !inj_wait && (o.event & (VC_EV_JN_DONE | VC_EV_BC_EXPIRED))) {
+				inj_at = now + 3000;
+				inj_wait = 1;
+			}
+			if (inj_at != 0 && inj_wait && (INT)(now - inj_at) >= 0 && !o.busy &&
+			    v.bc_pending == VC_BC_NONE) {
+				UB c = bench_inject[inj_i % (sizeof(bench_inject) / sizeof(bench_inject[0]))];
+
+				(void)tk_snd_mbf(q_barcode_cmd, &c, 1, TMO_POL);
+				inj_i++;
+				inj_wait = 0;
+				tm_printf((UB*)"vc: bench: command %s put into the barcode queue\n", bc_name(c));
+			}
+		}
+#endif
+		in.bc_cmd       = take_barcode_cmd(&bc_n);
+		in.bc_n         = bc_n;
+		take_letter(&letter);
+		if (in.bc_n > 0) {
+			tm_printf((UB*)"vc: barcode command %s (letter %c)\n", bc_name(in.bc_cmd),
+				  (letter >= 0) ? (char)('A' + letter) : '?');
+		}
 #if VC_BENCH_SCRIPT
 		{
 			static UINT next_step;
@@ -219,8 +303,31 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 		   in between the previous answer stays valid */
 		if (in.dt_ms > 0 || !in.line_fresh || in.obs_state != 0 ||
 		    in.motion_state == VC_STATE_INHIBITED || in.approach_mm != 0 || last_creep ||
-		    in.sup_cmd != VC_SUP_NONE || o.mission_state != VC_MS_RUNNING) {
+		    in.sup_cmd != VC_SUP_NONE || o.mission_state != VC_MS_RUNNING ||
+		    o.busy || in.bc_n > 0) {
+			in.elapsed_ms = now - last_vc;
+			if (in.elapsed_ms > 100) {
+				in.elapsed_ms = 100;		/* a long gap must not count as a long spin */
+			}
+			last_vc = now;
 			o = vc_step(&v, &in);
+			if (o.event != 0) {
+				if (o.event & VC_EV_JN_START) {
+					tm_printf((UB*)"vc: junction -> %s (epoch %d)\n", bc_name(v.jn_cmd), (INT)o.epoch);
+				}
+				if (o.event & VC_EV_TURN_TIMEOUT) {
+					tm_printf((UB*)"vc: WARNING turn did not finish in %d ms, carrying on\n",
+						  (INT)VC_TURN_TIMEOUT_MS);
+				}
+				if ((o.event & VC_EV_JN_DONE) && v.jn_cmd != VC_BC_FORWARD) {
+					tm_printf((UB*)"vc: junction done, turned about %d degrees\n",
+						  (INT)(((v.turn_arc_um * v.turn_dir * 573) / (VC_TRACK_MM * 1000)) / 10));
+				}
+				if (o.event & VC_EV_BC_EXPIRED) {
+					tm_printf((UB*)"vc: barcode command dropped, no junction within %d mm\n",
+						  (INT)VC_BC_EXPIRE_MM);
+				}
+			}
 		}
 		s5_mission_state = (UB)o.mission_state;
 		if (!run_on && v.started) {
@@ -231,7 +338,7 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 			run_frozen = now - run_start;		/* stops counting at ABORT */
 		}
 		if ((now - last_status) >= VC_STATUS_MS) {
-			send_status(o.mission_state, run_frozen, barcodes, last_action);
+			send_status(o.mission_state, run_frozen, o.barcodes, o.last_action, letter);
 			last_status = now;
 		}
 		if (o.mission_state != last_ms) {
@@ -241,6 +348,8 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 
 		if (o.mode == VC_MODE_DRIVE) {
 			send_cmd(s2_cmd_pack(S2_MODE_DRIVE, o.speed, o.steer, o.epoch));
+		} else if (o.mode == VC_MODE_TURN) {
+			send_cmd(s2_cmd_pack(S2_MODE_TURN, o.speed, o.turn_deg, o.epoch));
 		} else {
 			send_cmd(s2_cmd_pack(S2_MODE_STOP, 0, 0, o.epoch));
 		}
@@ -274,9 +383,10 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 			last_state = in.motion_state;
 		}
 		if ((now - last_print) >= VC_PRINT_MS) {
-			tm_printf((UB*)"vc: t=%5d zone=%d lost=%d cmd %4d mm/s steer %4d  wheels L=%4d R=%4d  dist=%5d%s\n",
-				  (INT)(now - start), (INT)in.zone, (INT)in.lost,
-				  (INT)((o.mode == VC_MODE_DRIVE) ? o.speed : 0), (INT)o.steer,
+			tm_printf((UB*)"vc: t=%5d zone=%d lost=%d jn=%d cmd %4d mm/s steer %4d  wheels L=%4d R=%4d  dist=%5d%s\n",
+				  (INT)(now - start), (INT)in.zone, (INT)in.lost, (INT)in.junction,
+				  (INT)((o.mode == VC_MODE_STOP) ? 0 : o.speed),
+				  (INT)((o.mode == VC_MODE_TURN) ? o.turn_deg : o.steer),
 				  (INT)s2_status_speed_l(st), (INT)s2_status_speed_r(st),
 				  (INT)s2_odo_dist_mm(s2_get_odometry()),
 				  v.line_gave_up ? "  LINE LOST FOR GOOD" : "");

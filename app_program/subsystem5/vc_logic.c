@@ -15,6 +15,16 @@ static int iabs(int v)
 	return (v < 0) ? -v : v;
 }
 
+#define JN_NONE		0u
+#define JN_DRIVE	1u	/* driving on (sensors are ahead of the wheels), or straight over */
+#define JN_TURN		2u	/* turning on the spot */
+
+/* signed distance since a 16-bit odometry mark (mm) */
+static int odo_since(unsigned now, unsigned mark)
+{
+	return (int)(int16_t)((now - mark) & 0xFFFFu);
+}
+
 void vc_init(VC_STATE *v, unsigned epoch)
 {
 	v->err_prev     = 0;
@@ -33,6 +43,24 @@ void vc_init(VC_STATE *v, unsigned epoch)
 	v->started      = 0;
 	v->paused       = 0;
 	v->aborted      = 0;
+	v->bc_pending   = VC_BC_NONE;
+	v->bc_odo       = 0;
+	v->barcodes     = 0;
+	v->last_action  = VC_ACT_FORWARD;
+	v->jn_armed     = 1;
+	v->jn_conf      = 0;
+	v->jn_rearm_odo = 0;
+	v->jn_state     = JN_NONE;
+	v->jn_cmd       = VC_BC_NONE;
+	v->jn_on        = 0;
+	v->jn_odo0      = 0;
+	v->jn_acc       = 0;
+	v->turn_dir     = 1;
+	v->turn_target_d10 = 0;
+	v->turn_cmd_deg = 0;
+	v->turn_live    = 0;
+	v->turn_ms      = 0;
+	v->turn_arc_um  = 0;
 }
 
 /* The line controller: one cycle. Fills speed and steer. Returns 1 to stop. */
@@ -155,6 +183,9 @@ static unsigned mission_of(const VC_STATE *v, const VC_IN *in)
 	if (in->obs_state != VC_OBS_IDLE || in->approach_mm != 0) {
 		return VC_MS_AVOIDING;
 	}
+	if (v->jn_state != JN_NONE && v->jn_cmd != VC_BC_FORWARD) {
+		return VC_MS_TURNING;
+	}
 	return VC_MS_RUNNING;
 }
 
@@ -172,7 +203,162 @@ static void creep_remember(VC_STATE *v, const VC_IN *in)
 	}
 }
 
-VC_OUT vc_step(VC_STATE *v, const VC_IN *in)
+
+/* IF-07: take the barcode commands. The newest one waits for the next junction. */
+static void bc_take(VC_STATE *v, const VC_IN *in, VC_OUT *o)
+{
+	if (in->bc_n > 0) {
+		v->barcodes += in->bc_n;
+		if (v->barcodes > 255u) {
+			v->barcodes = 255u;
+		}
+	}
+	if (in->bc_cmd != VC_BC_NONE) {
+		v->bc_pending = in->bc_cmd;
+		v->bc_odo     = in->odo_mm & 0xFFFFu;
+		o->event     |= VC_EV_BC_TAKEN;
+	}
+	if (v->bc_pending != VC_BC_NONE && v->jn_state == JN_NONE &&
+	    odo_since(in->odo_mm, v->bc_odo) > VC_BC_EXPIRE_MM) {
+		v->bc_pending = VC_BC_NONE;	/* no junction came: a later one is not meant for it */
+		o->event     |= VC_EV_BC_EXPIRED;
+	}
+}
+
+/* Angle turned so far in the direction of the turn, tenths of a degree. The wheel
+   speeds give it: left minus right wheel travel is track width times the angle. */
+static int turned_d10(const VC_STATE *v)
+{
+	return (int)(((int64_t)v->turn_arc_um * v->turn_dir * 573) / ((int64_t)VC_TRACK_MM * 1000));
+}
+
+static void jn_finish(VC_STATE *v, const VC_IN *in, VC_OUT *o)
+{
+	v->jn_state     = JN_NONE;
+	v->jn_on        = 0;
+	v->turn_live    = 0;
+	v->jn_armed     = 0;
+	v->jn_rearm_odo = in->odo_mm & 0xFFFFu;
+	v->have_prev    = 0;		/* line following starts clean */
+	v->lost_ms      = 0;
+	o->event       |= VC_EV_JN_DONE;
+}
+
+static void jn_start(VC_STATE *v, VC_OUT *o)
+{
+	v->jn_cmd       = v->bc_pending;
+	v->bc_pending   = VC_BC_NONE;
+	v->jn_state     = JN_DRIVE;
+	v->jn_on        = 0;
+	v->jn_acc       = 0;
+	v->turn_live    = 0;
+	v->turn_arc_um  = 0;
+	switch (v->jn_cmd) {
+	case VC_BC_LEFT:
+		v->turn_dir = -1;
+		v->turn_target_d10 = VC_TURN_DEG * 10;
+		v->last_action = VC_ACT_LEFT;
+		break;
+	case VC_BC_RIGHT:
+		v->turn_dir = 1;
+		v->turn_target_d10 = VC_TURN_DEG * 10;
+		v->last_action = VC_ACT_RIGHT;
+		break;
+	case VC_BC_UTURN:			/* turns on the spot where it stands */
+		v->turn_dir = 1;
+		v->turn_target_d10 = VC_UTURN_DEG * 10;
+		v->last_action = VC_ACT_UTURN;
+		v->jn_state = JN_TURN;
+		break;
+	default:				/* FORWARD: straight over */
+		v->last_action = VC_ACT_FORWARD;
+		break;
+	}
+	o->event |= VC_EV_JN_START;
+}
+
+/* Junction handling in normal driving. Returns 1 when it has filled the command,
+   0 to go on with line following. */
+static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
+{
+	if (v->jn_state == JN_NONE) {
+		if (!v->jn_armed && !in->junction &&
+		    odo_since(in->odo_mm, v->jn_rearm_odo) >= VC_JN_REARM_MM) {
+			v->jn_armed = 1;
+		}
+		if (in->dt_ms > 0) {		/* count per new line message */
+			if (in->junction && !in->lost && in->line_fresh) {
+				if (v->jn_conf < 1000) {
+					v->jn_conf++;
+				}
+			} else {
+				v->jn_conf = 0;
+			}
+		}
+		if (v->bc_pending != VC_BC_NONE && v->jn_armed && v->jn_conf >= VC_JN_CONFIRM_MSGS) {
+			v->jn_armed = 0;
+			jn_start(v, o);
+		}
+		if (v->jn_state == JN_NONE) {
+			return 0;
+		}
+	}
+	if (v->jn_state == JN_DRIVE) {
+		int want = (v->jn_cmd == VC_BC_FORWARD) ? VC_JN_CROSS_MM : VC_JN_ADVANCE_MM;
+		int moved;
+
+		if (!v->jn_on) {
+			v->jn_on   = 1;
+			v->jn_odo0 = in->odo_mm & 0xFFFFu;
+		}
+		moved = odo_since(in->odo_mm, v->jn_odo0) + (int)v->jn_acc;
+		if (moved < want) {
+			o->mode  = VC_MODE_DRIVE;
+			o->speed = VC_JN_SPEED;
+			o->steer = 0;		/* straight on the wheel encoders, not by the sensors */
+			return 1;
+		}
+		if (v->jn_cmd == VC_BC_FORWARD) {
+			jn_finish(v, in, o);
+			return 0;
+		}
+		v->jn_state  = JN_TURN;
+		v->jn_on     = 0;
+		v->turn_live = 0;
+	}
+	/* JN_TURN */
+	if (!v->turn_live) {
+		int left = v->turn_target_d10 - turned_d10(v);
+
+		if (left < VC_TURN_LEFTOVER_D10) {	/* stopped just short of the end: done */
+			jn_finish(v, in, o);
+			return 0;
+		}
+		v->turn_cmd_deg = (left + 5) / 10;
+		if (v->turn_cmd_deg > 180) {
+			v->turn_cmd_deg = 180;
+		}
+		v->turn_live = 1;
+		v->turn_ms   = 0;
+	}
+	v->turn_ms += in->elapsed_ms;
+	if ((in->motion_done && in->motion_state == VC_MOTION_IDLE && v->turn_ms >= VC_TURN_MIN_MS) ||
+	    turned_d10(v) >= v->turn_target_d10 + VC_TURN_OVERSHOOT_D10) {
+		jn_finish(v, in, o);
+		return 0;
+	}
+	if (v->turn_ms >= VC_TURN_TIMEOUT_MS) {
+		o->event |= VC_EV_TURN_TIMEOUT;
+		jn_finish(v, in, o);
+		return 0;
+	}
+	o->mode     = VC_MODE_TURN;
+	o->speed    = VC_TURN_SPEED;
+	o->turn_deg = v->turn_dir * v->turn_cmd_deg;
+	return 1;
+}
+
+static VC_OUT vc_step_inner(VC_STATE *v, const VC_IN *in)
 {
 	VC_OUT	o;
 	int	hold;
@@ -182,6 +368,11 @@ VC_OUT vc_step(VC_STATE *v, const VC_IN *in)
 	o.steer   = 0;
 	o.holding = 0;
 	o.creep_done = 0;
+	o.turn_deg = 0;
+	o.event = 0;
+	o.busy = 0;
+	o.barcodes = 0;
+	o.last_action = 0;
 
 	/* supervisor commands (IF-14). ABORT works at any time and stays. RESUME in READY
 	   is START; elsewhere it ends a PAUSE. PAUSE only counts once the run has started. */
@@ -203,6 +394,10 @@ VC_OUT vc_step(VC_STATE *v, const VC_IN *in)
 	if (!v->started && in->ready && in->auto_start) {
 		v->started = 1;
 	}
+	bc_take(v, in, &o);
+	if (v->jn_state == JN_TURN) {		/* count the angle turned, also while held */
+		v->turn_arc_um += (int32_t)(in->wheel_l - in->wheel_r) * (int32_t)in->elapsed_ms;
+	}
 	o.mission_state = mission_of(v, in);
 
 	/* Stand still unless the run is on, Obstacle Detection is idle and the Safety
@@ -216,6 +411,15 @@ VC_OUT vc_step(VC_STATE *v, const VC_IN *in)
 			if (v->creep_on && !v->creep_done) {
 				creep_remember(v, in);
 			}
+			if (v->jn_state == JN_DRIVE && v->jn_on) {
+				int moved = odo_since(in->odo_mm, v->jn_odo0);
+
+				if (moved > 0) {
+					v->jn_acc += (unsigned)moved;
+				}
+			}
+			v->jn_on     = 0;		/* drive-on and turn go on with what is left */
+			v->turn_live = 0;
 			v->creep_on = 0;
 			v->creep_done = 0;
 			v->epoch    = (v->epoch + 1u) & 0xFu;	/* Motion Control needs a newer epoch */
@@ -240,6 +444,9 @@ VC_OUT vc_step(VC_STATE *v, const VC_IN *in)
 		v->have_prev  = 0;
 		v->lost_ms    = 0;
 	}
+	if (jn_step(v, in, &o)) {
+		return o;
+	}
 	if (v->line_gave_up || !in->line_fresh) {
 		return o;		/* no line data, or the line is gone: do not drive blind */
 	}
@@ -249,6 +456,17 @@ VC_OUT vc_step(VC_STATE *v, const VC_IN *in)
 		o.speed = 0;
 		o.steer = 0;
 	}
+	return o;
+}
+
+VC_OUT vc_step(VC_STATE *v, const VC_IN *in)
+{
+	VC_OUT o = vc_step_inner(v, in);
+
+	o.mission_state = mission_of(v, in);	/* after the step, so a manoeuvre that starts or ends shows at once */
+	o.busy        = (v->jn_state != JN_NONE) ? 1 : 0;
+	o.barcodes    = v->barcodes;
+	o.last_action = v->last_action;
 	return o;
 }
 
