@@ -57,6 +57,14 @@ IMPORT ID	mbf_obstacle;
 /* Current Obstacle Detection state (OBS_STATE, 3 bits). Read only. */
 IMPORT volatile UB	s5_obs_state;
 
+/* Creep order from Obstacle Detection to the Vehicle Controller (phase 6+):
+   0 = none; > 0 = drive this many mm straight ahead, < 0 = back away this many
+   mm (DRIVE_DIST, slowly), then Obstacle Detection scans again from the new
+   position. Obstacle Detection sets it and clears it; the Vehicle Controller
+   only reads it. While it is not 0 the obstacle state is idle but the car is
+   NOT following the line. */
+IMPORT volatile H	s5_approach_mm;
+
 /* ---- Build options (override with -D on the make line if needed) ---- */
 /* 1 = the Vehicle Controller does not yet drive S5_CTRL_*: obstacle watch is
    on from power-up and a finished scan just returns to monitoring (phases

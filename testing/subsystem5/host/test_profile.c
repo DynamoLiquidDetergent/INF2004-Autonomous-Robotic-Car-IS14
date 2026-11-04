@@ -424,6 +424,83 @@ int main(void)
 		CHECK("S5-H35", bad == 0, "simulated TWO boxes: every chosen bypass clears both boxes, none missed");
 	}
 
+
+	/* S5-H61..H66: the move before the second scan (obs_approach_mm) */
+	{
+		OBS_PROFILE a;
+		int d, c, errs = 0, moves = 0;
+
+		memset(&a, 0, sizeof(a));
+		a.detected = 1;
+		a.action = OBS_ACT_TURN_RIGHT;
+		a.closest_idx = 6;
+		a.closest_cm = 49;
+		CHECK("S5-H61a", obs_approach_mm(&a, &cfg) == 320, "box dead ahead at 49 cm: creep 320 mm (to 17 cm)");
+		a.closest_idx = 8;	/* 120 degrees: 40 cm along the beam is 34.6 cm straight ahead */
+		a.closest_cm = 40;
+		CHECK("S5-H61b", obs_approach_mm(&a, &cfg) == 176, "closest point at 120 deg, 40 cm: 346 mm ahead, creep 176 mm");
+		a.closest_idx = 4;
+		CHECK("S5-H61c", obs_approach_mm(&a, &cfg) == 176, "same at 60 deg (mirror)");
+
+		a.closest_idx = 6;
+		a.closest_cm = 21;
+		CHECK("S5-H62a", obs_approach_mm(&a, &cfg) == 40, "gap 21 cm (above 20): creep 40 mm");
+		a.closest_cm = 20;
+		CHECK("S5-H62b", obs_approach_mm(&a, &cfg) == 0, "gap 20 cm: inside the 15..20 band, no move");
+		a.closest_cm = 15;
+		CHECK("S5-H62c", obs_approach_mm(&a, &cfg) == 0, "gap 15 cm: inside the band, no move");
+
+		a.closest_cm = 14;
+		CHECK("S5-H63a", obs_approach_mm(&a, &cfg) == -30, "gap 14 cm (below 15): back away 30 mm");
+		a.closest_cm = 10;
+		CHECK("S5-H63b", obs_approach_mm(&a, &cfg) == -70, "gap 10 cm: back away 70 mm");
+		a.closest_cm = 5;
+		CHECK("S5-H63c", obs_approach_mm(&a, &cfg) == -100, "gap 5 cm: back away is limited to 100 mm");
+
+		a.closest_cm = 49;
+		a.action = OBS_ACT_REVERSE_RETRY;
+		CHECK("S5-H64a", obs_approach_mm(&a, &cfg) == 0, "REVERSE_RETRY: no creep");
+		a.action = OBS_ACT_STOP;
+		CHECK("S5-H64b", obs_approach_mm(&a, &cfg) == 0, "STOP: no creep");
+		a.action = OBS_ACT_CONTINUE;
+		CHECK("S5-H64c", obs_approach_mm(&a, &cfg) == 0, "CONTINUE: no creep");
+		a.action = OBS_ACT_TURN_LEFT;
+		a.detected = 0;
+		CHECK("S5-H64d", obs_approach_mm(&a, &cfg) == 0, "nothing detected: no creep");
+
+		/* H65: whatever the angle and distance, carrying out the order lands the
+		   gap (true geometry, not the table) in the 15..20 cm band, within the
+		   cosine table's rounding */
+		a.detected = 1;
+		a.action = OBS_ACT_TURN_RIGHT;
+		for (d = -2; d <= 2; d++) {
+			for (c = 8; c <= 50; c++) {
+				int mm;
+				double ahead;
+
+				a.closest_idx = (uint8_t)(6 + d);
+				a.closest_cm = (uint16_t)c;
+				mm = obs_approach_mm(&a, &cfg);
+				ahead = c * 10.0 * cos(d * 15.0 * 3.14159265358979 / 180.0);
+				if (mm != 0) {
+					double gap = ahead - mm;
+
+					moves++;
+					if (gap < 160.0 || gap > 180.0) errs++;
+				} else if (ahead < 140.0 || ahead > 205.0) {
+					errs++;	/* no move only inside the band; a move under 30 mm is not made,
+						   so the lower edge is about 14 cm in practice */
+				}
+			}
+		}
+		printf("[HOST] S5-H65 %d moves checked, %d outside the band\n", moves, errs);
+		CHECK("S5-H65", errs == 0 && moves > 0, "every move ends with a gap of 16..18 cm; no move only when already about 14..20 cm (moves under 30 mm are skipped)");
+
+		CHECK("S5-H66", cfg.approach_cm == 17 && cfg.approach_near_cm == 15 && cfg.approach_far_cm == 20 &&
+		      cfg.approach_guard_cm == 13 && cfg.approach_back_max_cm == 10,
+		      "default band: aim 17 cm, back away below 15, creep above 20, guard 13, back at most 10 cm");
+	}
+
 	printf("[HOST] subsystem5 SUMMARY %d passed, %d failed\n", pass_n, fail_n);
 	return fail_n ? 1 : 0;
 }

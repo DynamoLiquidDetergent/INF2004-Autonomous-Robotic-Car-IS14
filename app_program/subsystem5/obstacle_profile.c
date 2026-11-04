@@ -27,6 +27,11 @@ void obs_cfg_default(OBS_CFG *cfg)
 	cfg->bg_enter_cm = 6;		/* 2 x the sensor's typical +/-3 cm scatter */
 	cfg->bg_exit_cm = 3;
 	cfg->detect_hyst_cm = 5;
+	cfg->approach_cm = 17;		/* aim for the middle of the band */
+	cfg->approach_near_cm = 15;	/* wanted gap before the bypass: 15..20 cm; closer: back away */
+	cfg->approach_far_cm = 20;	/* farther: creep forward */
+	cfg->approach_guard_cm = 13;	/* never closer than this while creeping */
+	cfg->approach_back_max_cm = 10;	/* back away at most 10 cm if stopped too close */
 }
 
 void obs_scan_clear(OBS_SCAN *s)
@@ -555,4 +560,36 @@ void obs_unpack(const uint32_t w[OBS_MSG_WORDS], OBS_PROFILE *p, uint8_t *seq)
 	p->idx_left    = 0;
 	p->plan_width_cm = 0;
 	p->unc_cm      = 0;
+}
+
+int obs_approach_mm(const OBS_PROFILE *p, const OBS_CFG *cfg)
+{
+	int d = (int)p->closest_idx - OBS_IDX_AHEAD;
+	int ahead_mm, travel_mm, back_max_mm;
+
+	if (!p->detected ||
+	    (p->action != OBS_ACT_TURN_RIGHT && p->action != OBS_ACT_TURN_LEFT)) {
+		return 0;
+	}
+	if (d < 0) {
+		d = -d;
+	}
+	if (d > 6) {
+		d = 6;
+	}
+	/* the closest point is d x 15 degrees off straight ahead; the table step is
+	   7.5 degrees, so cos of that angle is entry 2 x d. Its cosine is the share
+	   of the beam that points straight ahead. */
+	ahead_mm  = (int)(((int32_t)p->closest_cm * 10 * cos_tab[2 * d]) / 1000);
+	travel_mm = ahead_mm - (int)cfg->approach_cm * 10;
+	if (ahead_mm < (int)cfg->approach_near_cm * 10) {
+		/* too close: back away, but only a short way (nothing watches behind) */
+		back_max_mm = (int)cfg->approach_back_max_cm * 10;
+		travel_mm = (-travel_mm > back_max_mm) ? -back_max_mm : travel_mm;
+		return (travel_mm > -30) ? 0 : travel_mm;
+	}
+	if (ahead_mm <= (int)cfg->approach_far_cm * 10 || travel_mm <= 0) {
+		return 0;
+	}
+	return (travel_mm > 1023) ? 1023 : travel_mm;
 }

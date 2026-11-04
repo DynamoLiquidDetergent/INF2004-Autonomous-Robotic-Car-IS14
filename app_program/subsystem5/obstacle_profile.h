@@ -65,6 +65,14 @@ typedef struct {
 					   this much closer (smaller than bg_enter_cm = hysteresis) */
 	uint16_t detect_hyst_cm;	/* no background: enter at detect_cm, keep going up to
 					   detect_cm + this */
+	uint16_t approach_cm;		/* after the first scan the car moves to this gap
+					   and scans again from there (the middle of the band) */
+	uint16_t approach_near_cm;	/* gap below this: back away (band lower end) */
+	uint16_t approach_far_cm;	/* gap above this: creep forward (band upper end) */
+	uint16_t approach_guard_cm;	/* while creeping forward, a reading at or below this cuts
+					   the creep short and starts the scan at once */
+	uint16_t approach_back_max_cm;	/* most the car backs away when it stopped too close
+					   (nothing watches behind it, so keep this short) */
 } OBS_CFG;
 
 /* One scan: a distance per angle index, plus which indices were measured */
@@ -124,6 +132,20 @@ int  obs_next_fine_idx(const OBS_SCAN *s, const OBS_CFG *cfg, int lo, int hi, in
    whose corridor would touch another obstacle is reported as OBS_DIST_CAP
    (not possible), and if neither side is free the action is REVERSE_RETRY. */
 void obs_profile(const OBS_SCAN *s, const OBS_CFG *cfg, OBS_PROFILE *out);
+
+/* Creep before the second scan. How far (mm) the car should drive straight
+   ahead from where it stands so that the gap to the closest point of the
+   obstacle becomes cfg->approach_cm. The gap is measured straight ahead, not
+   along the beam: the closest point is at scan index closest_idx, so its
+   distance ahead is closest_cm x sin(angle).
+   Returns 0 (no move) when nothing was detected, when the profile did not
+   choose a bypass (OBS_ACT_TURN_*), or when the gap is already inside the
+   band approach_near_cm .. approach_far_cm (15..20 cm). Never more than 1023 mm
+   (Motion Control's DRIVE_DIST range).
+   Too close (gap below approach_near_cm, but the profile still chose a
+   bypass): the answer is NEGATIVE, back away that many mm to approach_cm, at
+   most approach_back_max_cm. Positive = drive forward. */
+int obs_approach_mm(const OBS_PROFILE *p, const OBS_CFG *cfg);
 
 /* Conversions */
 uint16_t obs_echo_us_to_cm(uint32_t echo_us);	/* round(us / 58), capped */

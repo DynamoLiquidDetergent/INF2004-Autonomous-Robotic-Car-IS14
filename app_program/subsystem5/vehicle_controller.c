@@ -40,13 +40,14 @@ LOCAL void send_cmd(UW word)
 EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 {
 	VC_STATE	v;
-	VC_IN		in = {0, VC_ZONE_CENTRE, 0, 0, 0, 0};
-	VC_OUT		o = {VC_MODE_STOP, 0, 0, 0, 0};
+	VC_IN		in = {0, VC_ZONE_CENTRE, 0, 0, 0, 0, 0};
+	VC_OUT		o = {VC_MODE_STOP, 0, 0, 0, 0, 0};
 	LINE_DATA_MSG	m, newer;
 	UW		start, now, last_data, last_step, last_print, st;
 	UINT		last_state = 0xFFFFu;
 	INT		rc;
 	int		last_hold = 0;
+	int		last_creep = 0;
 
 	(void)stacd;
 	(void)exinf;
@@ -95,16 +96,19 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 		st = s2_get_status();
 		in.obs_state    = s5_obs_state;
 		in.motion_state = s2_status_state(st);
+		in.approach_mm  = s5_approach_mm;
 
 		/* the line controller only advances on a new line message (dt_ms > 0);
 		   in between the previous answer stays valid */
 		if (in.dt_ms > 0 || !in.line_fresh || in.obs_state != 0 ||
-		    in.motion_state == VC_STATE_INHIBITED) {
+		    in.motion_state == VC_STATE_INHIBITED || in.approach_mm != 0 || last_creep) {
 			o = vc_step(&v, &in);
 		}
 
 		if (o.mode == VC_MODE_DRIVE) {
 			send_cmd(s2_cmd_pack(S2_MODE_DRIVE, o.speed, o.steer, o.epoch));
+		} else if (o.mode == VC_MODE_DRIVE_DIST) {
+			send_cmd(s2_cmd_pack(S2_MODE_DRIVE_DIST, o.speed, (INT)o.param, o.epoch));
 		} else {
 			send_cmd(s2_cmd_pack(S2_MODE_STOP, 0, 0, o.epoch));
 		}
@@ -115,6 +119,14 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 				  (INT)in.motion_state, (INT)o.epoch);
 			last_hold = o.holding;
 		}
+		if ((o.mode == VC_MODE_DRIVE_DIST) != last_creep) {
+			if (o.mode == VC_MODE_DRIVE_DIST) {
+				tm_printf((UB*)"vc: %s %d mm at %d mm/s (epoch %d)\n",
+					  (o.speed < 0) ? "backing away" : "creeping forward",
+					  (INT)o.param, (INT)((o.speed < 0) ? -o.speed : o.speed), (INT)o.epoch);
+			}
+			last_creep = (o.mode == VC_MODE_DRIVE_DIST);
+		}
 		if (in.motion_state != last_state) {
 			tm_printf((UB*)"vc: motion state %d\n", (INT)in.motion_state);
 			last_state = in.motion_state;
@@ -122,7 +134,8 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 		if ((now - last_print) >= VC_PRINT_MS) {
 			tm_printf((UB*)"vc: t=%5d zone=%d lost=%d cmd %4d mm/s steer %4d  wheels L=%4d R=%4d  dist=%5d%s\n",
 				  (INT)(now - start), (INT)in.zone, (INT)in.lost,
-				  (INT)((o.mode == VC_MODE_DRIVE) ? o.speed : 0), (INT)o.steer,
+				  (INT)((o.mode == VC_MODE_DRIVE || o.mode == VC_MODE_DRIVE_DIST) ? o.speed : 0),
+				  (INT)o.steer,
 				  (INT)s2_status_speed_l(st), (INT)s2_status_speed_r(st),
 				  (INT)s2_odo_dist_mm(s2_get_odometry()),
 				  v.line_gave_up ? "  LINE LOST FOR GOOD" : "");

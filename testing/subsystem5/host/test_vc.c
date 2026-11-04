@@ -25,6 +25,7 @@ static VC_IN line_in(int zone, int lost)
 	in.dt_ms = 20;
 	in.obs_state = 0;
 	in.motion_state = 1;
+	in.approach_mm = 0;
 	return in;
 }
 
@@ -172,6 +173,57 @@ int main(void)
 		}
 	}
 	CHECK("S5-H60", ok, "every Obstacle Detection state except idle holds the car");
+
+
+	/* H67: creep ordered: one slow DRIVE_DIST straight ahead, no line following */
+	vc_init(&v, 4);
+	in = line_in(5, 0);
+	in.approach_mm = 320;
+	o = vc_step(&v, &in);
+	CHECK("S5-H67", o.mode == VC_MODE_DRIVE_DIST && o.speed == 40 && o.param == 320 &&
+	      o.steer == 0 && o.epoch == 4 && !o.holding,
+	      "creep order +320 mm: DRIVE_DIST 40 mm/s, param 320, zone ignored");
+
+	/* H68: back away: the same command with the speed negative */
+	in.approach_mm = -60;
+	o = vc_step(&v, &in);
+	CHECK("S5-H68", o.mode == VC_MODE_DRIVE_DIST && o.speed == -40 && o.param == 60,
+	      "creep order -60 mm: DRIVE_DIST -40 mm/s, param 60");
+
+	/* H69: holding comes first: a scan or the stop latch stops the creep, epoch +1 once */
+	vc_init(&v, 4);
+	in = line_in(4, 0);
+	in.approach_mm = 320;
+	in.obs_state = 1;
+	o = vc_step(&v, &in);
+	CHECK("S5-H69a", o.mode == VC_MODE_STOP && o.holding && o.epoch == 5, "creep order but scanning: held, epoch +1");
+	in.obs_state = 0;
+	in.motion_state = VC_STATE_INHIBITED;
+	o = vc_step(&v, &in);
+	CHECK("S5-H69b", o.mode == VC_MODE_STOP && o.holding && o.epoch == 5, "creep order but stop latch set: still held, same epoch");
+	in.motion_state = 0;
+	o = vc_step(&v, &in);
+	CHECK("S5-H69c", o.mode == VC_MODE_DRIVE_DIST && o.epoch == 5 && !o.holding,
+	      "latch released: the creep starts with the newer epoch");
+
+	/* H70: the line sensor is not needed for a creep */
+	vc_init(&v, 2);
+	in = line_in(4, 0);
+	in.line_fresh = 0;
+	in.approach_mm = 100;
+	o = vc_step(&v, &in);
+	CHECK("S5-H70", o.mode == VC_MODE_DRIVE_DIST && o.param == 100, "line sensor silent: the creep still runs");
+
+	/* H71: after the creep the line controller starts clean (no D kick) */
+	vc_init(&v, 2);
+	in = line_in(4, 0);
+	o = vc_step(&v, &in);
+	in = line_in(4, 0);
+	in.approach_mm = 100;
+	o = vc_step(&v, &in);
+	in = line_in(5, 0);
+	o = vc_step(&v, &in);
+	CHECK("S5-H71", o.mode == VC_MODE_DRIVE && o.steer == 30, "line again after a creep: P only (steer 30, not 50)");
 
 	printf("[HOST] vehicle controller SUMMARY %d passed, %d failed\n", pass_n, fail_n);
 	return fail_n ? 1 : 0;

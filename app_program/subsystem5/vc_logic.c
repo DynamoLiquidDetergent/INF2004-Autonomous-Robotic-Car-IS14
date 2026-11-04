@@ -71,6 +71,7 @@ VC_OUT vc_step(VC_STATE *v, const VC_IN *in)
 	o.speed   = 0;
 	o.steer   = 0;
 	o.holding = 0;
+	o.param   = 0;
 
 	/* Stand still unless Obstacle Detection is idle and the stop latch is clear.
 	   A state that is not idle means an obstacle was seen and is being scanned. */
@@ -89,6 +90,15 @@ VC_OUT vc_step(VC_STATE *v, const VC_IN *in)
 	v->holding = 0;
 	o.epoch = v->epoch;
 
+	/* creep ordered by Obstacle Detection: one slow straight move, no line following */
+	if (in->approach_mm != 0) {
+		v->have_prev = 0;		/* no D kick when the line comes back */
+		v->lost_ms   = 0;
+		o.mode  = VC_MODE_DRIVE_DIST;
+		o.speed = (in->approach_mm > 0) ? VC_APPROACH_SPEED : -VC_APPROACH_SPEED;
+		o.param = (unsigned)iabs(in->approach_mm);
+		return o;
+	}
 	if (v->line_gave_up || !in->line_fresh) {
 		return o;		/* no line data, or the line is gone: do not drive blind */
 	}

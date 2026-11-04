@@ -20,6 +20,9 @@
  *	     Detection scans or the Safety Monitor's latch is set, then drives on.
  *	     No bypass. Needs S3_BC_DRIVE_DEMO 0 (s3_private.h): only one task may
  *	     send motion commands.
+ *	     After the first scan (obstacle within 50 cm) the car moves to a gap of
+ *	     about 17 cm (creeps forward above 20 cm, backs away below 15 cm) and
+ *	     scans again from there.
  *	  7  Vehicle Controller does the bypass (later).
  */
 
