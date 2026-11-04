@@ -146,6 +146,19 @@ LOCAL const char *bc_name(UINT c)
 	return (c < (sizeof(n) / sizeof(n[0]))) ? n[c] : "?";
 }
 
+/* Newest obstacle profile (i8). Obstacle Detection sends one after every scan; only the
+   newest counts, so the buffer is emptied every cycle. */
+LOCAL void take_profile(OBS_PROFILE *p, int *have)
+{
+	uint32_t w[OBS_MSG_WORDS];
+	uint8_t	 seq;
+
+	while (tk_rcv_mbf(mbf_obstacle, w, TMO_POL) == (INT)OBS_MSG_BYTES) {
+		obs_unpack(w, p, &seq);
+		*have = 1;
+	}
+}
+
 LOCAL UW now_ms(void)
 {
 	SYSTIM t;
@@ -167,6 +180,8 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 	UW		last_status = 0, run_start = 0, run_frozen = 0, last_vc = 0;
 	INT		letter = -1;
 	UINT		bc_n;
+	OBS_PROFILE	prof;
+	int		have_prof = 0, rev_sent = 0, mon_on = 0;
 	int		run_on = 0;
 	int		link = -1;
 	int		new_link = -1;
@@ -242,6 +257,13 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 		in.odo_mm       = s2_odo_dist_mm(s2_get_odometry());
 		in.fault_mask   = s5_fault_mask;
 		in.obst_present = obs_summary_present(s5_obs_summary) ? 1 : 0;
+		in.phase7       = S5_STANDALONE ? 0 : 1;
+		take_profile(&prof, &have_prof);
+		in.prof_action     = have_prof ? prof.action : 0;
+		in.prof_closest_cm = have_prof ? prof.closest_cm : 0;
+		in.prof_shift_cm   = !have_prof ? 0 :
+				     ((prof.action == VC_ACT_OBS_RIGHT) ? prof.right_cm :
+				      ((prof.action == VC_ACT_OBS_LEFT) ? prof.left_cm : 0));
 		in.wheel_l      = s2_status_speed_l(st);
 		in.wheel_r      = s2_status_speed_r(st);
 		in.motion_done  = s2_status_done(st) ? 1 : 0;
@@ -335,6 +357,30 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 					tm_printf((UB*)"vc: line not found, stopped (line fault reported)\n");
 					(void)tk_set_flg(flg_fault_i14, FLT_LINE_BIT);
 				}
+				if (o.event & VC_EV_BYP_START) {
+					subsystem3_set_bypass(true);		/* IF-09: leaving the line on purpose */
+					tm_printf((UB*)"vc: bypass round the %s, %d cm over, gap %d cm\n",
+						  (v.byp_dir > 0) ? "right" : "left", (INT)(v.byp_s_mm / 10),
+						  (INT)in.prof_closest_cm);
+				}
+				if (o.event & VC_EV_BYP_PASSED) {
+					tk_set_flg(flg_s5_ctrl, S5_CTRL_BYPASS_DONE);
+					tm_printf((UB*)"vc: obstacle passed, turning back towards the line\n");
+				}
+				if (o.event & VC_EV_BYP_RETURN) {
+					subsystem3_set_bypass(false);		/* line-lost reports on, to see the line */
+					tm_printf((UB*)"vc: looking for the line (up to %d mm)\n",
+						  (INT)(v.byp_s_mm + VC_BYP_FIND_EXTRA_MM));
+				}
+				if (o.event & VC_EV_BYP_DONE) {
+					subsystem3_set_bypass(false);
+					tk_set_flg(flg_s5_ctrl, S5_CTRL_LINE_FOUND);
+					tm_printf((UB*)"vc: back on the line, facing along it\n");
+				}
+				if (o.event & VC_EV_BYP_FAIL) {
+					subsystem3_set_bypass(false);
+					tm_printf((UB*)"vc: bypass failed (line not found, or obstacle task in fault)\n");
+				}
 				if (o.event & VC_EV_BC_EXPIRED) {
 					tm_printf((UB*)"vc: barcode command dropped, no junction within %d mm\n",
 						  (INT)VC_BC_EXPIRE_MM);
@@ -381,6 +427,27 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 				last_creep = 1;
 			} else if (in.approach_mm == 0) {
 				last_creep = 0;
+			}
+		}
+		/* REVERSE_RETRY: back-away finished */
+		if (o.reverse_done && !rev_sent) {
+			tk_set_flg(flg_s5_ctrl, S5_CTRL_REVERSE_DONE);
+			rev_sent = 1;
+			tm_printf((UB*)"vc: backed away for the retry, odometry %d mm\n", (INT)in.odo_mm);
+		} else if (!o.reverse_done && in.obs_state != VC_OBS_REVERSE_RETRY) {
+			rev_sent = 0;
+		}
+		/* phase 7: the obstacle watch is on once the run has started (level flag) */
+		if (!S5_STANDALONE) {
+			int want = (v.started && !v.aborted) ? 1 : 0;
+
+			if (want != mon_on) {
+				if (want) {
+					tk_set_flg(flg_s5_ctrl, S5_CTRL_MONITOR_EN);
+				} else {
+					tk_clr_flg(flg_s5_ctrl, ~S5_CTRL_MONITOR_EN);
+				}
+				mon_on = want;
 			}
 		}
 		if (o.creep_done && !done_sent) {

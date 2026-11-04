@@ -49,7 +49,10 @@
 					   Each ping costs about 60 ms (HC-SR04 minimum cycle). */
 #define S5_USE_BACKGROUND	1	/* take an empty-track scan at start-up and subtract it.
 					   Needs the track in front of the robot to be CLEAR at power-up. */
-#define S5_BYPASS_LIMIT_MS	8000	/* NFR31: detection to line reacquired */
+#define S5_BYPASS_LIMIT_MS	15000	/* the detour (turns, sideways, past the obstacle, back to the line) or
+					   the back-away of a retry must finish within this; the clock restarts
+					   when it begins, so the scans before it do not count (NFR31's 5 s is
+					   detection to profile, S5-M09) */
 #define S5_MAX_RETRIES		2	/* REVERSE_RETRY attempts (statechart 6.3) */
 #define S5_SERVO_SETTLE_BASE_MS	40	/* assumption A-servo: no SG90 datasheet supplied */
 #define S5_SERVO_SETTLE_PER_DEG	2	/* ms per degree moved (SG90 is about 100 ms / 60 deg) */
@@ -463,11 +466,13 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 			} else if (profile.action == OBS_ACT_STOP) {
 				raise_fault("obstacle too close, no safe move");
 			} else if (profile.action == OBS_ACT_REVERSE_RETRY) {
+				detect_ms = now_ms();
 				set_state(OBS_ST_REVERSE_RETRY);
 			} else if (S5_STANDALONE) {
 				tk_dly_tsk(S5_STANDALONE_REST_MS);
 				set_state(OBS_ST_IDLE_MONITORING);
 			} else {
+				detect_ms = now_ms();		/* the bypass clock starts here */
 				set_state(OBS_ST_BYPASSING);
 			}
 			break;

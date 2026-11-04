@@ -29,6 +29,16 @@
  *	The angle turned is also estimated from the wheel speeds, so a turn that
  *	is stopped half-way (pause, obstacle) is finished with the rest only.
  *
+ *	Bypass (phase 7, S5_STANDALONE 0): when Obstacle Detection is in BYPASSING the
+ *	profile says on which side to pass and how far to move over. The car drives a
+ *	rectangle round the obstacle with its own odometry and the wheel-speed turn
+ *	estimate: turn 90 degrees away from the line, drive the shift, turn back, drive
+ *	past the obstacle (gap + depth + body), turn towards the line, drive until
+ *	subsystem 3 sees it again, drive on to put the wheels over it and turn 90
+ *	degrees to face along it. Events tell the task when to set BYPASS_DONE (passed),
+ *	end the line-lost suppression of subsystem 3 (IF-09) and set LINE_FOUND.
+ *	REVERSE_RETRY is a short straight back-away; the task sets REVERSE_DONE.
+ *
  *	Epoch (IF-10): Motion Control drops commands older than the newest it
  *	has seen, and after an inhibit accepts only a NEWER epoch. So the epoch
  *	goes up by one (mod 16) each time the controller starts to hold, and the
@@ -120,6 +130,11 @@
 #define VC_EV_SEARCH		0x20u	/* line lost: the spin search starts */
 #define VC_EV_FOUND		0x40u	/* line found again by the spin search */
 #define VC_EV_GAVE_UP		0x80u	/* search over, line not found: stopped, line fault */
+#define VC_EV_BYP_START		0x100u	/* bypass begins: tell subsystem 3 (IF-09) */
+#define VC_EV_BYP_PASSED	0x200u	/* obstacle passed: set BYPASS_DONE */
+#define VC_EV_BYP_RETURN	0x400u	/* looking for the line: line-lost suppression off */
+#define VC_EV_BYP_DONE		0x800u	/* back on the line, facing along it: set LINE_FOUND */
+#define VC_EV_BYP_FAIL		0x1000u	/* line not found on the way back: stopped, line fault */
 
 /* ---- Mission state, reported to subsystem 1 in IF-13 (0..14; S1 proposes 1 = READY) ---- */
 #define VC_MS_INIT		0u	/* power-up: calibrating, being placed on the line */
@@ -137,8 +152,24 @@
 #define VC_SUP_RESUME		2u
 #define VC_SUP_ABORT		3u
 
-/* ---- Obstacle Detection state FAULT (OBS_ST_FAULT) ---- */
+/* ---- Obstacle Detection states ---- */
+#define VC_OBS_BYPASSING	4u
+#define VC_OBS_REACQUIRING	5u
+#define VC_OBS_REVERSE_RETRY	6u
 #define VC_OBS_FAULT		7u
+
+/* ---- Obstacle profile action (OBS_ACT_*) used for the bypass ---- */
+#define VC_ACT_OBS_RIGHT	1u
+#define VC_ACT_OBS_LEFT		2u
+
+/* ---- Bypass detour (phase 7). Tune on the track, tests S5-M33 to M35 ---- */
+#define VC_BYP_SPEED		150	/* mm/s on the two long legs */
+#define VC_BYP_TURN_DEG		90
+#define VC_BYP_DEPTH_MM		200	/* obstacle depth assumed (spec: obstacles are 10..20 cm) */
+#define VC_BYP_CAR_MM		150	/* car body behind the ultrasonic sensor that must also clear it */
+#define VC_BYP_MAX_LEG_MM	1000	/* S2 / odometry sanity limit for one leg */
+#define VC_BYP_FIND_EXTRA_MM	120	/* look for the line this much farther than the shift */
+#define VC_RETRY_BACK_MM	100	/* REVERSE_RETRY: back away this far, straight */
 
 typedef struct {
 	int		err_prev;	/* zone error of the previous cycle */
@@ -179,6 +210,14 @@ typedef struct {
 	int		search_dir;	/* +1 right first, -1 left first */
 	int		search_used;	/* the one sweep of this loss is used */
 	int		found_cnt;	/* line messages in a row with the line seen, during the search */
+	int		byp_step;	/* 0 = no bypass, 1..8 = step of the detour */
+	int		byp_dir;	/* +1 round the right, -1 round the left */
+	int		byp_s_mm;	/* the shift sideways */
+	int		byp_f_mm;	/* the leg past the obstacle */
+	int		drv_mm;		/* length of the drive leg now (JN_DRIVE) */
+	int		drv_speed;
+	int		drv_find;	/* the drive leg ends when the line is seen again */
+	int		saw_lost;	/* subsystem 3 has reported the line lost since the leg began */
 } VC_STATE;
 
 typedef struct {
@@ -196,6 +235,10 @@ typedef struct {
 	unsigned	fault_mask;	/* faults the Safety Monitor is handling now (IF-12 bits) */
 	int		junction;	/* junction flag of the newest line message */
 	int		obst_present;	/* Obstacle Detection has an obstacle (no spinning near it) */
+	int		phase7;		/* the Vehicle Controller does the bypass (S5_STANDALONE 0) */
+	unsigned	prof_action;	/* newest profile: OBS_ACT_* */
+	unsigned	prof_closest_cm;
+	unsigned	prof_shift_cm;	/* sideways move to pass on the side chosen by prof_action */
 	unsigned	bc_cmd;		/* newest IF-07 command taken this cycle (VC_BC_*, NONE if none) */
 	unsigned	bc_n;		/* how many were taken this cycle */
 	int		wheel_l;	/* measured wheel speeds (IF-16), mm/s */
@@ -214,6 +257,7 @@ typedef struct {
 	unsigned	mission_state;	/* VC_MS_*, for IF-13 telemetry */
 	int		turn_deg;	/* VC_MODE_TURN: signed degrees, + = clockwise */
 	int		busy;		/* a junction manoeuvre is under way: call vc_step every cycle */
+	int		reverse_done;	/* REVERSE_RETRY: the back-away is finished (set REVERSE_DONE) */
 	unsigned	barcodes;	/* commands taken so far */
 	unsigned	last_action;	/* VC_ACT_* */
 	unsigned	event;		/* VC_EV_* bits of this call */

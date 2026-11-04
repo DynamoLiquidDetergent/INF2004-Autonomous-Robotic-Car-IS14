@@ -4,6 +4,7 @@
  * Output lines: [HOST] S5-H47 PASS ...
  */
 #include <stdio.h>
+#include <string.h>
 #include "../../../app_program/subsystem5/vc_logic.h"
 
 static int pass_n, fail_n;
@@ -33,6 +34,10 @@ static VC_IN line_in(int zone, int lost)
 	in.fault_mask = 0;
 	in.junction = 0;
 	in.obst_present = 0;
+	in.phase7 = 0;
+	in.prof_action = 0;
+	in.prof_closest_cm = 0;
+	in.prof_shift_cm = 0;
 	in.bc_cmd = VC_BC_NONE;
 	in.bc_n = 0;
 	in.wheel_l = 0;
@@ -46,6 +51,70 @@ static VC_IN line_in(int zone, int lost)
 static int turned_est_d10(const VC_STATE *st)
 {
 	return (int)(((long long)st->turn_arc_um * st->turn_dir * 573) / (120LL * 1000));
+}
+
+
+/* ---- a small world for the bypass tests: the car drives, turns finish 200 ms after the
+   TURN command, the line is "seen" again once the car has travelled find_at_mm in the
+   return leg (never if find_at_mm < 0) ---- */
+typedef struct {
+	unsigned odo;
+	int      acc;		/* mm * 1000, odometry between whole mm */
+	int      obs;
+	int      find_at;
+	int      find_mm;	/* travelled in the return leg */
+	unsigned events;
+	int      steps;
+	int      n_turn, n_drive;
+	int      order[40];	/* sequence of primitives: +-deg for turns, mm/s for drives */
+	int      n_order;
+	int      last_kind;	/* 0 none, 1 turn, 2 drive */
+	int      drive_total;	/* mm driven forward */
+} WORLD;
+
+static VC_OUT world_step(WORLD *w, int action, int shift, int closest, unsigned sup)
+{
+	VC_IN b = line_in(4, 1);
+	VC_OUT o;
+	int line_seen = 0;
+
+	b.phase7 = 1;
+	b.obs_state = (unsigned)w->obs;
+	b.prof_action = (unsigned)action;
+	b.prof_shift_cm = (unsigned)shift;
+	b.prof_closest_cm = (unsigned)closest;
+	b.odo_mm = w->odo;
+	b.sup_cmd = sup;
+	if (v.byp_step >= 7) {
+		line_seen = 1;
+	} else if (v.byp_step == 6 && w->find_at >= 0 && w->find_mm >= w->find_at) {
+		line_seen = 1;
+	}
+	b.lost = line_seen ? 0 : 1;
+	if (v.jn_state == 2 && v.turn_live && v.turn_ms >= 200) {
+		b.motion_state = 0; b.motion_done = 1;
+	} else if (v.jn_state == 2) {
+		b.motion_state = 2;
+	}
+	o = vc_step(&v, &b);
+	w->events |= o.event;
+	w->steps++;
+	if (o.mode == VC_MODE_TURN) {
+		if (w->last_kind != 1 || w->order[w->n_order - 1] != o.turn_deg) {
+			if (w->n_order < 40) { w->order[w->n_order++] = o.turn_deg; }
+		}
+		w->last_kind = 1;
+	} else if (o.mode == VC_MODE_DRIVE && o.busy) {
+		if (w->last_kind != 2 || w->order[w->n_order - 1] != o.speed) {
+			if (w->n_order < 40) { w->order[w->n_order++] = o.speed; }
+		}
+		w->last_kind = 2;
+		w->acc += o.speed * 20;
+		while (w->acc >= 1000) { w->acc -= 1000; w->odo++; w->drive_total++; if (v.byp_step == 6) w->find_mm++; }
+	}
+	if (o.event & VC_EV_BYP_PASSED) { w->obs = 5; }	/* the task moves to REACQUIRING */
+	if (o.event & (VC_EV_BYP_DONE | VC_EV_BYP_FAIL)) { w->obs = 0; }
+	return o;
 }
 
 int main(void)
@@ -834,6 +903,148 @@ int main(void)
 		CHECK("S5-H106a", o.creep_done && !v.line_gave_up, "line lost 1.6 s into a creep: creep ends, not given up for good");
 		b = line_in(4, 0); b.approach_mm = 0; b.odo_mm = 5; o = vc_step(&v, &b);
 		CHECK("S5-H106b", o.mode == VC_MODE_DRIVE && !v.line_gave_up, "line back after the rescan: line following goes on");
+	}
+
+	/* H110 to H119: the bypass detour (phase 7) and REVERSE_RETRY */
+	{
+		WORLD w;
+		VC_OUT bo;
+		int k;
+
+		/* H110: round the RIGHT, shift 21 cm, obstacle 17 cm ahead: +90, drive 210, -90, drive 520
+		   (170 + 200 + 150), -90, look for the line, drive on 55, +90, done */
+		memset(&w, 0, sizeof w);
+		w.obs = 4; w.find_at = 205;
+		vc_init(&v, 0);
+		bo = world_step(&w, 1, 21, 17, 0);
+		CHECK("S5-H110a", (bo.event & VC_EV_BYP_START) && bo.mode == VC_MODE_TURN && bo.turn_deg == 90 &&
+		      !bo.holding && bo.mission_state == VC_MS_AVOIDING,
+		      "BYPASSING with a usable profile: starts at once, TURN +90 (away from the line), AVOIDING, not held");
+		for (k = 0; k < 3000 && !(w.events & (VC_EV_BYP_DONE | VC_EV_BYP_FAIL)); k++) {
+			bo = world_step(&w, 1, 21, 17, 0);
+		}
+		CHECK("S5-H110b", (w.events & VC_EV_BYP_PASSED) && (w.events & VC_EV_BYP_RETURN) && (w.events & VC_EV_BYP_DONE) &&
+		      !(w.events & VC_EV_BYP_FAIL) && !v.line_gave_up && v.byp_step == 0,
+		      "events in the detour: passed, return, done; no failure");
+		CHECK("S5-H110c", w.order[0] == 90 && w.order[1] == 150 && w.order[2] == -90 && w.order[3] == 150 &&
+		      w.order[4] == -90 && w.order[5] == 60 && w.order[6] == 90 && w.n_order == 7,
+		      "order of legs: turn +90, drive 150 mm/s, turn -90, drive 150 mm/s, turn -90, drive 60 mm/s (to the line, then on), turn +90");
+		CHECK("S5-H110d", w.drive_total >= 205 + 520 + 210 - 15 && w.drive_total <= 210 + 520 + 205 + 55 + 15,
+		      "distance driven about 210 + 520 + 205 + 55 mm");
+		bo = world_step(&w, 1, 21, 17, 0);
+		CHECK("S5-H110e", bo.mode == VC_MODE_DRIVE && !bo.busy && !v.line_gave_up, "afterwards: line following (REACQUIRING still exempt from the hold)");
+
+		/* H111: round the LEFT mirrors it */
+		memset(&w, 0, sizeof w);
+		w.obs = 4; w.find_at = 205;
+		vc_init(&v, 0);
+		bo = world_step(&w, 2, 21, 17, 0);
+		CHECK("S5-H111a", bo.mode == VC_MODE_TURN && bo.turn_deg == -90, "action LEFT: TURN -90 first");
+		for (k = 0; k < 3000 && !(w.events & (VC_EV_BYP_DONE | VC_EV_BYP_FAIL)); k++) {
+			bo = world_step(&w, 2, 21, 17, 0);
+		}
+		CHECK("S5-H111b", (w.events & VC_EV_BYP_DONE) && w.order[2] == 90 && w.order[4] == 90 && w.order[w.n_order - 1] == -90,
+		      "turns: -90, +90, +90 (toward the line), -90 (along it)");
+
+		/* H112: the line is not where it should be: stopped after shift + 120 mm, line fault */
+		memset(&w, 0, sizeof w);
+		w.obs = 4; w.find_at = -1;
+		vc_init(&v, 0);
+		for (k = 0; k < 3000 && !(w.events & (VC_EV_BYP_DONE | VC_EV_BYP_FAIL)); k++) {
+			bo = world_step(&w, 1, 21, 17, 0);
+		}
+		CHECK("S5-H112a", (w.events & VC_EV_BYP_FAIL) && (w.events & VC_EV_GAVE_UP) && v.line_gave_up && bo.mode == VC_MODE_STOP,
+		      "no line on the way back: BYP_FAIL, GAVE_UP, STOP");
+		CHECK("S5-H112b", w.find_mm >= 328 && w.find_mm <= 336, "looked for 330 mm (shift 210 + 120) before giving up");
+
+		/* H113: unusable profile (STOP action, or shift 0): the car stays held, no detour */
+		memset(&w, 0, sizeof w);
+		w.obs = 4;
+		vc_init(&v, 0);
+		bo = world_step(&w, 4, 0, 5, 0);
+		CHECK("S5-H113a", bo.mode == VC_MODE_STOP && bo.holding && !(bo.event & VC_EV_BYP_START) && v.byp_step == 0,
+		      "profile action STOP in BYPASSING: held");
+		bo = world_step(&w, 1, 0, 17, 0);
+		CHECK("S5-H113b", bo.mode == VC_MODE_STOP && bo.holding && v.byp_step == 0, "shift 0 cm: held");
+
+		/* H114: not in phase 7: BYPASSING holds as before */
+		memset(&w, 0, sizeof w);
+		{
+			VC_IN b = line_in(4, 0);
+			b.obs_state = 4; b.prof_action = 1; b.prof_shift_cm = 21; b.prof_closest_cm = 17;
+			vc_init(&v, 0);
+			bo = vc_step(&v, &b);
+			CHECK("S5-H114", bo.mode == VC_MODE_STOP && bo.holding && v.byp_step == 0, "phase7 off (phases 5, 6): BYPASSING holds, no detour");
+		}
+
+		/* H115: PAUSE in the middle of the sideways leg: after RESUME only the rest of the 210 mm is driven */
+		memset(&w, 0, sizeof w);
+		w.obs = 4; w.find_at = 205;
+		vc_init(&v, 0);
+		for (k = 0; k < 3000 && !(v.byp_step == 2 && w.drive_total >= 100); k++) {
+			bo = world_step(&w, 1, 21, 17, 0);
+		}
+		k = w.drive_total;
+		bo = world_step(&w, 1, 21, 17, VC_SUP_PAUSE);
+		CHECK("S5-H115a", bo.mode == VC_MODE_STOP && bo.holding && bo.mission_state == VC_MS_PAUSED, "PAUSE during the sideways leg: stopped");
+		bo = world_step(&w, 1, 21, 17, VC_SUP_RESUME);
+		for (; w.steps < 6000 && v.byp_step == 2; ) { bo = world_step(&w, 1, 21, 17, 0); }
+		CHECK("S5-H115b", w.drive_total - k >= 105 && w.drive_total - k <= 120, "only the rest of the leg was driven (about 110 mm more)");
+
+		/* H116: Obstacle Detection falls into FAULT in the middle: the detour is dropped */
+		memset(&w, 0, sizeof w);
+		w.obs = 4; w.find_at = 205;
+		vc_init(&v, 0);
+		for (k = 0; k < 3000 && !(v.byp_step == 4 && w.drive_total >= 300); k++) {
+			bo = world_step(&w, 1, 21, 17, 0);
+		}
+		w.obs = 7;
+		bo = world_step(&w, 1, 21, 17, 0);
+		CHECK("S5-H116", (bo.event & VC_EV_BYP_FAIL) && v.byp_step == 0 && bo.mode == VC_MODE_STOP && bo.holding,
+		      "obstacle task FAULT during the detour: detour dropped, event for subsystem 3, held");
+
+		/* H117: legs are limited (shift 100 cm and a gap of 90 cm stay within 1000 mm) */
+		memset(&w, 0, sizeof w);
+		w.obs = 4; w.find_at = 500;
+		vc_init(&v, 0);
+		bo = world_step(&w, 1, 100, 90, 0);
+		CHECK("S5-H117", v.byp_s_mm == 1000 && v.byp_f_mm == 1000, "shift 100 cm and 90 cm gap: legs capped at 1000 mm");
+
+		/* H118: REVERSE_RETRY: backs away 100 mm straight (-40 mm/s, steer 1), then REVERSE_DONE, then waits */
+		memset(&w, 0, sizeof w);
+		vc_init(&v, 0);
+		{
+			VC_IN b;
+			int odo = 1000, back_total = 0;
+
+			b = line_in(4, 0); b.phase7 = 1; b.obs_state = 6; b.odo_mm = (unsigned)odo;
+			bo = vc_step(&v, &b);
+			CHECK("S5-H118a", bo.mode == VC_MODE_DRIVE && bo.speed == -40 && bo.steer == VC_REVERSE_STEER && !bo.holding &&
+			      !bo.reverse_done && bo.mission_state == VC_MS_AVOIDING, "REVERSE_RETRY: backing away, -40 mm/s, steer 1, AVOIDING");
+			for (k = 0; k < 400 && !bo.reverse_done; k++) {
+				odo -= 1; back_total++;
+				b = line_in(4, 0); b.phase7 = 1; b.obs_state = 6; b.odo_mm = (unsigned)odo;
+				bo = vc_step(&v, &b);
+			}
+			CHECK("S5-H118b", bo.reverse_done && bo.mode == VC_MODE_STOP && back_total >= 98 && back_total <= 102,
+			      "after 100 mm: REVERSE_DONE and stopped");
+			b = line_in(4, 0); b.phase7 = 1; b.obs_state = 1; b.odo_mm = (unsigned)odo;	/* scanning again: held */
+			bo = vc_step(&v, &b);
+			CHECK("S5-H118c", bo.holding && bo.mode == VC_MODE_STOP && !bo.reverse_done, "the next scan: held");
+		}
+
+		/* H119: SAFETY: the Safety Monitor's stop latch holds the detour too */
+		memset(&w, 0, sizeof w);
+		w.obs = 4; w.find_at = 205;
+		vc_init(&v, 0);
+		bo = world_step(&w, 1, 21, 17, 0);
+		{
+			VC_IN b = line_in(4, 0);
+			b.phase7 = 1; b.obs_state = 4; b.prof_action = 1; b.prof_shift_cm = 21; b.prof_closest_cm = 17;
+			b.motion_state = VC_STATE_INHIBITED;
+			bo = vc_step(&v, &b);
+			CHECK("S5-H119", bo.mode == VC_MODE_STOP && bo.holding && v.byp_step == 1, "stop latch set during the detour: held, detour kept");
+		}
 	}
 
 	printf("[HOST] vehicle controller SUMMARY %d passed, %d failed\n", pass_n, fail_n);

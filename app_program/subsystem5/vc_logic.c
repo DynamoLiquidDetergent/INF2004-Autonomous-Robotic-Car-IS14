@@ -65,6 +65,14 @@ void vc_init(VC_STATE *v, unsigned epoch)
 	v->search_dir   = 1;
 	v->search_used  = 0;
 	v->found_cnt    = 0;
+	v->byp_step     = 0;
+	v->byp_dir      = 1;
+	v->byp_s_mm     = 0;
+	v->byp_f_mm     = 0;
+	v->drv_mm       = 0;
+	v->drv_speed    = 0;
+	v->drv_find     = 0;
+	v->saw_lost     = 0;
 }
 
 /* The line controller: one cycle. Fills speed and steer. Returns 1 to stop. */
@@ -240,6 +248,68 @@ static int turned_d10(const VC_STATE *v)
 }
 
 
+
+/* ---- primitives shared by the junction manoeuvre, the search and the bypass ---- */
+static void turn_set(VC_STATE *v, int dir, int deg)
+{
+	v->jn_state        = JN_TURN;
+	v->jn_on           = 0;
+	v->turn_dir        = dir;
+	v->turn_target_d10 = deg * 10;
+	v->turn_arc_um     = 0;
+	v->turn_live       = 0;
+}
+
+static void drive_set(VC_STATE *v, int mm, int speed, int find)
+{
+	v->jn_state  = JN_DRIVE;
+	v->jn_on     = 0;
+	v->jn_acc    = 0;
+	v->drv_mm    = mm;
+	v->drv_speed = speed;
+	v->drv_find  = find;
+	v->found_cnt = 0;
+	v->saw_lost  = 0;
+}
+
+static void jn_finish(VC_STATE *v, const VC_IN *in, VC_OUT *o);
+
+/* Next step of the bypass detour. Returns 1 when a new leg was set up, 0 when the detour is over. */
+static int byp_next(VC_STATE *v, const VC_IN *in, VC_OUT *o)
+{
+	v->byp_step++;
+	switch (v->byp_step) {
+	case 2:
+		drive_set(v, v->byp_s_mm, VC_BYP_SPEED, 0);		/* sideways, away from the line */
+		return 1;
+	case 3:
+		turn_set(v, -v->byp_dir, VC_BYP_TURN_DEG);		/* face the old direction */
+		return 1;
+	case 4:
+		drive_set(v, v->byp_f_mm, VC_BYP_SPEED, 0);		/* past the obstacle */
+		return 1;
+	case 5:
+		o->event |= VC_EV_BYP_PASSED;
+		turn_set(v, -v->byp_dir, VC_BYP_TURN_DEG);		/* face the line */
+		return 1;
+	case 6:
+		o->event |= VC_EV_BYP_RETURN;
+		drive_set(v, v->byp_s_mm + VC_BYP_FIND_EXTRA_MM, VC_JN_SPEED, 1);	/* until the line is seen */
+		return 1;
+	case 7:
+		drive_set(v, VC_JN_ADVANCE_MM, VC_JN_SPEED, 0);		/* wheels over the line */
+		return 1;
+	case 8:
+		turn_set(v, v->byp_dir, VC_BYP_TURN_DEG);		/* face along the line */
+		return 1;
+	default:
+		v->byp_step = 0;
+		jn_finish(v, in, o);
+		o->event |= VC_EV_BYP_DONE;
+		return 0;
+	}
+}
+
 /* One leg of the spin search: the first and last go VC_SEARCH_DEG towards the side the line
    was lost on, the middle one twice as far the other way. */
 static void search_leg_set(VC_STATE *v)
@@ -285,9 +355,7 @@ static void jn_start(VC_STATE *v, VC_OUT *o)
 {
 	v->jn_cmd       = v->bc_pending;
 	v->bc_pending   = VC_BC_NONE;
-	v->jn_state     = JN_DRIVE;
-	v->jn_on        = 0;
-	v->jn_acc       = 0;
+	drive_set(v, VC_JN_ADVANCE_MM, VC_JN_SPEED, 0);
 	v->turn_live    = 0;
 	v->turn_arc_um  = 0;
 	switch (v->jn_cmd) {
@@ -308,6 +376,7 @@ static void jn_start(VC_STATE *v, VC_OUT *o)
 		v->jn_state = JN_TURN;
 		break;
 	default:				/* FORWARD: straight over */
+		v->drv_mm      = VC_JN_CROSS_MM;
 		v->last_action = VC_ACT_FORWARD;
 		break;
 	}
@@ -319,6 +388,9 @@ static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o);
 /* A turn (junction turn or one leg of the search) is over. */
 static int turn_over(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 {
+	if (v->byp_step != 0) {
+		return byp_next(v, in, o) ? jn_step(v, in, o) : 0;
+	}
 	if (v->search_leg == 0) {
 		jn_finish(v, in, o);
 		return 0;
@@ -362,7 +434,6 @@ static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 		}
 	}
 	if (v->jn_state == JN_DRIVE) {
-		int want = (v->jn_cmd == VC_BC_FORWARD) ? VC_JN_CROSS_MM : VC_JN_ADVANCE_MM;
 		int moved;
 
 		if (!v->jn_on) {
@@ -370,19 +441,42 @@ static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 			v->jn_odo0 = in->odo_mm & 0xFFFFu;
 		}
 		moved = odo_since(in->odo_mm, v->jn_odo0) + (int)v->jn_acc;
-		if (moved < want) {
+		if (v->drv_find) {			/* bypass: until the line is seen again */
+			if (in->lost) {
+				v->saw_lost = 1;	/* the old 'seen' flag is stale until S3 has noticed */
+			}
+			if (in->dt_ms > 0) {
+				if (v->saw_lost && in->line_fresh && !in->lost && in->zone != 0) {
+					v->found_cnt++;
+				} else {
+					v->found_cnt = 0;
+				}
+			}
+			if (v->found_cnt >= VC_SEARCH_FOUND_MSGS) {
+				return byp_next(v, in, o) ? jn_step(v, in, o) : 0;
+			}
+		}
+		if (moved < v->drv_mm) {
 			o->mode  = VC_MODE_DRIVE;
-			o->speed = VC_JN_SPEED;
+			o->speed = v->drv_speed;
 			o->steer = 0;		/* straight on the wheel encoders, not by the sensors */
 			return 1;
+		}
+		if (v->drv_find) {		/* the line was not where it should be */
+			v->byp_step = 0;
+			jn_finish(v, in, o);
+			v->line_gave_up = 1;
+			o->event |= VC_EV_BYP_FAIL | VC_EV_GAVE_UP;
+			return 0;
+		}
+		if (v->byp_step != 0) {
+			return byp_next(v, in, o) ? jn_step(v, in, o) : 0;
 		}
 		if (v->jn_cmd == VC_BC_FORWARD) {
 			jn_finish(v, in, o);
 			return 0;
 		}
-		v->jn_state  = JN_TURN;
-		v->jn_on     = 0;
-		v->turn_live = 0;
+		turn_set(v, v->turn_dir, v->turn_target_d10 / 10);
 	}
 	/* JN_TURN */
 	if (v->search_leg != 0) {		/* the line is looked for while spinning */
@@ -428,8 +522,35 @@ static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 	return 1;
 }
 
-static VC_OUT vc_step_inner(VC_STATE *v, const VC_IN *in)
+/* The profile that came with BYPASSING can be used: pass on one side, a plausible shift */
+static int byp_profile_ok(const VC_IN *in)
 {
+	return (in->prof_action == VC_ACT_OBS_RIGHT || in->prof_action == VC_ACT_OBS_LEFT) &&
+	       in->prof_shift_cm >= 1u && in->prof_shift_cm <= 100u;
+}
+
+static void byp_begin(VC_STATE *v, const VC_IN *in, VC_OUT *o)
+{
+	int f;
+
+	v->byp_dir  = (in->prof_action == VC_ACT_OBS_RIGHT) ? 1 : -1;
+	v->byp_s_mm = (int)in->prof_shift_cm * 10;
+	f = (int)in->prof_closest_cm * 10 + VC_BYP_DEPTH_MM + VC_BYP_CAR_MM;
+	v->byp_f_mm = (f > VC_BYP_MAX_LEG_MM) ? VC_BYP_MAX_LEG_MM : f;
+	if (v->byp_s_mm > VC_BYP_MAX_LEG_MM) {
+		v->byp_s_mm = VC_BYP_MAX_LEG_MM;
+	}
+	v->byp_step = 1;
+	turn_set(v, v->byp_dir, VC_BYP_TURN_DEG);		/* away from the line */
+	o->event |= VC_EV_BYP_START;
+}
+
+static VC_OUT vc_step_inner(VC_STATE *v, const VC_IN *in0)
+{
+	VC_IN	retry;
+	const VC_IN *in = in0;
+	int	is_retry = 0;
+
 	VC_OUT	o;
 	int	hold;
 
@@ -439,6 +560,7 @@ static VC_OUT vc_step_inner(VC_STATE *v, const VC_IN *in)
 	o.holding = 0;
 	o.creep_done = 0;
 	o.turn_deg = 0;
+	o.reverse_done = 0;
 	o.event = 0;
 	o.busy = 0;
 	o.barcodes = 0;
@@ -465,6 +587,17 @@ static VC_OUT vc_step_inner(VC_STATE *v, const VC_IN *in)
 		v->started = 1;
 	}
 	bc_take(v, in, &o);
+	if (v->byp_step != 0 && in->obs_state != VC_OBS_BYPASSING && in->obs_state != VC_OBS_REACQUIRING) {
+		/* Obstacle Detection gave up (fault, timeout) in the middle of the detour: drop it.
+		   The car is off the line; line following and the spin search take over. */
+		v->byp_step = 0;
+		v->jn_state = JN_NONE;
+		v->jn_on    = 0;
+		v->turn_live = 0;
+		v->have_prev = 0;
+		v->lost_ms   = 0;
+		o.event |= VC_EV_BYP_FAIL;
+	}
 	if (v->jn_state == JN_TURN) {		/* count the angle turned, also while held */
 		v->turn_arc_um += (int32_t)(in->wheel_l - in->wheel_r) * (int32_t)in->elapsed_ms;
 	}
@@ -475,6 +608,22 @@ static VC_OUT vc_step_inner(VC_STATE *v, const VC_IN *in)
 	   seen and is being scanned. */
 	hold = (!v->started || v->paused || v->aborted) ||
 	       (in->obs_state != VC_OBS_IDLE) || (in->motion_state == VC_STATE_INHIBITED);
+	/* phase 7: the bypass and the back-away of a REVERSE_RETRY are driven by this controller,
+	   so those Obstacle Detection states do not hold the car (a bypass without a usable
+	   profile still does) */
+	if (hold && in->phase7 && v->started && !v->paused && !v->aborted &&
+	    in->motion_state != VC_STATE_INHIBITED) {
+		if ((in->obs_state == VC_OBS_BYPASSING && (v->byp_step != 0 || byp_profile_ok(in))) ||
+		    in->obs_state == VC_OBS_REACQUIRING || in->obs_state == VC_OBS_REVERSE_RETRY) {
+			hold = 0;
+		}
+	}
+	if (in->phase7 && in->obs_state == VC_OBS_REVERSE_RETRY && !hold) {
+		retry = *in0;				/* too tight to pass: back away straight, then scan again */
+		retry.approach_mm = -VC_RETRY_BACK_MM;
+		in = &retry;
+		is_retry = 1;
+	}
 	if (hold) {
 		if (!v->holding) {
 			v->holding  = 1;
@@ -505,7 +654,15 @@ static VC_OUT vc_step_inner(VC_STATE *v, const VC_IN *in)
 
 	/* move ordered by Obstacle Detection: creep along the line, or back away */
 	if (in->approach_mm != 0) {
-		return creep_step(v, in, o);
+		o = creep_step(v, in, o);
+		if (is_retry) {			/* REVERSE_RETRY: the end of the back-away is REVERSE_DONE */
+			o.reverse_done = o.creep_done;
+			o.creep_done   = 0;
+		}
+		return o;
+	}
+	if (in->phase7 && in->obs_state == VC_OBS_BYPASSING && v->byp_step == 0) {
+		byp_begin(v, in, &o);
 	}
 	v->creep_acc = 0;			/* no order open: nothing travelled yet */
 	if (v->creep_on) {			/* the order was taken: line following starts clean */
