@@ -26,6 +26,7 @@ static VC_IN line_in(int zone, int lost)
 	in.obs_state = 0;
 	in.motion_state = 1;
 	in.approach_mm = 0;
+	in.odo_mm = 0;
 	return in;
 }
 
@@ -175,55 +176,132 @@ int main(void)
 	CHECK("S5-H60", ok, "every Obstacle Detection state except idle holds the car");
 
 
-	/* H67: creep ordered: one slow DRIVE_DIST straight ahead, no line following */
+	/* H67: creep forward: follows the line at 40 mm/s, finishes after the ordered distance */
+	vc_init(&v, 4);
+	in = line_in(4, 0);
+	in.approach_mm = 320;
+	in.odo_mm = 1000;
+	o = vc_step(&v, &in);
+	CHECK("S5-H67a", o.mode == VC_MODE_DRIVE && o.speed == 40 && o.steer == 0 && o.epoch == 4 &&
+	      !o.holding && !o.creep_done, "creep order +320 mm, line centred: DRIVE 40 mm/s, steer 0, not done");
+	in.odo_mm = 1000 + 319;
+	o = vc_step(&v, &in);
+	CHECK("S5-H67b", o.mode == VC_MODE_DRIVE && !o.creep_done, "319 mm travelled: still going");
+	in.odo_mm = 1000 + 320;
+	o = vc_step(&v, &in);
+	CHECK("S5-H67c", o.mode == VC_MODE_STOP && o.creep_done && o.epoch == 4, "320 mm travelled: STOP, creep_done");
+	in.odo_mm = 1000 + 100;		/* odometry wobble afterwards does not restart it */
+	o = vc_step(&v, &in);
+	CHECK("S5-H67d", o.mode == VC_MODE_STOP && o.creep_done, "done stays done while the order is open");
+
+	/* H68: the creep follows the line: steering is the line steering scaled to 40 mm/s */
 	vc_init(&v, 4);
 	in = line_in(5, 0);
-	in.approach_mm = 320;
+	in.approach_mm = 300;
+	in.odo_mm = 0;
 	o = vc_step(&v, &in);
-	CHECK("S5-H67", o.mode == VC_MODE_DRIVE_DIST && o.speed == 40 && o.param == 320 &&
-	      o.steer == 0 && o.epoch == 4 && !o.holding,
-	      "creep order +320 mm: DRIVE_DIST 40 mm/s, param 320, zone ignored");
+	CHECK("S5-H68a", o.mode == VC_MODE_DRIVE && o.speed == 40 && o.steer == 12,
+	      "line one zone to the left: steer +12 (30 x 40 / 100)");
+	in = line_in(3, 0);
+	in.approach_mm = 300;
+	in.odo_mm = 10;
+	o = vc_step(&v, &in);
+	CHECK("S5-H68b", o.mode == VC_MODE_DRIVE && o.speed == 40 && o.steer < 0,
+	      "line one zone to the right: steers the other way");
+	in.dt_ms = 0;			/* no new line message: the last answer is kept */
+	{
+		VC_OUT o2 = vc_step(&v, &in);
 
-	/* H68: back away: the same command with the speed negative */
+		CHECK("S5-H68c", o2.mode == VC_MODE_DRIVE && o2.steer == o.steer && o2.speed == o.speed,
+		      "no new line message: same speed and steer as before");
+	}
+
+	/* H69: back away: straight at -40 mm/s, done after the distance, also across the odometry wrap */
+	vc_init(&v, 4);
+	in = line_in(4, 0);
 	in.approach_mm = -60;
+	in.odo_mm = 5;
 	o = vc_step(&v, &in);
-	CHECK("S5-H68", o.mode == VC_MODE_DRIVE_DIST && o.speed == -40 && o.param == 60,
-	      "creep order -60 mm: DRIVE_DIST -40 mm/s, param 60");
+	CHECK("S5-H69a", o.mode == VC_MODE_DRIVE && o.speed == -40 && o.steer == 0 && !o.creep_done,
+	      "back-away order -60 mm: DRIVE -40 mm/s, steer 0");
+	in.odo_mm = (65536u + 5u - 59u) & 0xFFFFu;
+	o = vc_step(&v, &in);
+	CHECK("S5-H69b", o.mode == VC_MODE_DRIVE && !o.creep_done, "59 mm backwards (across the 16 bit wrap): still going");
+	in.odo_mm = (65536u + 5u - 60u) & 0xFFFFu;
+	o = vc_step(&v, &in);
+	CHECK("S5-H69c", o.mode == VC_MODE_STOP && o.creep_done, "60 mm backwards: STOP, creep_done");
 
-	/* H69: holding comes first: a scan or the stop latch stops the creep, epoch +1 once */
+	/* H70: holding comes first, and the distance counts from when the car really starts */
 	vc_init(&v, 4);
 	in = line_in(4, 0);
 	in.approach_mm = 320;
 	in.obs_state = 1;
+	in.odo_mm = 2000;
 	o = vc_step(&v, &in);
-	CHECK("S5-H69a", o.mode == VC_MODE_STOP && o.holding && o.epoch == 5, "creep order but scanning: held, epoch +1");
+	CHECK("S5-H70a", o.mode == VC_MODE_STOP && o.holding && o.epoch == 5 && !o.creep_done,
+	      "creep order but scanning: held, epoch +1, nothing counted");
 	in.obs_state = 0;
 	in.motion_state = VC_STATE_INHIBITED;
+	in.odo_mm = 2010;
 	o = vc_step(&v, &in);
-	CHECK("S5-H69b", o.mode == VC_MODE_STOP && o.holding && o.epoch == 5, "creep order but stop latch set: still held, same epoch");
+	CHECK("S5-H70b", o.mode == VC_MODE_STOP && o.holding && o.epoch == 5, "stop latch set: still held, same epoch");
 	in.motion_state = 0;
+	in.odo_mm = 2015;
 	o = vc_step(&v, &in);
-	CHECK("S5-H69c", o.mode == VC_MODE_DRIVE_DIST && o.epoch == 5 && !o.holding,
-	      "latch released: the creep starts with the newer epoch");
+	CHECK("S5-H70c", o.mode == VC_MODE_DRIVE && o.epoch == 5 && !o.holding, "latch released: the creep starts, newer epoch");
+	in.odo_mm = 2015 + 319;
+	o = vc_step(&v, &in);
+	CHECK("S5-H70d", o.mode == VC_MODE_DRIVE && !o.creep_done, "counted from the start of the creep (2015), not from 2000");
+	in.odo_mm = 2015 + 320;
+	o = vc_step(&v, &in);
+	CHECK("S5-H70e", o.creep_done, "320 mm after the start: done");
 
-	/* H70: the line sensor is not needed for a creep */
+	/* H71: the line is needed to creep forward */
 	vc_init(&v, 2);
 	in = line_in(4, 0);
 	in.line_fresh = 0;
 	in.approach_mm = 100;
+	in.odo_mm = 0;
 	o = vc_step(&v, &in);
-	CHECK("S5-H70", o.mode == VC_MODE_DRIVE_DIST && o.param == 100, "line sensor silent: the creep still runs");
+	CHECK("S5-H71a", o.mode == VC_MODE_STOP && !o.creep_done, "line sensor silent: no creep blind, not done");
+	vc_init(&v, 2);
+	in = line_in(4, 1);		/* lost */
+	in.approach_mm = 100;
+	in.odo_mm = 0;
+	ok = 1;
+	for (i = 0; i < 74; i++) {
+		o = vc_step(&v, &in);
+		if (o.mode != VC_MODE_DRIVE || o.speed != 40) ok = 0;
+	}
+	CHECK("S5-H71b", ok, "line lost for 1480 ms: still searching at 40 mm/s");
+	o = vc_step(&v, &in);
+	o = vc_step(&v, &in);
+	CHECK("S5-H71c", o.mode == VC_MODE_STOP && o.creep_done, "line lost for 1500 ms: STOP and creep_done (rescan)");
 
-	/* H71: after the creep the line controller starts clean (no D kick) */
+	/* H72: a wheel that rocks back a few mm at the start is not a finished creep */
+	vc_init(&v, 2);
+	in = line_in(4, 0);
+	in.approach_mm = 100;
+	in.odo_mm = 3;
+	o = vc_step(&v, &in);
+	in.odo_mm = 0;			/* 3 mm backwards */
+	o = vc_step(&v, &in);
+	in.odo_mm = 65534u;		/* 5 mm backwards, across the wrap */
+	o = vc_step(&v, &in);
+	CHECK("S5-H72", o.mode == VC_MODE_DRIVE && !o.creep_done, "odometry 5 mm backwards at the start: not done");
+
+	/* H73: after the creep the line controller starts clean (no derivative kick) */
 	vc_init(&v, 2);
 	in = line_in(4, 0);
 	o = vc_step(&v, &in);
 	in = line_in(4, 0);
 	in.approach_mm = 100;
+	in.odo_mm = 0;
 	o = vc_step(&v, &in);
 	in = line_in(5, 0);
 	o = vc_step(&v, &in);
-	CHECK("S5-H71", o.mode == VC_MODE_DRIVE && o.steer == 30, "line again after a creep: P only (steer 30, not 50)");
+	CHECK("S5-H73", o.mode == VC_MODE_DRIVE && o.steer == 30 && o.speed == 80,
+	      "line again after a creep: back to line speed, P only (steer 30, not 50)");
 
 	printf("[HOST] vehicle controller SUMMARY %d passed, %d failed\n", pass_n, fail_n);
 	return fail_n ? 1 : 0;

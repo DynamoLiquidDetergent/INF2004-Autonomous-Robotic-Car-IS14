@@ -46,6 +46,7 @@ IMPORT ID	flg_inhibit;
 #define S5_CTRL_LINE_FOUND	(1u << 2)	/* VC: line reacquired, bypass finished */
 #define S5_CTRL_REVERSE_DONE	(1u << 3)	/* VC: backed away, scan again */
 #define S5_CTRL_RESET		(1u << 4)	/* Safety Monitor: leave FAULT after re-initialising */
+#define S5_CTRL_APPROACH_DONE	(1u << 5)	/* VC: the creep / back-away ordered in s5_approach_mm is finished */
 IMPORT ID	flg_s5_ctrl;
 
 /* ---- i8: obstacle profile to the Vehicle Controller ----
@@ -57,12 +58,13 @@ IMPORT ID	mbf_obstacle;
 /* Current Obstacle Detection state (OBS_STATE, 3 bits). Read only. */
 IMPORT volatile UB	s5_obs_state;
 
-/* Creep order from Obstacle Detection to the Vehicle Controller (phase 6+):
-   0 = none; > 0 = drive this many mm straight ahead, < 0 = back away this many
-   mm (DRIVE_DIST, slowly), then Obstacle Detection scans again from the new
-   position. Obstacle Detection sets it and clears it; the Vehicle Controller
-   only reads it. While it is not 0 the obstacle state is idle but the car is
-   NOT following the line. */
+/* Move order from Obstacle Detection to the Vehicle Controller (phase 6+):
+   0 = none; > 0 = creep forward this many mm FOLLOWING THE LINE at 40 mm/s;
+   < 0 = back away this many mm straight. The Vehicle Controller measures the
+   distance with the odometry (IF-17), stops, and sets S5_CTRL_APPROACH_DONE;
+   Obstacle Detection then scans again from the new position. Obstacle
+   Detection sets and clears s5_approach_mm; the Vehicle Controller only reads
+   it. While it is not 0 the obstacle state is idle. */
 IMPORT volatile H	s5_approach_mm;
 
 /* ---- Build options (override with -D on the make line if needed) ---- */

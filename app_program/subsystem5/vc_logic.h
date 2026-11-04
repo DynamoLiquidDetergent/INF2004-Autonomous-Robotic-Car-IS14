@@ -12,11 +12,11 @@
  *	drive on. No bypass yet.
  *
  *	Creep: after the first scan Obstacle Detection may order the car to
- *	drive a short distance straight ahead, or to back away if it stopped too
- *	close (approach_mm, signed), so the second scan is made from about 17 cm.
- *	While that order is open the controller sends one slow DRIVE_DIST command
- *	(negative speed = backwards) instead of following the line; holding for a
- *	scan or for the stop latch still comes first.
+ *	move a short way (approach_mm, signed) so the second scan is made from
+ *	about 17 cm. Forward it keeps FOLLOWING THE LINE at 40 mm/s; backwards it
+ *	reverses straight. Either way the controller measures the distance with
+ *	the odometry, stops when it is reached and reports creep_done. Holding for
+ *	a scan or for the stop latch still comes first.
  *
  *	Epoch (IF-10): Motion Control drops commands older than the newest it
  *	has seen, and after an inhibit accepts only a NEWER epoch. So the epoch
@@ -35,7 +35,6 @@
 /* ---- Motion Control (subsystem2.h), repeated so this file stays pure ---- */
 #define VC_MODE_STOP		0u
 #define VC_MODE_DRIVE		1u
-#define VC_MODE_DRIVE_DIST	3u	/* S2_MODE_DRIVE_DIST: param = distance in mm */
 #define VC_STATE_INHIBITED	5u	/* S2_STATE_INHIBITED */
 
 /* ---- Obstacle Detection state that lets the car drive ---- */
@@ -62,6 +61,12 @@ typedef struct {
 	int		line_gave_up;	/* lost for VC_LF_LOST_STOP_MS: stopped for good */
 	int		holding;	/* standing still for the obstacle / stop latch */
 	unsigned	epoch;		/* epoch for every command (0..15) */
+	int		creep_on;	/* a creep is under way (start recorded) */
+	int		creep_done;	/* the ordered distance is reached: stand still */
+	unsigned	creep_start;	/* odometry (mm, 16 bit) when the creep began */
+	int		creep_have_cmd;	/* creep_speed / creep_steer are valid */
+	int		creep_speed;	/* line controller answer, kept between line messages */
+	int		creep_steer;
 } VC_STATE;
 
 typedef struct {
@@ -72,6 +77,7 @@ typedef struct {
 	unsigned	obs_state;	/* s5_obs_state */
 	unsigned	motion_state;	/* S2 state from s2_get_status() */
 	int		approach_mm;	/* s5_approach_mm: 0 = none, > 0 creep forward, < 0 back away (mm) */
+	unsigned	odo_mm;		/* odometry distance (IF-17), 16 bit, wraps */
 } VC_IN;
 
 typedef struct {
@@ -80,7 +86,7 @@ typedef struct {
 	int		steer;		/* mm/s, + = turn right (IF-10) */
 	unsigned	epoch;		/* epoch to put in the command */
 	int		holding;	/* 1 = held for an obstacle or the stop latch */
-	unsigned	param;		/* DRIVE_DIST: distance in mm (speed carries the direction), else 0 */
+	int		creep_done;	/* 1 = the ordered creep / back-away distance is reached */
 } VC_OUT;
 
 void   vc_init(VC_STATE *v, unsigned epoch);

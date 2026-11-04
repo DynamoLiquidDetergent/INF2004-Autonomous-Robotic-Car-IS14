@@ -141,7 +141,7 @@ void obs_profile(const OBS_SCAN *s, const OBS_CFG *cfg, OBS_PROFILE *out);
    Returns 0 (no move) when nothing was detected, when the profile did not
    choose a bypass (OBS_ACT_TURN_*), or when the gap is already inside the
    band approach_near_cm .. approach_far_cm (15..20 cm). Never more than 1023 mm
-   (Motion Control's DRIVE_DIST range).
+   (far more than a creep ever needs).
    Too close (gap below approach_near_cm, but the profile still chose a
    bypass): the answer is NEGATIVE, back away that many mm to approach_cm, at
    most approach_back_max_cm. Positive = drive forward. */

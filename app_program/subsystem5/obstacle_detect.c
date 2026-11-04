@@ -25,12 +25,13 @@
 /* Creep before the second scan (phase 6 and up, needs the Vehicle Controller).
    The first scan starts when something is within 50 cm straight ahead, which is
    far. If the profile chooses a bypass, the car creeps up to about 17 cm from
-   the obstacle and scans again from there: a closer scan has a narrower
-   uncertainty, and it is a second scan position. The one-ray watch is not used
-   to stop at 17 cm: at that range it covers only +/-2.6 cm of the 16 cm wide
-   car, so a box off to one side would be missed. The first scan covers the
-   whole width, the creep is a fixed, measured distance (Motion Control
-   DRIVE_DIST) and the watch ahead only cuts it short. */
+   the obstacle (following the line), or backs away if it is closer than 15 cm,
+   and scans again from there: a closer scan has a narrower uncertainty, and it
+   is a second scan position. The one-ray watch is not used to stop at 17 cm: at
+   that range it covers only +/-2.6 cm of the 16 cm wide car, so a box off to one
+   side would be missed. The first scan covers the whole width, the move is a
+   fixed distance measured by the Vehicle Controller with the odometry, and the
+   watch ahead only cuts it short. */
 #define S5_APPROACH		(S5_PHASE >= 6)
 #define S5_MAX_APPROACHES	2	/* moves per obstacle (forward or back), then the car just holds */
 #define S5_APPROACH_START_MS	1500	/* Safety Monitor release (500 ms) and first command */
@@ -236,6 +237,7 @@ LOCAL void take_background(void)
 LOCAL BOOL approach_over(UINT cm)
 {
 	UINT st = s2_status_state(s2_get_status());
+	UINT got = 0;
 	const char *why = (const char*)0;
 	OBS_CFG g = cfg;
 
@@ -247,13 +249,16 @@ LOCAL BOOL approach_over(UINT cm)
 	} else {
 		guard_hits = 0;
 	}
-	if (st == S2_STATE_DRIVING_DIST) {
+	if (st == S2_STATE_DRIVING) {
 		approach_moving = TRUE;
 	}
 	if (guard_hits >= S5_DETECT_CONFIRM) {
 		why = "obstacle at the guard distance";
-	} else if (approach_moving && st != S2_STATE_DRIVING_DIST) {
+	} else if (tk_wai_flg(flg_s5_ctrl, S5_CTRL_APPROACH_DONE, TWF_ORW | TWF_BITCLR, &got, TMO_POL) == E_OK) {
 		why = "distance done";
+	} else if (approach_moving && (st == S2_STATE_INHIBITED || st == S2_STATE_STALLED ||
+				       st == S2_STATE_TIMEOUT)) {
+		why = "car was stopped";
 	} else if ((now_ms() - approach_t0) > approach_limit_ms) {
 		why = "no movement in time";
 	}
@@ -420,6 +425,7 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 				approaches++;
 				approach_moving = FALSE;
 				guard_hits = 0;
+				tk_clr_flg(flg_s5_ctrl, ~S5_CTRL_APPROACH_DONE);	/* no stale 'done' */
 				approach_t0 = now_ms();
 				approach_limit_ms = S5_APPROACH_START_MS +
 						    ((UW)((mm < 0) ? -mm : mm) * 1000u) / S5_APPROACH_SLOWEST +
