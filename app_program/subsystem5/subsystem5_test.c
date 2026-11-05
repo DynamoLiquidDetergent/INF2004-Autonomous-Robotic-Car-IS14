@@ -13,6 +13,10 @@
 
 #if APP_TEST
 
+#ifndef S5_TEST_START_DELAY_MS
+#define S5_TEST_START_DELAY_MS	6000	/* ms after boot before the S5-U tests print */
+#endif
+
 EXPORT void subsystem5_test(void)
 {
 	TEST_INIT();
@@ -21,8 +25,9 @@ EXPORT void subsystem5_test(void)
 	uint8_t seq = 0;
 	UINT got = 0;
 
-	/* let obstacle_detect_task run its driver init first */
-	tk_dly_tsk(500);
+	/* let obstacle_detect_task run its driver init first, and give the serial monitor on the PC
+	   time to connect after a reset or a power-up so the S5-U lines are not printed unseen */
+	tk_dly_tsk(S5_TEST_START_DELAY_MS);
 
 	TEST_CHECK("S5-U01", tk_get_tid() > 0, "running in a task context");
 
