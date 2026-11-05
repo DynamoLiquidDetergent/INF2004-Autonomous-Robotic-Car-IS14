@@ -32,6 +32,7 @@ void vc_init(VC_STATE *v, unsigned epoch)
 	v->lost_ms      = 0;
 	v->line_gave_up = 0;
 	v->holding      = 0;
+	v->was_inhib    = 0;
 	v->epoch        = epoch & 0xFu;
 	v->creep_on     = 0;
 	v->creep_done   = 0;
@@ -628,6 +629,13 @@ static VC_OUT vc_step_inner(VC_STATE *v, const VC_IN *in0)
 		in = &retry;
 		is_retry = 1;
 	}
+	/* Motion Control blocks the newest epoch it had seen when the stop latch went on. If the latch
+	   comes on while this controller is already holding (a rescan, the second scan of a creep), the
+	   epoch it is sending is exactly that one and the car could never move again: raise it. */
+	if (hold && v->holding && (in->motion_state == VC_STATE_INHIBITED) && !v->was_inhib) {
+		v->epoch = (v->epoch + 1u) & 0xFu;
+	}
+	v->was_inhib = (in->motion_state == VC_STATE_INHIBITED) ? 1 : 0;
 	if (hold) {
 		if (!v->holding) {
 			v->holding  = 1;

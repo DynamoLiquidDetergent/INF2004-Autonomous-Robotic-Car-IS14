@@ -334,17 +334,59 @@ int main(void)
 	in.motion_state = VC_STATE_INHIBITED;
 	in.odo_mm = 2010;
 	o = vc_step(&v, &in);
-	CHECK("S5-H70b", o.mode == VC_MODE_STOP && o.holding && o.epoch == 5, "stop latch set: still held, same epoch");
+	CHECK("S5-H70b", o.mode == VC_MODE_STOP && o.holding && o.epoch == 6,
+	      "stop latch set while held: epoch raised again (Motion Control blocks the one it had)");
 	in.motion_state = 0;
 	in.odo_mm = 2015;
 	o = vc_step(&v, &in);
-	CHECK("S5-H70c", o.mode == VC_MODE_DRIVE && o.epoch == 5 && !o.holding, "latch released: the creep starts, newer epoch");
+	CHECK("S5-H70c", o.mode == VC_MODE_DRIVE && o.epoch == 6 && !o.holding, "latch released: the creep starts, newer epoch");
 	in.odo_mm = 2015 + 319;
 	o = vc_step(&v, &in);
 	CHECK("S5-H70d", o.mode == VC_MODE_DRIVE && !o.creep_done, "counted from the start of the creep (2015), not from 2000");
 	in.odo_mm = 2015 + 320;
 	o = vc_step(&v, &in);
 	CHECK("S5-H70e", o.creep_done, "320 mm after the start: done");
+
+	/* H121: the stop latch comes on while the controller is already holding (first scan, rescan,
+	   second scan). Model of Motion Control: when the latch goes on it blocks the newest epoch it
+	   has accepted; after the latch is released it accepts any other epoch. Found on the car in
+	   S5-M20: held for ever with the epoch the latch had blocked. */
+	{
+		VC_STATE hv;
+		VC_IN hb;
+		VC_OUT ho;
+		unsigned newest = 0, blocked_epoch = 0;
+		int blocked = 0, step, ok_all = 1, moved_all = 1;
+
+		vc_init(&hv, 1);
+		for (step = 0; step < 3; step++) {		/* three scans in a row, each with its own latch */
+			hb = line_in(4, 0);
+			hb.obs_state = (step == 1) ? 6 : 1;	/* scan, retry, scan */
+			hb.motion_state = 0;
+			ho = vc_step(&hv, &hb);			/* hold starts */
+			newest = ho.epoch;
+			hb.motion_state = VC_STATE_INHIBITED;	/* latch on: Motion Control blocks 'newest' */
+			blocked = 1;
+			blocked_epoch = newest;
+			ho = vc_step(&hv, &hb);
+			ok_all = ok_all && ho.mode == VC_MODE_STOP && ho.holding;
+			newest = ho.epoch;
+			ho = vc_step(&hv, &hb);			/* still held, many cycles */
+			ho = vc_step(&hv, &hb);
+			hb.obs_state = 0;			/* scan over, latch released */
+			hb.motion_state = VC_STATE_INHIBITED;
+			ho = vc_step(&hv, &hb);			/* the latch may still show for a cycle */
+			if (blocked && ho.epoch != blocked_epoch) {
+				blocked = 0;			/* Motion Control accepts the newer epoch */
+				hb.motion_state = 0;
+			}
+			ho = vc_step(&hv, &hb);
+			moved_all = moved_all && !blocked && ho.mode == VC_MODE_DRIVE && !ho.holding;
+		}
+		CHECK("S5-H121a", ok_all, "latch on during a hold: still held");
+		CHECK("S5-H121b", moved_all,
+		      "three scans each with a latch: the epoch always differs from the blocked one, the car drives on");
+	}
 
 	/* H71: the line is needed to creep forward */
 	vc_init(&v, 2);

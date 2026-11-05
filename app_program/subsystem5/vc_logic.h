@@ -186,6 +186,7 @@ typedef struct {
 	uint32_t	lost_ms;	/* how long the line has been lost */
 	int		line_gave_up;	/* lost for VC_LF_LOST_STOP_MS: stopped for good */
 	int		holding;	/* standing still for the obstacle / stop latch */
+	int		was_inhib;	/* Motion Control reported INHIBITED in the previous cycle */
 	unsigned	epoch;		/* epoch for every command (0..15) */
 	int		creep_on;	/* a creep is under way (start recorded) */
 	int		creep_done;	/* the ordered distance is reached: stand still */
