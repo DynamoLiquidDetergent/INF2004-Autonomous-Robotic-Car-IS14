@@ -30,6 +30,11 @@
  *	same letter again within BC_DEDUP_SAMPLES is ignored, so one barcode =
  *	one report.
  *
+ *	2026-11-04: barcode_decode_busy() tells the line follower when GP28 is
+ *	inside a possible barcode, so it can keep the steering small: GP28 is
+ *	off to the side of the car, so steering changes how fast it moves over
+ *	the bars and stretches / squeezes their widths mid-symbol.
+ *
  *	APIs used: tk_rcv_mbf, tk_snd_mbf, s1_get_nav_map (IF-18)
  */
 
@@ -100,10 +105,16 @@ LOCAL CHAR_MAP_MSG s_char_map;
 LOCAL bool         s_map_valid = false;
 LOCAL UW           s_nav_word  = 0U;     /* IF-18 word last taken */
 LOCAL volatile UW  s_decodes   = 0;      /* valid letters decoded */
+LOCAL volatile bool s_busy     = false;  /* inside a possible barcode */
 
 EXPORT UW barcode_decode_count(void)
 {
     return s_decodes;
+}
+
+EXPORT bool barcode_decode_busy(void)
+{
+    return s_busy;
 }
 
 /* ---------------------------------------------------------------------
@@ -501,6 +512,12 @@ LOCAL void barcode_decode_task(INT stacd, void *exinf)
 #endif
             process_sample(&st, s);
         }
+
+        /* From the first bar until the read ends or is abandoned
+           (long white gap, too long, dropped sample).  A crossbar of a
+           junction also sets it briefly: harmless, the controller drives
+           straight there anyway. */
+        s_busy = st.collecting;
     }
 }
 
