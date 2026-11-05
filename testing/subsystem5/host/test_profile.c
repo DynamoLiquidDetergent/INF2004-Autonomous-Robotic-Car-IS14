@@ -587,7 +587,12 @@ int main(void)
 
 		a.closest_cm = 49;
 		a.action = OBS_ACT_REVERSE_RETRY;
-		CHECK("S5-H64a", obs_approach_mm(&a, &cfg) == 0, "REVERSE_RETRY: no creep");
+		CHECK("S5-H64a", obs_approach_mm(&a, &cfg) == 320, "REVERSE_RETRY at 49 cm: creep 320 mm to 17 cm, then scan again (width is unsure from far away)");
+		a.closest_cm = 10;
+		CHECK("S5-H64e", obs_approach_mm(&a, &cfg) == 0, "REVERSE_RETRY too close (10 cm): no move here, the retry backs away itself");
+		a.closest_cm = 20;
+		CHECK("S5-H64f", obs_approach_mm(&a, &cfg) == 0, "REVERSE_RETRY at 20 cm: inside the band, no move (the retry goes ahead)");
+		a.closest_cm = 49;
 		a.action = OBS_ACT_STOP;
 		CHECK("S5-H64b", obs_approach_mm(&a, &cfg) == 0, "STOP: no creep");
 		a.action = OBS_ACT_CONTINUE;

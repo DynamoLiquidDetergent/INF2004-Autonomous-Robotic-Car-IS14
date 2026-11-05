@@ -596,7 +596,7 @@ int obs_approach_mm(const OBS_PROFILE *p, const OBS_CFG *cfg)
 
 	if (!p->detected ||
 	    (p->action != OBS_ACT_TURN_RIGHT && p->action != OBS_ACT_TURN_LEFT &&
-	     p->action != OBS_ACT_STOP)) {
+	     p->action != OBS_ACT_STOP && p->action != OBS_ACT_REVERSE_RETRY)) {
 		return 0;
 	}
 	if (p->closest_cm < cfg->approach_min_cm) {
@@ -614,6 +614,9 @@ int obs_approach_mm(const OBS_PROFILE *p, const OBS_CFG *cfg)
 	ahead_mm  = (int)(((int32_t)p->closest_cm * 10 * cos_tab[2 * d]) / 1000);
 	travel_mm = ahead_mm - (int)cfg->approach_cm * 10;
 	if (ahead_mm < (int)cfg->approach_near_cm * 10) {
+		if (p->action == OBS_ACT_REVERSE_RETRY) {
+			return 0;		/* the retry itself backs away */
+		}
 		/* too close: back away, but only a short way (nothing watches behind) */
 		back_max_mm = (int)cfg->approach_back_max_cm * 10;
 		travel_mm = (-travel_mm > back_max_mm) ? -back_max_mm : travel_mm;

@@ -150,15 +150,19 @@ void obs_profile(const OBS_SCAN *s, const OBS_CFG *cfg, OBS_PROFILE *out);
    obstacle becomes cfg->approach_cm. The gap is measured straight ahead, not
    along the beam: the closest point is at scan index closest_idx, so its
    distance ahead is closest_cm x sin(angle).
-   Returns 0 (no move) when nothing was detected, when the profile did not
-   choose a bypass (OBS_ACT_TURN_*), or when the gap is already inside the
+   REVERSE_RETRY also creeps forward: the width of an obstacle seen from far away is
+   uncertain (about +/-13 cm at 49 cm), so the planned width may be too wide for the
+   sideways room only because of the distance. Going closer first and measuring again
+   is better than backing away from it (found on the car in S5-M20).
+   Returns 0 (no move) when nothing was detected, when the profile chose none of
+   OBS_ACT_TURN_*, STOP or REVERSE_RETRY (a retry never backs away here), or when the gap is already inside the
    band approach_near_cm .. approach_far_cm (15..20 cm). Never more than 1023 mm
    (far more than a creep ever needs).
    Too close (gap below approach_near_cm): the answer is NEGATIVE, back away that
    many mm to approach_cm, at most approach_back_max_cm. This also holds when the
    profile says OBS_ACT_STOP (closer than stop_cm: no sideways move is safe, but
    backing straight away is), as long as the reading is at least approach_min_cm.
-   Positive = drive forward (only when the profile chose a bypass). */
+   Positive = drive forward (a bypass or a retry; STOP never creeps forward). */
 int obs_approach_mm(const OBS_PROFILE *p, const OBS_CFG *cfg);
 
 /* Conversions */
