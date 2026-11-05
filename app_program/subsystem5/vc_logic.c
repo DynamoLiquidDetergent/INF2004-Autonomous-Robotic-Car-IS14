@@ -79,6 +79,7 @@ void vc_init(VC_STATE *v, unsigned epoch)
 	v->sw_kind      = 0;
 	v->sw_d_mm      = 0;
 	v->sw_psi_d10   = 450;
+	v->byp_wait     = 0;
 	v->sw_lo_mm     = 0;
 	v->sw_lp_mm     = 0;
 	v->sw_back_mm   = 0;
@@ -353,7 +354,7 @@ static int sw_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 	if (in->lost) {
 		v->saw_lost = 1;		/* the 'seen' flag is stale until subsystem 3 has noticed */
 	}
-	if (v->sw_kind == VC_SW_RET || v->sw_kind == VC_SW_FIND) {
+	if (v->sw_kind != VC_SW_BACK) {
 		if (in->dt_ms > 0) {
 			if (v->saw_lost && in->line_fresh && !in->lost && in->zone != 0) {
 				v->found_cnt++;
@@ -362,7 +363,11 @@ static int sw_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 			}
 		}
 		if (v->found_cnt >= VC_SEARCH_FOUND_MSGS &&
-		    (v->sw_kind == VC_SW_FIND || s * 100 >= v->sw_lo_mm * VC_SW_DETECT_PCT)) {
+		    (v->sw_kind != VC_SW_OUT || s * 100 >= v->sw_lo_mm * VC_SW_OUT_DETECT_PCT)) {
+			if (v->sw_kind == VC_SW_OUT || v->sw_kind == VC_SW_PASS) {
+				o->event |= VC_EV_BYP_PASSED | VC_EV_BYP_RETURN;	/* the line came back early */
+				v->byp_wait = 1;
+			}
 			v->byp_step = 0;
 			v->sw_kind  = 0;
 			jn_finish(v, in, o);
@@ -904,7 +909,10 @@ static VC_OUT vc_step_inner(VC_STATE *v, const VC_IN *in0)
 		}
 		return o;
 	}
-	if (in->phase7 && in->obs_state == VC_OBS_BYPASSING && v->byp_step == 0) {
+	if (in->obs_state != VC_OBS_BYPASSING) {
+		v->byp_wait = 0;
+	}
+	if (in->phase7 && in->obs_state == VC_OBS_BYPASSING && v->byp_step == 0 && !v->byp_wait) {
 		byp_begin(v, in, &o);
 	}
 	v->creep_acc = 0;			/* no order open: nothing travelled yet */

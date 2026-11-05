@@ -204,8 +204,9 @@
    Legs: back (if needed), curve out, straight past the obstacle (depth + car body), curve back,
    a short straight look for the line. The curve follows the heading above with a feed-forward
    steering from its curvature plus a correction from the heading error (the wheel speeds give the
-   heading). Near the end of the return curve the line controller takes over; there is no turn on
-   the spot at all. */
+   heading). The moment the line is seen again (after it was lost) in the pass or return curve, or
+   in the second part of the curve out (the line may bend into the car's way near a corner), the
+   bypass ends and the line controller takes over; there is no turn on the spot at all. */
 #ifndef VC_BYP_SMOOTH
 #define VC_BYP_SMOOTH		1
 #endif
@@ -222,7 +223,7 @@
 #define VC_SW_PASS_SPEED	150	/* mm/s on the straight past the obstacle */
 #define VC_SW_FIND_SPEED	60	/* mm/s while looking for the line at the end */
 #define VC_SW_FIND_MM		150	/* straight look for the line after the curve */
-#define VC_SW_DETECT_PCT	90	/* the line may be taken from this share of the return curve on */
+#define VC_SW_OUT_DETECT_PCT	40	/* on the curve out the line is only taken after this share of it (the line just left is still close) */
 #define VC_SW_KH		2	/* mm/s of steering per degree of heading error */
 #define VC_SW_STEER_MAX		90	/* mm/s */
 #define VC_SW_SLOPE_D		15	/* mm either side of s for the curvature */
@@ -278,6 +279,7 @@ typedef struct {
 	int		saw_lost;	/* subsystem 3 has reported the line lost since the leg began */
 	int		smooth;		/* 1 = smooth S-curve bypass, 0 = the rectangle of turns (tests) */
 	unsigned	sw_kind;	/* leg of the smooth bypass: VC_SW_BACK .. VC_SW_FIND */
+	int		byp_wait;	/* bypass over early: do not start another until the obstacle task has left BYPASSING */
 	int		sw_psi_d10;	/* peak heading of this bypass, tenths of a degree */
 	int		sw_d_mm;	/* the sideways reach D */
 	int		sw_lo_mm;	/* length of each curve */

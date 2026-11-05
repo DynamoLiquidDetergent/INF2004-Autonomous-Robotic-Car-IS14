@@ -361,14 +361,17 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 					(void)tk_set_flg(flg_fault_i14, FLT_LINE_BIT);
 				}
 				if (o.event & VC_EV_BYP_START) {
-					subsystem3_set_bypass(true);		/* IF-09: leaving the line on purpose */
 					if (v.smooth) {
+						/* the smooth bypass watches for the line the whole way (a corner next to the
+						   obstacle), so Subsystem 3 keeps reporting 'line lost' (IF-09 stays off) */
+						subsystem3_set_bypass(false);
 						tm_printf((UB*)"vc: smooth bypass round the %s, %d cm over, gap %d cm: back %d mm, "
-							  "curve %d mm, straight %d mm\n",
+							  "curve %d mm at up to %d deg, straight %d mm\n",
 							  (v.byp_dir > 0) ? "right" : "left", (INT)(v.sw_d_mm / 10),
 							  (INT)in.prof_closest_cm, (INT)v.sw_back_mm, (INT)v.sw_lo_mm,
-							  (INT)v.sw_lp_mm);
+							  (INT)(v.sw_psi_d10 / 10), (INT)v.sw_lp_mm);
 					} else {
+						subsystem3_set_bypass(true);		/* IF-09: leaving the line on purpose */
 						tm_printf((UB*)"vc: bypass round the %s, %d cm over, gap %d cm\n",
 							  (v.byp_dir > 0) ? "right" : "left", (INT)(v.byp_s_mm / 10),
 							  (INT)in.prof_closest_cm);
@@ -376,11 +379,17 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 				}
 				if (o.event & VC_EV_BYP_PASSED) {
 					tk_set_flg(flg_s5_ctrl, S5_CTRL_BYPASS_DONE);
-					tm_printf((UB*)"vc: obstacle passed, %s\n", v.smooth ? "curving back towards the line" : "turning back towards the line");
+					if (v.smooth && (o.event & VC_EV_BYP_DONE)) {
+						tm_printf((UB*)"vc: line seen during the bypass, following it\n");
+					} else {
+						tm_printf((UB*)"vc: obstacle passed, %s\n", v.smooth ? "curving back towards the line" : "turning back towards the line");
+					}
 				}
 				if (o.event & VC_EV_BYP_RETURN) {
 					subsystem3_set_bypass(false);		/* line-lost reports on, to see the line */
-					if (v.smooth) {
+					if (v.smooth && (o.event & VC_EV_BYP_DONE)) {
+						/* already on the line: nothing to look for */
+					} else if (v.smooth) {
 						tm_printf((UB*)"vc: curving back to the line (then up to %d mm straight)\n",
 							  (INT)VC_SW_FIND_MM);
 					} else {

@@ -124,6 +124,8 @@ static VC_OUT world_step(WORLD *w, int action, int shift, int closest, unsigned 
    a box of any width and depth on the line, the line sensor row 50 mm in front of the axle ---- */
 #include <math.h>
 
+static int sim_corner_x;	/* > 0: the line turns toward the bypass side at this x (mm), the old line ends there */
+static int sim_obs_lag;		/* cycles the obstacle task stays in BYPASSING after BYP_PASSED */
 static int sim_never_find;	/* 1 = the line is never seen again after the start */
 
 typedef struct {
@@ -136,6 +138,7 @@ typedef struct {
 	int   lost_after;	/* line lost during those 3 s */
 	double max_head_deg;	/* heading at the hand-over (absolute) */
 	int   back_mm, lo_mm, lp_mm, d_mm;
+	int   starts, early;	/* BYP_START events, BYP_DONE without the return curve (line met early) */
 	int   turns, zero_steer, max_steer;	/* turns on the spot, steer 0 commands, largest |steer| during the detour */
 } SIMRES;
 
@@ -160,7 +163,7 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 	double edge;
 	VC_IN b;
 	VC_OUT o;
-	int    obs = 4;
+	int    obs = 4, lag = 0;
 
 	memset(&r, 0, sizeof r);
 	r.clear_mm = 1e9;
@@ -188,6 +191,14 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 		sy = y + 50.0 * sn;
 		rel = -sy / (cs > 0.2 ? cs : 0.2);		/* line position across the sensor row, + = to the right */
 		lost = (fabs(rel) > 32.0 || (sim_never_find && started)) ? 1 : 0;
+		if (sim_corner_x > 0) {			/* main line ends at the corner, a side line goes off to the bypass side */
+			double sxx = x + 50.0 * cs, syy = y + 50.0 * sn;
+			double d_main = (sxx <= sim_corner_x) ? fabs(syy) : 1e9;
+			double d_side = (syy * side >= -20.0) ? fabs(sxx - sim_corner_x) : 1e9;
+
+			lost = (d_main > 32.0 && d_side > 32.0) ? 1 : 0;
+			rel = 0.0;
+		}
 		zone = lost ? 0 : 4 + (int)lround(rel / 10.0);
 		if (zone < 1 && !lost) { zone = 1; }
 		if (zone > 7) { zone = 7; }
@@ -200,13 +211,18 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 			if (o.busy && (o.steer > r.max_steer || -o.steer > r.max_steer)) { r.max_steer = o.steer < 0 ? -o.steer : o.steer; }
 		}
 		if (o.event & VC_EV_BYP_START) {
+			r.starts++;
 			started = 1; start_t = t;
 			r.back_mm = v.sw_back_mm; r.lo_mm = v.sw_lo_mm; r.lp_mm = v.sw_lp_mm; r.d_mm = v.sw_d_mm;
 		}
 		if (o.event & VC_EV_BYP_FAIL) { r.fail_ev = 1; break; }
-		if (o.event & VC_EV_BYP_PASSED) { obs = 5; }
+		if (o.event & VC_EV_BYP_PASSED) { lag = sim_obs_lag; if (lag == 0) { obs = 5; } }
+		if (lag > 0 && --lag == 0) { obs = 5; }
+		if (done_t >= 0 && lag == 0 && obs == 5) { obs = 0; }
 		if (o.event & VC_EV_BYP_DONE) {
-			obs = 0; r.ok = 1; done_t = t; r.ms = (t - start_t) * 20;
+			if (lag == 0) { obs = 0; }
+			r.ok = 1; done_t = t; r.ms = (t - start_t) * 20;
+			if (v.sw_kind == 0 && (o.event & VC_EV_BYP_PASSED)) { r.early = 1; }
 			r.max_head_deg = fabs(th) * 57.2958;
 		}
 		if (done_t >= 0 && t - done_t > 150) { break; }
@@ -1367,6 +1383,35 @@ int main(void)
 			CHECK("S5-H123h", !o.holding && o.mode == VC_MODE_DRIVE && v.sw_kind == kind0 && o.steer != 0,
 			      "released: the same curve goes on from where it was");
 		}
+	}
+
+	/* H124: the line is seen while the bypass is going on (obstacle near a corner) */
+	{
+		SIMRES c;
+		int side;
+		int n_ok = 0, n_early = 0, n_one = 0, n_hit = 0;
+		double worst = 1e9;
+		static const int corners[] = { 250, 350, 450, 550, 650 };
+		int ic;
+
+		sim_obs_lag = 3;			/* the obstacle task needs a few cycles to leave BYPASSING */
+		for (side = -1; side <= 1; side += 2) {
+			for (ic = 0; ic < 5; ic++) {
+				sim_corner_x = corners[ic];
+				c = sim_bypass(side, 150, 200, 0, 17, 0, 0);
+				if (c.ok) { n_ok++; }
+				if (c.early) { n_early++; }
+				if (c.starts == 1) { n_one++; }
+				if (c.hit) { n_hit++; }
+				if (c.clear_mm < worst) { worst = c.clear_mm; }
+			}
+		}
+		sim_corner_x = 0;
+		sim_obs_lag = 0;
+		printf("[HOST] INFO H124: 10 cases, ended early %d times, worst clearance %.0f mm\n", n_early, worst);
+		CHECK("S5-H124a", n_ok == 10 && n_early >= 5, "a corner next to the box: the bypass ends the moment the line is seen again (after the pass or on the way back)");
+		CHECK("S5-H124b", n_one == 10, "the bypass is not started a second time while the obstacle task is still in BYPASSING");
+		CHECK("S5-H124c", n_hit == 0 && worst >= 15.0, "no touch of the box when the line is taken over early (at least 15 mm)");
 	}
 
 	printf("[HOST] vehicle controller SUMMARY %d passed, %d failed\n", pass_n, fail_n);
