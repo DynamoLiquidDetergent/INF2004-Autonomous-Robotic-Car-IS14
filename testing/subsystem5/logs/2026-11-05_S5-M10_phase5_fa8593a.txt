@@ -1,0 +1,1359 @@
+---- Opened the serial port COM3 ----
+obstacle:  45 deg  echo  7771 us  status 0  -> 134 cm
+s1: pub telem t=3355770857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355770857 - 09 00 0F 00
+obstacle:  45 deg  echo  7847 us  status 0  -> 135 cm
+obstacle:  60 deg  echo  7710 us  status 0  -> 133 cm
+obstacle:  60 deg  echo  7827 us  status 0  -> 135 cm
+monitor: batch  n=5 last=40 from core 1
+monitor: t=3355771061 ms  samples=5  min=0 max=40 avg=20  free slots=4  free blocks=4
+obstacle:  60 deg  echo  7756 us  status 0  -> 134 cm
+obstacle:  75 deg  echo  8530 us  status 0  -> 147 cm
+obstacle:  75 deg  echo  7894 us  status 0  -> 136 cm
+s1: pub telem t=3355771357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  75 deg  echo  7843 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  8081 us  status 0  -> 139 cm
+obstacle:  90 deg  echo  8005 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7884 us  status 0  -> 136 cm
+obstacle: 105 deg  echo  7904 us  status 0  -> 136 cm
+obstacle: 105 deg  echo  7803 us  status 0  -> 135 cm
+s1: pub telem t=3355771857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355771857 - 09 01 0F 00
+obstacle: 105 deg  echo  7828 us  status 0  -> 135 cm
+obstacle: 120 deg  echo  7833 us  status 0  -> 135 cm
+obstacle: 120 deg  echo  7904 us  status 0  -> 136 cm
+obstacle: 120 deg  echo  7857 us  status 0  -> 135 cm
+obstacle: 135 deg  echo 12345 us  status 0  -> 213 cm
+obstacle: 135 deg  echo 11925 us  status 0  -> 206 cm
+s1: pub telem t=3355772357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 135 deg  echo 12295 us  status 0  -> 212 cm
+obstacle: 150 deg  echo 12498 us  status 0  -> 215 cm
+obstacle: 150 deg  echo 12638 us  status 0  -> 218 cm
+monitor: batch  n=10 last=90 from core 1
+monitor: t=3355772565 ms  samples=10  min=0 max=90 avg=45  free slots=4  free blocks=4
+obstacle: 150 deg  echo 12660 us  status 0  -> 218 cm
+s1: pub telem t=3355772857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355772857 - 09 02 0F 00
+obstacle: background  30 deg = 217 cm
+obstacle: background  45 deg = 135 cm
+obstacle: background  60 deg = 134 cm
+obstacle: background  75 deg = 136 cm
+obstacle: background  90 deg = 138 cm
+obstacle: background 105 deg = 135 cm
+obstacle: background 120 deg = 135 cm
+obstacle: background 135 deg = 212 cm
+obstacle: background 150 deg = 218 cm
+obstacle:  90 deg  echo  8203 us  status 0  -> 141 cm
+obstacle:  90 deg  echo  7903 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7954 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7858 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  8005 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7903 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7883 us  status 0  -> 136 cm
+s1: pub telem t=3355773357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  7883 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7903 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  8004 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7812 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7980 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7930 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7854 us  status 0  -> 135 cm
+s1: pub telem t=3355773857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355773857 - 09 03 0F 00
+obstacle:  90 deg  echo  8642 us  status 0  -> 149 cm
+obstacle:  90 deg  echo  7955 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7788 us  status 0  -> 134 cm
+obstacle:  90 deg  echo  7884 us  status 0  -> 136 cm
+monitor: batch  n=15 last=60 from core 1
+monitor: t=3355774070 ms  samples=15  min=0 max=100 avg=56  free slots=4  free blocks=4
+obstacle:  90 deg  echo  7929 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7929 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7808 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  8025 us  status 0  -> 138 cm
+s1: pub telem t=3355774357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo 10535 us  status 0  -> 182 cm
+obstacle:  90 deg  echo  7859 us  status 0  -> 136 cm
+obstacle:  90 deg  echo 10540 us  status 0  -> 182 cm
+obstacle:  90 deg  echo  7980 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7904 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7980 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7883 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7833 us  status 0  -> 135 cm
+s1: pub telem t=3355774857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355774858 - 09 04 0F 00
+obstacle:  90 deg  echo  7808 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7954 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7858 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7884 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7929 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7934 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  8031 us  status 0  -> 138 cm
+s1: pub telem t=3355775357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  7833 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7883 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7955 us  status 0  -> 137 cm
+monitor: batch  n=20 last=10 from core 1
+monitor: t=3355775575 ms  samples=20  min=0 max=100 avg=50  free slots=4  free blocks=4
+obstacle:  90 deg  echo  8203 us  status 0  -> 141 cm
+obstacle:  90 deg  echo  7833 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7858 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7930 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7981 us  status 0  -> 138 cm
+s1: pub telem t=3355775857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355775858 - 09 05 0F 00
+obstacle:  90 deg  echo  8076 us  status 0  -> 139 cm
+obstacle:  90 deg  echo  8101 us  status 0  -> 140 cm
+obstacle:  90 deg  echo  8081 us  status 0  -> 139 cm
+obstacle:  90 deg  echo  7884 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  8152 us  status 0  -> 141 cm
+obstacle:  90 deg  echo  7985 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  8253 us  status 0  -> 142 cm
+s1: pub telem t=3355776357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  7980 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  8031 us  status 0  -> 138 cm
+obstacle:  90 deg  echo 30722 us  status 1  -> 511 cm
+obstacle:  90 deg  echo  7934 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7955 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7954 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  8030 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7883 us  status 0  -> 136 cm
+s1: pub telem t=3355776857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355776858 - 09 06 0F 00
+obstacle:  90 deg  echo  7904 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7808 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7884 us  status 0  -> 136 cm
+monitor: batch  n=25 last=40 from core 1
+monitor: t=3355777080 ms  samples=25  min=0 max=100 avg=44  free slots=4  free blocks=4
+obstacle:  90 deg  echo  7834 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7880 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7834 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  8005 us  status 0  -> 138 cm
+s1: pub telem t=3355777357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  7854 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7808 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7853 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7955 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7904 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7949 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  8051 us  status 0  -> 139 cm
+obstacle:  90 deg  echo  7833 us  status 0  -> 135 cm
+s1: pub telem t=3355777857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355777858 - 09 07 0F 00
+obstacle:  90 deg  echo  7929 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7975 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7832 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7808 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7808 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7807 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7833 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7782 us  status 0  -> 134 cm
+s1: pub telem t=3355778357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  7954 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  8126 us  status 0  -> 140 cm
+obstacle:  90 deg  echo  7949 us  status 0  -> 137 cm
+monitor: batch  n=30 last=90 from core 1
+monitor: t=3355778585 ms  samples=30  min=0 max=100 avg=48  free slots=4  free blocks=4
+monitor: LED task paused, state=WAIT+SUSPEND, pri=23
+obstacle:  90 deg  echo  7903 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7878 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7853 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7853 us  status 0  -> 135 cm
+s1: pub telem t=3355778857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355778858 - 09 08 0F 00
+obstacle:  90 deg  echo  7955 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7808 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  8051 us  status 0  -> 139 cm
+obstacle:  90 deg  echo  7954 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7904 us  status 0  -> 136 cm
+obstacle:  90 deg  echo 30969 us  status 1  -> 511 cm
+obstacle:  90 deg  echo  7879 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7904 us  status 0  -> 136 cm
+s1: pub telem t=3355779357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  8000 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7980 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7904 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7833 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7929 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  8030 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7883 us  status 0  -> 136 cm
+s1: pub telem t=3355779857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355779858 - 09 09 0F 00
+obstacle:  90 deg  echo  7858 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7879 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  8055 us  status 0  -> 139 cm
+obstacle:  90 deg  echo  7833 us  status 0  -> 135 cm
+monitor: batch  n=35 last=60 from core 1
+monitor: t=3355780090 ms  samples=35  min=0 max=100 avg=52  free slots=4  free blocks=4
+obstacle:  90 deg  echo  7904 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  8152 us  status 0  -> 141 cm
+obstacle:  90 deg  echo  8152 us  status 0  -> 141 cm
+obstacle:  90 deg  echo  7904 us  status 0  -> 136 cm
+s1: pub telem t=3355780357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  7929 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7980 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7834 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7955 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7808 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7904 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  8005 us  status 0  -> 138 cm
+s1: pub telem t=3355780857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355780857 - 09 0A 0F 00
+obstacle:  90 deg  echo 10490 us  status 0  -> 181 cm
+obstacle:  90 deg  echo  8152 us  status 0  -> 141 cm
+obstacle:  90 deg  echo  8101 us  status 0  -> 140 cm
+obstacle:  90 deg  echo  8051 us  status 0  -> 139 cm
+obstacle:  90 deg  echo  7859 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7979 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7953 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  8125 us  status 0  -> 140 cm
+s1: pub telem t=3355781357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  8126 us  status 0  -> 140 cm
+obstacle:  90 deg  echo 10392 us  status 0  -> 179 cm
+obstacle:  90 deg  echo  7857 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  8005 us  status 0  -> 138 cm
+monitor: batch  n=40 last=10 from core 1
+monitor: t=3355781595 ms  samples=40  min=0 max=100 avg=50  free slots=4  free blocks=4
+obstacle:  90 deg  echo  7954 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7879 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7974 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7859 us  status 0  -> 136 cm
+s1: pub telem t=3355781857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355781857 - 09 0B 0F 00
+obstacle:  90 deg  echo  7878 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7903 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7832 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  8126 us  status 0  -> 140 cm
+obstacle:  90 deg  echo  7934 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7832 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7904 us  status 0  -> 136 cm
+s1: pub telem t=3355782357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  7980 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  8152 us  status 0  -> 141 cm
+obstacle:  90 deg  echo  7980 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  8050 us  status 0  -> 139 cm
+obstacle:  90 deg  echo  7858 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  8055 us  status 0  -> 139 cm
+obstacle:  90 deg  echo  7934 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7904 us  status 0  -> 136 cm
+s1: pub telem t=3355782857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355782857 - 09 0C 0F 00
+obstacle:  90 deg  echo 10515 us  status 0  -> 181 cm
+obstacle:  90 deg  echo  7858 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7878 us  status 0  -> 136 cm
+monitor: batch  n=45 last=40 from core 1
+monitor: t=3355783100 ms  samples=45  min=0 max=100 avg=46  free slots=4  free blocks=4
+obstacle:  90 deg  echo  7808 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7854 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7955 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7905 us  status 0  -> 136 cm
+s1: pub telem t=3355783357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  7981 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7833 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  8126 us  status 0  -> 140 cm
+obstacle:  90 deg  echo  8010 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7859 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7885 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7834 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7980 us  status 0  -> 138 cm
+s1: pub telem t=3355783857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355783857 - 09 0D 0F 00
+obstacle:  90 deg  echo  8101 us  status 0  -> 140 cm
+obstacle:  90 deg  echo  8127 us  status 0  -> 140 cm
+obstacle:  90 deg  echo  7883 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7980 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7980 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  8107 us  status 0  -> 140 cm
+obstacle:  90 deg  echo  7859 us  status 0  -> 136 cm
+s1: pub telem t=3355784357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  8299 us  status 0  -> 143 cm
+obstacle:  90 deg  echo  8005 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7954 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  8152 us  status 0  -> 141 cm
+monitor: batch  n=50 last=90 from core 1
+monitor: t=3355784605 ms  samples=50  min=0 max=100 avg=49  free slots=4  free blocks=4
+obstacle:  90 deg  echo  7859 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7904 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7859 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7955 us  status 0  -> 137 cm
+s1: pub telem t=3355784857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355784857 - 09 0E 0F 00
+obstacle:  90 deg  echo  7955 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7904 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7934 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7955 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  8152 us  status 0  -> 141 cm
+obstacle:  90 deg  echo  8031 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7833 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7833 us  status 0  -> 135 cm
+s1: pub telem t=3355785357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  7833 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7884 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7834 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7859 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  8031 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7834 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  8152 us  status 0  -> 141 cm
+s1: pub telem t=3355785857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355785857 - 09 0F 0F 00
+obstacle:  90 deg  echo  7904 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7955 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  8618 us  status 0  -> 149 cm
+obstacle:  90 deg  echo  8152 us  status 0  -> 141 cm
+monitor: batch  n=55 last=60 from core 1
+monitor: t=3355786110 ms  samples=55  min=0 max=100 avg=51  free slots=4  free blocks=4
+obstacle:  90 deg  echo  7980 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7883 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  8029 us  status 0  -> 138 cm
+obstacle:  90 deg  echo 10463 us  status 0  -> 180 cm
+s1: pub telem t=3355786357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  7959 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  8030 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  8076 us  status 0  -> 139 cm
+obstacle:  90 deg  echo  7954 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7884 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  8030 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7980 us  status 0  -> 138 cm
+s1: pub telem t=3355786857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355786857 - 09 10 0F 00
+obstacle:  90 deg  echo  7884 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7955 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7905 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7879 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  8106 us  status 0  -> 140 cm
+obstacle:  90 deg  echo  7787 us  status 0  -> 134 cm
+obstacle:  90 deg  echo  7954 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  8005 us  status 0  -> 138 cm
+s1: pub telem t=3355787357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  7879 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  8274 us  status 0  -> 143 cm
+obstacle:  90 deg  echo  7904 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7833 us  status 0  -> 135 cm
+monitor: batch  n=60 last=10 from core 1
+monitor: t=3355787615 ms  samples=60  min=0 max=100 avg=50  free slots=4  free blocks=4
+monitor: LED task resumed, state=WAIT, pri=22
+obstacle:  90 deg  echo  8005 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  1139 us  status 0  -> 20 cm
+obstacle:  90 deg  echo  1175 us  status 0  -> 20 cm
+safety: INHIBIT set (faults 0x0, obstacle state 1)
+s1: pub telem t=3355787857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355787857 - 09 11 0F 00
+obstacle:  30 deg  echo  7969 us  status 0  -> 137 cm
+obstacle:  30 deg  echo 12548 us  status 0  -> 216 cm
+obstacle:  30 deg  echo 12593 us  status 0  -> 217 cm
+s1: pub telem t=3355788357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  60 deg  echo  7752 us  status 0  -> 134 cm
+obstacle:  60 deg  echo  8026 us  status 0  -> 138 cm
+obstacle:  60 deg  echo  7778 us  status 0  -> 134 cm
+obstacle:  90 deg  echo  1170 us  status 0  -> 20 cm
+obstacle:  90 deg  echo  1170 us  status 0  -> 20 cm
+s1: pub telem t=3355788857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355788857 - 09 12 0F 00
+obstacle:  90 deg  echo  1144 us  status 0  -> 20 cm
+obstacle: 120 deg  echo  7808 us  status 0  -> 135 cm
+monitor: batch  n=65 last=40 from core 1
+monitor: t=3355789120 ms  samples=65  min=0 max=100 avg=47  free slots=4  free blocks=4
+obstacle: 120 deg  echo  7828 us  status 0  -> 135 cm
+obstacle: 120 deg  echo  7828 us  status 0  -> 135 cm
+s1: pub telem t=3355789357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 150 deg  echo 12568 us  status 0  -> 217 cm
+obstacle: 150 deg  echo 12614 us  status 0  -> 217 cm
+obstacle: 150 deg  echo 12421 us  status 0  -> 214 cm
+obstacle: 105 deg  echo  1200 us  status 0  -> 21 cm
+s1: pub telem t=3355789857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355789857 - 09 13 0F 00
+obstacle: 105 deg  echo  1175 us  status 0  -> 20 cm
+obstacle: 105 deg  echo  1175 us  status 0  -> 20 cm
+obstacle:  75 deg  echo  1170 us  status 0  -> 20 cm
+obstacle:  75 deg  echo  1170 us  status 0  -> 20 cm
+obstacle:  75 deg  echo  1195 us  status 0  -> 21 cm
+obstacle: PROFILE seq 1 detected 1 closest 20 cm @75 deg, width 5 cm (+/-5), planned 20 cm, left 21 cm, right 21 cm, action 1, objects 1, scan 2524 ms
+s1: pub telem t=3355790357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+monitor: batch  n=70 last=90 from core 1
+monitor: t=3355790625 ms  samples=70  min=0 max=100 avg=49  free slots=4  free blocks=4
+s1: pub telem t=3355790857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355790858 - 09 14 0F 00
+s1: pub telem t=3355791357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub telem t=3355791857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355791857 - 09 15 0F 00
+obstacle:  90 deg  echo  1170 us  status 0  -> 20 cm
+obstacle:  90 deg  echo  1170 us  status 0  -> 20 cm
+monitor: batch  n=75 last=60 from core 1
+monitor: t=3355792130 ms  samples=75  min=0 max=100 avg=51  free slots=4  free blocks=4
+obstacle:  30 deg  echo 10474 us  status 0  -> 181 cm
+obstacle:  30 deg  echo 14223 us  status 0  -> 245 cm
+s1: pub telem t=3355792357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  30 deg  echo 14077 us  status 0  -> 243 cm
+obstacle:  60 deg  echo  7975 us  status 0  -> 138 cm
+obstacle:  60 deg  echo  7874 us  status 0  -> 136 cm
+obstacle:  60 deg  echo  7732 us  status 0  -> 133 cm
+s1: pub telem t=3355792857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355792857 - 09 16 0F 00
+obstacle:  90 deg  echo  1170 us  status 0  -> 20 cm
+obstacle:  90 deg  echo  1170 us  status 0  -> 20 cm
+obstacle:  90 deg  echo  1170 us  status 0  -> 20 cm
+obstacle: 120 deg  echo  7955 us  status 0  -> 137 cm
+obstacle: 120 deg  echo  7859 us  status 0  -> 136 cm
+obstacle: 120 deg  echo  8006 us  status 0  -> 138 cm
+s1: pub telem t=3355793357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 150 deg  echo 11826 us  status 0  -> 204 cm
+obstacle: 150 deg  echo 11334 us  status 0  -> 195 cm
+monitor: batch  n=80 last=10 from core 1
+monitor: t=3355793635 ms  samples=80  min=0 max=100 avg=50  free slots=4  free blocks=4
+obstacle: 150 deg  echo 11804 us  status 0  -> 204 cm
+s1: pub telem t=3355793857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355793857 - 09 17 0F 00
+obstacle: 105 deg  echo  1175 us  status 0  -> 20 cm
+obstacle: 105 deg  echo  1175 us  status 0  -> 20 cm
+obstacle: 105 deg  echo  1175 us  status 0  -> 20 cm
+obstacle:  75 deg  echo  1170 us  status 0  -> 20 cm
+obstacle:  75 deg  echo  1170 us  status 0  -> 20 cm
+s1: pub telem t=3355794357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  75 deg  echo  1170 us  status 0  -> 20 cm
+obstacle: PROFILE seq 2 detected 1 closest 20 cm @75 deg, width 5 cm (+/-5), planned 20 cm, left 21 cm, right 21 cm, action 1, objects 1, scan 2524 ms
+s1: pub telem t=3355794857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355794858 - 09 18 0F 00
+monitor: batch  n=85 last=40 from core 1
+monitor: t=3355795140 ms  samples=85  min=0 max=100 avg=48  free slots=4  free blocks=4
+s1: pub telem t=3355795357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub telem t=3355795857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355795858 - 09 19 0F 00
+obstacle:  90 deg  echo  1144 us  status 0  -> 20 cm
+obstacle:  90 deg  echo  1144 us  status 0  -> 20 cm
+s1: pub telem t=3355796357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  30 deg  echo 10619 us  status 0  -> 183 cm
+obstacle:  30 deg  echo 14028 us  status 0  -> 242 cm
+obstacle:  30 deg  echo 45663 us  status 1  -> 511 cm
+monitor: batch  n=90 last=90 from core 1
+monitor: t=3355796645 ms  samples=90  min=0 max=100 avg=49  free slots=4  free blocks=4
+monitor: LED task paused, state=WAIT+SUSPEND, pri=23
+obstacle:  60 deg  echo  7853 us  status 0  -> 135 cm
+obstacle:  60 deg  echo  7752 us  status 0  -> 134 cm
+obstacle:  60 deg  echo  7778 us  status 0  -> 134 cm
+s1: pub telem t=3355796857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355796858 - 09 1A 0F 00
+obstacle:  90 deg  echo  1144 us  status 0  -> 20 cm
+obstacle:  90 deg  echo  1170 us  status 0  -> 20 cm
+obstacle:  90 deg  echo  1170 us  status 0  -> 20 cm
+obstacle: 120 deg  echo  7858 us  status 0  -> 135 cm
+s1: pub telem t=3355797358 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 120 deg  echo  7955 us  status 0  -> 137 cm
+obstacle: 120 deg  echo  7807 us  status 0  -> 135 cm
+obstacle: 150 deg  echo  8035 us  status 0  -> 139 cm
+obstacle: 150 deg  echo 11288 us  status 0  -> 195 cm
+obstacle: 150 deg  echo 12498 us  status 0  -> 215 cm
+s1: pub telem t=3355797857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355797858 - 09 1B 0F 00
+obstacle: 105 deg  echo  1175 us  status 0  -> 20 cm
+obstacle: 105 deg  echo  1175 us  status 0  -> 20 cm
+monitor: batch  n=95 last=60 from core 1
+monitor: t=3355798150 ms  samples=95  min=0 max=100 avg=51  free slots=4  free blocks=4
+obstacle: 105 deg  echo  1175 us  status 0  -> 20 cm
+s1: pub telem t=3355798357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  75 deg  echo  1170 us  status 0  -> 20 cm
+obstacle:  75 deg  echo  1170 us  status 0  -> 20 cm
+obstacle:  75 deg  echo  1170 us  status 0  -> 20 cm
+obstacle: PROFILE seq 3 detected 1 closest 20 cm @75 deg, width 5 cm (+/-5), planned 20 cm, left 21 cm, right 21 cm, action 1, objects 1, scan 2524 ms
+s1: pub telem t=3355798857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355798858 - 09 1C 0F 00
+s1: pub telem t=3355799357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+monitor: batch  n=100 last=10 from core 1
+monitor: t=3355799655 ms  samples=100  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: pub telem t=3355799857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355799858 - 09 1D 0F 00
+obstacle:  90 deg  echo  7858 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7853 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7883 us  status 0  -> 136 cm
+obstacle:  90 deg  echo 10489 us  status 0  -> 181 cm
+s1: pub telem t=3355800357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  7954 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7883 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7813 us  status 0  -> 135 cm
+safety: inhibit released (a newer epoch is needed to move)
+obstacle:  90 deg  echo  8126 us  status 0  -> 140 cm
+obstacle:  90 deg  echo  7878 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7879 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7929 us  status 0  -> 137 cm
+s1: pub telem t=3355800857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355800858 - 09 1E 0F 00
+obstacle:  90 deg  echo  7808 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7808 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7929 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7878 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7853 us  status 0  -> 135 cm
+monitor: batch  n=105 last=40 from core 1
+monitor: t=3355801160 ms  samples=105  min=0 max=100 avg=48  free slots=4  free blocks=4
+obstacle:  90 deg  echo  8126 us  status 0  -> 140 cm
+obstacle:  90 deg  echo  7859 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7834 us  status 0  -> 135 cm
+s1: pub telem t=3355801357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  7879 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  8031 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7783 us  status 0  -> 134 cm
+obstacle:  90 deg  echo  7859 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  8005 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7858 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7903 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7858 us  status 0  -> 135 cm
+s1: pub telem t=3355801857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355801858 - 09 1F 0F 00
+obstacle:  90 deg  echo  7807 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  8076 us  status 0  -> 139 cm
+obstacle:  90 deg  echo  7879 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  1261 us  status 0  -> 22 cm
+obstacle:  90 deg  echo  1261 us  status 0  -> 22 cm
+safety: INHIBIT set (faults 0x0, obstacle state 1)
+s1: pub telem t=3355802357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  30 deg  echo 12518 us  status 0  -> 216 cm
+obstacle:  30 deg  echo 12639 us  status 0  -> 218 cm
+obstacle:  30 deg  echo 12665 us  status 0  -> 218 cm
+monitor: batch  n=110 last=90 from core 1
+monitor: t=3355802665 ms  samples=110  min=0 max=100 avg=49  free slots=4  free blocks=4
+obstacle:  60 deg  echo  7803 us  status 0  -> 135 cm
+s1: pub telem t=3355802857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355802858 - 09 20 0F 00
+obstacle:  60 deg  echo  7798 us  status 0  -> 134 cm
+obstacle:  60 deg  echo  7772 us  status 0  -> 134 cm
+obstacle:  90 deg  echo  1200 us  status 0  -> 21 cm
+obstacle:  90 deg  echo  1175 us  status 0  -> 20 cm
+obstacle:  90 deg  echo  1170 us  status 0  -> 20 cm
+s1: pub telem t=3355803357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 120 deg  echo  1241 us  status 0  -> 21 cm
+obstacle: 120 deg  echo  1225 us  status 0  -> 21 cm
+obstacle: 120 deg  echo  1150 us  status 0  -> 20 cm
+obstacle: 150 deg  echo 11046 us  status 0  -> 190 cm
+s1: pub telem t=3355803857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355803857 - 09 21 0F 00
+obstacle: 150 deg  echo 12351 us  status 0  -> 213 cm
+obstacle: 150 deg  echo 12326 us  status 0  -> 213 cm
+obstacle: 135 deg  echo 12371 us  status 0  -> 213 cm
+obstacle: 135 deg  echo  1413 us  status 0  -> 24 cm
+monitor: batch  n=115 last=60 from core 1
+monitor: t=3355804170 ms  samples=115  min=0 max=100 avg=50  free slots=4  free blocks=4
+obstacle: 135 deg  echo  1362 us  status 0  -> 23 cm
+s1: pub telem t=3355804357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 105 deg  echo  1175 us  status 0  -> 20 cm
+obstacle: 105 deg  echo  1210 us  status 0  -> 21 cm
+obstacle: 105 deg  echo  1144 us  status 0  -> 20 cm
+obstacle:  75 deg  echo  1200 us  status 0  -> 21 cm
+obstacle:  75 deg  echo  1220 us  status 0  -> 21 cm
+obstacle:  75 deg  echo  2637 us  status 0  -> 45 cm
+s1: pub telem t=3355804857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355804858 - 09 22 0F 00
+obstacle: PROFILE seq 4 detected 1 closest 20 cm @90 deg, width 17 cm (+/-5), planned 31 cm, left 34 cm, right 19 cm, action 1, objects 1, scan 2702 ms
+s1: pub telem t=3355805357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+monitor: batch  n=120 last=10 from core 1
+monitor: t=3355805675 ms  samples=120  min=0 max=100 avg=50  free slots=4  free blocks=4
+monitor: LED task resumed, state=WAIT, pri=22
+s1: pub telem t=3355805857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355805858 - 09 23 0F 00
+s1: pub telem t=3355806357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  1175 us  status 0  -> 20 cm
+obstacle:  90 deg  echo  1200 us  status 0  -> 21 cm
+obstacle:  30 deg  echo 11462 us  status 0  -> 198 cm
+s1: pub telem t=3355806857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355806857 - 09 24 0F 00
+obstacle:  30 deg  echo 45691 us  status 1  -> 511 cm
+obstacle:  30 deg  echo 45687 us  status 1  -> 511 cm
+obstacle:  60 deg  echo  4196 us  status 0  -> 72 cm
+monitor: batch  n=125 last=40 from core 1
+monitor: t=3355807180 ms  samples=125  min=0 max=100 avg=48  free slots=4  free blocks=4
+obstacle:  60 deg  echo  3998 us  status 0  -> 69 cm
+obstacle:  60 deg  echo  4119 us  status 0  -> 71 cm
+s1: pub telem t=3355807357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  1175 us  status 0  -> 20 cm
+obstacle:  90 deg  echo  1175 us  status 0  -> 20 cm
+obstacle:  90 deg  echo  1175 us  status 0  -> 20 cm
+obstacle: 120 deg  echo  1524 us  status 0  -> 26 cm
+obstacle: 120 deg  echo 10171 us  status 0  -> 175 cm
+s1: pub telem t=3355807858 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355807858 - 09 25 0F 00
+obstacle: 120 deg  echo 10394 us  status 0  -> 179 cm
+obstacle: 150 deg  echo 11558 us  status 0  -> 199 cm
+obstacle: 150 deg  echo 11482 us  status 0  -> 198 cm
+obstacle: 150 deg  echo 12614 us  status 0  -> 217 cm
+s1: pub telem t=3355808357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 105 deg  echo  1155 us  status 0  -> 20 cm
+obstacle: 105 deg  echo  1155 us  status 0  -> 20 cm
+obstacle: 105 deg  echo  1200 us  status 0  -> 21 cm
+monitor: batch  n=130 last=90 from core 1
+monitor: t=3355808685 ms  samples=130  min=0 max=100 avg=49  free slots=4  free blocks=4
+obstacle:  75 deg  echo  1322 us  status 0  -> 23 cm
+s1: pub telem t=3355808857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355808858 - 09 26 0F 00
+obstacle:  75 deg  echo  1347 us  status 0  -> 23 cm
+obstacle:  75 deg  echo  1372 us  status 0  -> 24 cm
+obstacle: PROFILE seq 5 detected 1 closest 20 cm @90 deg, width 6 cm (+/-5), planned 20 cm, left 21 cm, right 21 cm, action 1, objects 1, scan 2524 ms
+s1: pub telem t=3355809357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub telem t=3355809857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355809858 - 09 27 0F 00
+monitor: batch  n=135 last=60 from core 1
+monitor: t=3355810190 ms  samples=135  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: pub telem t=3355810357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  1200 us  status 0  -> 21 cm
+obstacle:  90 deg  echo  1200 us  status 0  -> 21 cm
+s1: pub telem t=3355810857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355810858 - 09 28 0F 00
+obstacle:  30 deg  echo  8046 us  status 0  -> 139 cm
+obstacle:  30 deg  echo 45749 us  status 1  -> 511 cm
+obstacle:  30 deg  echo 10596 us  status 0  -> 183 cm
+obstacle:  60 deg  echo  7808 us  status 0  -> 135 cm
+obstacle:  60 deg  echo  4048 us  status 0  -> 70 cm
+s1: pub telem t=3355811357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  60 deg  echo  4023 us  status 0  -> 69 cm
+obstacle:  90 deg  echo  1220 us  status 0  -> 21 cm
+obstacle:  90 deg  echo  1175 us  status 0  -> 20 cm
+monitor: batch  n=140 last=10 from core 1
+monitor: t=3355811695 ms  samples=140  min=0 max=100 avg=50  free slots=4  free blocks=4
+obstacle:  90 deg  echo  1175 us  status 0  -> 20 cm
+s1: pub telem t=3355811857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355811858 - 09 29 0F 00
+obstacle: 120 deg  echo  1473 us  status 0  -> 25 cm
+obstacle: 120 deg  echo  1549 us  status 0  -> 27 cm
+obstacle: 120 deg  echo  1549 us  status 0  -> 27 cm
+obstacle: 150 deg  echo 12543 us  status 0  -> 216 cm
+obstacle: 150 deg  echo 11532 us  status 0  -> 199 cm
+s1: pub telem t=3355812357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 150 deg  echo 12640 us  status 0  -> 218 cm
+obstacle: 135 deg  echo 12443 us  status 0  -> 215 cm
+obstacle: 135 deg  echo 12417 us  status 0  -> 214 cm
+obstacle: 135 deg  echo 12635 us  status 0  -> 218 cm
+obstacle: 105 deg  echo  1251 us  status 0  -> 22 cm
+s1: pub telem t=3355812857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355812858 - 09 2A 0F 00
+obstacle: 105 deg  echo  1225 us  status 0  -> 21 cm
+obstacle: 105 deg  echo  1225 us  status 0  -> 21 cm
+obstacle:  75 deg  echo  1347 us  status 0  -> 23 cm
+monitor: batch  n=145 last=40 from core 1
+monitor: t=3355813200 ms  samples=145  min=0 max=100 avg=48  free slots=4  free blocks=4
+obstacle:  75 deg  echo  1418 us  status 0  -> 24 cm
+obstacle:  75 deg  echo  1347 us  status 0  -> 23 cm
+obstacle: PROFILE seq 6 detected 1 closest 20 cm @90 deg, width 13 cm (+/-6), planned 27 cm, left 29 cm, right 20 cm, action 1, objects 1, scan 2702 ms
+s1: pub telem t=3355813357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub telem t=3355813857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355813858 - 09 2B 0F 00
+s1: pub telem t=3355814357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+monitor: batch  n=150 last=90 from core 1
+monitor: t=3355814705 ms  samples=150  min=0 max=100 avg=49  free slots=4  free blocks=4
+monitor: LED task paused, state=WAIT+SUSPEND, pri=23
+s1: pub telem t=3355814857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355814858 - 09 2C 0F 00
+obstacle:  90 deg  echo  7979 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7833 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7858 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7808 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7883 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7879 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7858 us  status 0  -> 135 cm
+safety: inhibit released (a newer epoch is needed to move)
+obstacle:  90 deg  echo  7929 us  status 0  -> 137 cm
+s1: pub telem t=3355815357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo 45688 us  status 1  -> 511 cm
+obstacle:  90 deg  echo  7904 us  status 0  -> 136 cm
+obstacle:  90 deg  echo 10394 us  status 0  -> 179 cm
+obstacle:  90 deg  echo  8056 us  status 0  -> 139 cm
+obstacle:  90 deg  echo  7904 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  8127 us  status 0  -> 140 cm
+obstacle:  90 deg  echo  7853 us  status 0  -> 135 cm
+s1: pub telem t=3355815857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355815858 - 09 2D 0F 00
+obstacle:  90 deg  echo  7859 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  8152 us  status 0  -> 141 cm
+obstacle:  90 deg  echo  7859 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7980 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7904 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7929 us  status 0  -> 137 cm
+monitor: batch  n=155 last=60 from core 1
+monitor: t=3355816210 ms  samples=155  min=0 max=100 avg=50  free slots=4  free blocks=4
+obstacle:  90 deg  echo  7813 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7859 us  status 0  -> 136 cm
+s1: pub telem t=3355816357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  7929 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7859 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7858 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7955 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7884 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  5845 us  status 0  -> 101 cm
+obstacle:  90 deg  echo  1352 us  status 0  -> 23 cm
+s1: pub telem t=3355816857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355816857 - 09 2E 0F 00
+obstacle:  90 deg  echo  1367 us  status 0  -> 24 cm
+safety: INHIBIT set (faults 0x0, obstacle state 1)
+obstacle:  30 deg  echo 12518 us  status 0  -> 216 cm
+obstacle:  30 deg  echo 12832 us  status 0  -> 221 cm
+obstacle:  30 deg  echo 13955 us  status 0  -> 241 cm
+s1: pub telem t=3355817357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  60 deg  echo  7904 us  status 0  -> 136 cm
+obstacle:  60 deg  echo  1590 us  status 0  -> 27 cm
+obstacle:  60 deg  echo  7950 us  status 0  -> 137 cm
+monitor: batch  n=160 last=10 from core 1
+monitor: t=3355817715 ms  samples=160  min=0 max=100 avg=50  free slots=4  free blocks=4
+obstacle:  90 deg  echo  1403 us  status 0  -> 24 cm
+s1: pub telem t=3355817857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355817858 - 09 2F 0F 00
+obstacle:  90 deg  echo  1347 us  status 0  -> 23 cm
+obstacle:  90 deg  echo  1397 us  status 0  -> 24 cm
+obstacle: 120 deg  echo  7884 us  status 0  -> 136 cm
+obstacle: 120 deg  echo 11804 us  status 0  -> 204 cm
+obstacle: 120 deg  echo  8030 us  status 0  -> 138 cm
+s1: pub telem t=3355818357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 150 deg  echo 12813 us  status 0  -> 221 cm
+obstacle: 150 deg  echo 12499 us  status 0  -> 216 cm
+obstacle: 150 deg  echo 12808 us  status 0  -> 221 cm
+s1: pub telem t=3355818857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355818858 - 09 30 0F 00
+obstacle: 105 deg  echo  1478 us  status 0  -> 25 cm
+obstacle: 105 deg  echo  1453 us  status 0  -> 25 cm
+obstacle: 105 deg  echo  1428 us  status 0  -> 25 cm
+obstacle:  75 deg  echo  1397 us  status 0  -> 24 cm
+monitor: batch  n=165 last=40 from core 1
+monitor: t=3355819220 ms  samples=165  min=0 max=100 avg=49  free slots=4  free blocks=4
+obstacle:  75 deg  echo  1397 us  status 0  -> 24 cm
+obstacle:  75 deg  echo  1397 us  status 0  -> 24 cm
+s1: pub telem t=3355819357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: PROFILE seq 7 detected 1 closest 24 cm @75 deg, width 6 cm (+/-6), planned 20 cm, left 22 cm, right 20 cm, action 1, objects 1, scan 2524 ms
+s1: pub telem t=3355819857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355819858 - 09 31 0F 00
+s1: pub telem t=3355820357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+monitor: batch  n=170 last=90 from core 1
+monitor: t=3355820725 ms  samples=170  min=0 max=100 avg=49  free slots=4  free blocks=4
+s1: pub telem t=3355820857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355820857 - 09 32 0F 00
+obstacle:  90 deg  echo  1398 us  status 0  -> 24 cm
+obstacle:  90 deg  echo  1398 us  status 0  -> 24 cm
+obstacle:  30 deg  echo 12463 us  status 0  -> 215 cm
+s1: pub telem t=3355821357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  30 deg  echo 12641 us  status 0  -> 218 cm
+obstacle:  30 deg  echo 14224 us  status 0  -> 245 cm
+obstacle:  60 deg  echo  1504 us  status 0  -> 26 cm
+obstacle:  60 deg  echo  1478 us  status 0  -> 25 cm
+obstacle:  60 deg  echo  1453 us  status 0  -> 25 cm
+s1: pub telem t=3355821857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355821858 - 09 33 0F 00
+obstacle:  90 deg  echo  1397 us  status 0  -> 24 cm
+obstacle:  90 deg  echo  1377 us  status 0  -> 24 cm
+obstacle:  90 deg  echo  1397 us  status 0  -> 24 cm
+monitor: batch  n=175 last=60 from core 1
+monitor: t=3355822230 ms  samples=175  min=0 max=100 avg=50  free slots=4  free blocks=4
+obstacle: 120 deg  echo  1590 us  status 0  -> 27 cm
+s1: pub telem t=3355822357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 120 deg  echo  7954 us  status 0  -> 137 cm
+obstacle: 120 deg  echo  7935 us  status 0  -> 137 cm
+obstacle: 150 deg  echo 12427 us  status 0  -> 214 cm
+obstacle: 150 deg  echo 12619 us  status 0  -> 218 cm
+obstacle: 150 deg  echo 12402 us  status 0  -> 214 cm
+s1: pub telem t=3355822857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355822858 - 09 34 0F 00
+obstacle: 105 deg  echo  1478 us  status 0  -> 25 cm
+obstacle: 105 deg  echo  1478 us  status 0  -> 25 cm
+obstacle: 105 deg  echo  1453 us  status 0  -> 25 cm
+obstacle:  75 deg  echo  1397 us  status 0  -> 24 cm
+s1: pub telem t=3355823357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  75 deg  echo  1397 us  status 0  -> 24 cm
+obstacle:  75 deg  echo  1397 us  status 0  -> 24 cm
+obstacle:  45 deg  echo  7793 us  status 0  -> 134 cm
+obstacle:  45 deg  echo  7818 us  status 0  -> 135 cm
+monitor: batch  n=180 last=10 from core 1
+monitor: t=3355823735 ms  samples=180  min=0 max=100 avg=50  free slots=4  free blocks=4
+monitor: LED task resumed, state=WAIT, pri=22
+obstacle:  45 deg  echo  7701 us  status 0  -> 133 cm
+s1: pub telem t=3355823857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355823858 - 09 35 0F 00
+obstacle: PROFILE seq 8 detected 1 closest 24 cm @75 deg, width 12 cm (+/-6), planned 27 cm, left 22 cm, right 27 cm, action 2, objects 1, scan 2986 ms
+s1: pub telem t=3355824357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub telem t=3355824857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355824858 - 09 36 0F 00
+monitor: batch  n=185 last=40 from core 1
+monitor: t=3355825240 ms  samples=185  min=0 max=100 avg=49  free slots=4  free blocks=4
+s1: pub telem t=3355825357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  1422 us  status 0  -> 25 cm
+obstacle:  90 deg  echo  1423 us  status 0  -> 25 cm
+s1: pub telem t=3355825857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355825858 - 09 37 0F 00
+obstacle:  30 deg  echo 12618 us  status 0  -> 218 cm
+obstacle:  30 deg  echo 45714 us  status 1  -> 511 cm
+obstacle:  30 deg  echo 45612 us  status 1  -> 511 cm
+obstacle:  60 deg  echo  1504 us  status 0  -> 26 cm
+obstacle:  60 deg  echo  1478 us  status 0  -> 25 cm
+s1: pub telem t=3355826357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  60 deg  echo  1478 us  status 0  -> 25 cm
+obstacle:  90 deg  echo  1422 us  status 0  -> 25 cm
+obstacle:  90 deg  echo  1422 us  status 0  -> 25 cm
+obstacle:  90 deg  echo  1402 us  status 0  -> 24 cm
+monitor: batch  n=190 last=90 from core 1
+monitor: t=3355826745 ms  samples=190  min=0 max=100 avg=49  free slots=4  free blocks=4
+s1: pub telem t=3355826857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355826858 - 09 38 0F 00
+obstacle: 120 deg  echo 12401 us  status 0  -> 214 cm
+obstacle: 120 deg  echo 12249 us  status 0  -> 211 cm
+obstacle: 120 deg  echo 12027 us  status 0  -> 207 cm
+obstacle: 150 deg  echo 11779 us  status 0  -> 203 cm
+obstacle: 150 deg  echo 12472 us  status 0  -> 215 cm
+obstacle: 150 deg  echo 12568 us  status 0  -> 217 cm
+s1: pub telem t=3355827357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 105 deg  echo  1407 us  status 0  -> 24 cm
+obstacle: 105 deg  echo  1453 us  status 0  -> 25 cm
+obstacle: 105 deg  echo  1433 us  status 0  -> 25 cm
+s1: pub telem t=3355827857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355827858 - 09 39 0F 00
+obstacle:  75 deg  echo  1397 us  status 0  -> 24 cm
+obstacle:  75 deg  echo  1397 us  status 0  -> 24 cm
+obstacle:  75 deg  echo  1397 us  status 0  -> 24 cm
+obstacle:  45 deg  echo  7752 us  status 0  -> 134 cm
+monitor: batch  n=195 last=60 from core 1
+monitor: t=3355828250 ms  samples=195  min=0 max=100 avg=50  free slots=4  free blocks=4
+obstacle:  45 deg  echo  7726 us  status 0  -> 133 cm
+s1: pub telem t=3355828357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  45 deg  echo  7797 us  status 0  -> 134 cm
+obstacle: PROFILE seq 9 detected 1 closest 24 cm @75 deg, width 12 cm (+/-6), planned 27 cm, left 22 cm, right 27 cm, action 2, objects 1, scan 2986 ms
+s1: pub telem t=3355828857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355828858 - 09 3A 0F 00
+s1: pub telem t=3355829357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+monitor: batch  n=200 last=10 from core 1
+monitor: t=3355829755 ms  samples=200  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: pub telem t=3355829857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355829858 - 09 3B 0F 00
+obstacle:  90 deg  echo  7858 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7878 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7883 us  status 0  -> 136 cm
+obstacle:  90 deg  echo 30930 us  status 1  -> 511 cm
+s1: pub telem t=3355830358 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  7859 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7858 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7808 us  status 0  -> 135 cm
+safety: inhibit released (a newer epoch is needed to move)
+obstacle:  90 deg  echo  7833 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  8692 us  status 0  -> 150 cm
+obstacle:  90 deg  echo  7934 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7929 us  status 0  -> 137 cm
+s1: pub telem t=3355830857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355830858 - 09 3C 0F 00
+obstacle:  90 deg  echo 10514 us  status 0  -> 181 cm
+obstacle:  90 deg  echo  7928 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7787 us  status 0  -> 134 cm
+obstacle:  90 deg  echo  8055 us  status 0  -> 139 cm
+obstacle:  90 deg  echo  7833 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7858 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7934 us  status 0  -> 137 cm
+monitor: batch  n=205 last=40 from core 1
+monitor: t=3355831260 ms  samples=205  min=0 max=100 avg=49  free slots=4  free blocks=4
+obstacle:  90 deg  echo  7858 us  status 0  -> 135 cm
+s1: pub telem t=3355831357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  8106 us  status 0  -> 140 cm
+obstacle:  90 deg  echo  7857 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  8101 us  status 0  -> 140 cm
+obstacle:  90 deg  echo  7833 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7858 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7833 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7980 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7858 us  status 0  -> 135 cm
+s1: pub telem t=3355831857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355831858 - 09 3D 0F 00
+obstacle:  90 deg  echo  8030 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  8000 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7954 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7979 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  8025 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7959 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  8050 us  status 0  -> 139 cm
+s1: pub telem t=3355832357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  8081 us  status 0  -> 139 cm
+obstacle:  90 deg  echo  8055 us  status 0  -> 139 cm
+obstacle:  90 deg  echo  7960 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  8030 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  2414 us  status 0  -> 42 cm
+obstacle:  90 deg  echo  2353 us  status 0  -> 41 cm
+safety: INHIBIT set (faults 0x0, obstacle state 1)
+monitor: batch  n=210 last=90 from core 1
+monitor: t=3355832765 ms  samples=210  min=0 max=100 avg=49  free slots=4  free blocks=4
+monitor: LED task paused, state=WAIT+SUSPEND, pri=23
+s1: pub telem t=3355832857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355832858 - 09 3E 0F 00
+obstacle:  30 deg  echo  7903 us  status 0  -> 136 cm
+obstacle:  30 deg  echo 12618 us  status 0  -> 218 cm
+obstacle:  30 deg  echo 12673 us  status 0  -> 219 cm
+s1: pub telem t=3355833357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  60 deg  echo  2571 us  status 0  -> 44 cm
+obstacle:  60 deg  echo  7782 us  status 0  -> 134 cm
+obstacle:  60 deg  echo  2535 us  status 0  -> 44 cm
+obstacle:  90 deg  echo  2348 us  status 0  -> 40 cm
+obstacle:  90 deg  echo  2353 us  status 0  -> 41 cm
+obstacle:  90 deg  echo  2374 us  status 0  -> 41 cm
+s1: pub telem t=3355833857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355833857 - 09 3F 0F 00
+obstacle: 120 deg  echo  7812 us  status 0  -> 135 cm
+obstacle: 120 deg  echo  2465 us  status 0  -> 43 cm
+obstacle: 120 deg  echo  2526 us  status 0  -> 44 cm
+monitor: batch  n=215 last=60 from core 1
+monitor: t=3355834270 ms  samples=215  min=0 max=100 avg=50  free slots=4  free blocks=4
+obstacle: 150 deg  echo 12401 us  status 0  -> 214 cm
+s1: pub telem t=3355834357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 150 deg  echo 12472 us  status 0  -> 215 cm
+obstacle: 150 deg  echo 11531 us  status 0  -> 199 cm
+obstacle: 135 deg  echo 12345 us  status 0  -> 213 cm
+obstacle: 135 deg  echo 12391 us  status 0  -> 214 cm
+obstacle: 135 deg  echo 12046 us  status 0  -> 208 cm
+s1: pub telem t=3355834857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355834858 - 09 40 0F 00
+obstacle: 105 deg  echo  2450 us  status 0  -> 42 cm
+obstacle: 105 deg  echo  2379 us  status 0  -> 41 cm
+obstacle: 105 deg  echo  2475 us  status 0  -> 43 cm
+obstacle:  75 deg  echo 45667 us  status 1  -> 511 cm
+obstacle:  75 deg  echo 10024 us  status 0  -> 173 cm
+obstacle:  75 deg  echo  9730 us  status 0  -> 168 cm
+s1: pub telem t=3355835357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  45 deg  echo  8020 us  status 0  -> 138 cm
+obstacle:  45 deg  echo  7797 us  status 0  -> 134 cm
+obstacle:  45 deg  echo  7752 us  status 0  -> 134 cm
+monitor: batch  n=220 last=10 from core 1
+monitor: t=3355835775 ms  samples=220  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: pub telem t=3355835857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355835858 - 09 41 0F 00
+obstacle: PROFILE seq 10 detected 1 closest 41 cm @90 deg, width 11 cm (+/-11), planned 35 cm, left 41 cm, right 510 cm, action 3 (partial), objects 2, scan 3164 ms
+s1: pub telem t=3355836357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+safety: inhibit released (a newer epoch is needed to move)
+safety: INHIBIT set (faults 0x0, obstacle state 1)
+obstacle:  30 deg  echo  8000 us  status 0  -> 138 cm
+obstacle:  30 deg  echo 12573 us  status 0  -> 217 cm
+obstacle:  30 deg  echo 12842 us  status 0  -> 221 cm
+s1: pub telem t=3355836857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355836858 - 09 42 0F 00
+obstacle:  60 deg  echo  7757 us  status 0  -> 134 cm
+obstacle:  60 deg  echo  7853 us  status 0  -> 135 cm
+obstacle:  60 deg  echo  7904 us  status 0  -> 136 cm
+monitor: batch  n=225 last=40 from core 1
+monitor: t=3355837280 ms  samples=225  min=0 max=100 avg=49  free slots=4  free blocks=4
+obstacle:  90 deg  echo  4802 us  status 0  -> 83 cm
+s1: pub telem t=3355837357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  4731 us  status 0  -> 82 cm
+obstacle:  90 deg  echo  2374 us  status 0  -> 41 cm
+obstacle: 120 deg  echo  2465 us  status 0  -> 43 cm
+obstacle: 120 deg  echo  2490 us  status 0  -> 43 cm
+obstacle: 120 deg  echo  2490 us  status 0  -> 43 cm
+s1: pub telem t=3355837857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355837857 - 09 43 0F 00
+obstacle: 150 deg  echo 12451 us  status 0  -> 215 cm
+obstacle: 150 deg  echo 12548 us  status 0  -> 216 cm
+obstacle: 150 deg  echo 12498 us  status 0  -> 215 cm
+obstacle: 135 deg  echo 12416 us  status 0  -> 214 cm
+obstacle: 135 deg  echo 12396 us  status 0  -> 214 cm
+s1: pub telem t=3355838357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 135 deg  echo 12417 us  status 0  -> 214 cm
+obstacle: 105 deg  echo  2353 us  status 0  -> 41 cm
+obstacle: 105 deg  echo  2353 us  status 0  -> 41 cm
+obstacle: 105 deg  echo  2404 us  status 0  -> 41 cm
+obstacle: PROFILE seq 11 detected 1 closest 41 cm @105 deg, width 11 cm (+/-11), planned 24 cm, left 40 cm, right 6 cm, action 1, objects 1, scan 2382 ms
+monitor: batch  n=230 last=90 from core 1
+monitor: t=3355838785 ms  samples=230  min=0 max=100 avg=49  free slots=4  free blocks=4
+s1: pub telem t=3355838857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355838858 - 09 44 0F 00
+s1: pub telem t=3355839357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub telem t=3355839857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355839858 - 09 45 0F 00
+monitor: batch  n=235 last=60 from core 1
+monitor: t=3355840290 ms  samples=235  min=0 max=100 avg=50  free slots=4  free blocks=4
+obstacle:  90 deg  echo  2348 us  status 0  -> 40 cm
+s1: pub telem t=3355840357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  2399 us  status 0  -> 41 cm
+obstacle:  30 deg  echo  7832 us  status 0  -> 135 cm
+obstacle:  30 deg  echo  7878 us  status 0  -> 136 cm
+obstacle:  30 deg  echo 12573 us  status 0  -> 217 cm
+s1: pub telem t=3355840857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355840858 - 09 46 0F 00
+obstacle:  60 deg  echo  7783 us  status 0  -> 134 cm
+obstacle:  60 deg  echo  7899 us  status 0  -> 136 cm
+obstacle:  60 deg  echo  7783 us  status 0  -> 134 cm
+obstacle:  90 deg  echo  2374 us  status 0  -> 41 cm
+s1: pub telem t=3355841357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  2424 us  status 0  -> 42 cm
+obstacle:  90 deg  echo  2374 us  status 0  -> 41 cm
+obstacle: 120 deg  echo  2439 us  status 0  -> 42 cm
+obstacle: 120 deg  echo  2490 us  status 0  -> 43 cm
+obstacle: 120 deg  echo  2490 us  status 0  -> 43 cm
+monitor: batch  n=240 last=10 from core 1
+monitor: t=3355841795 ms  samples=240  min=0 max=100 avg=50  free slots=4  free blocks=4
+monitor: LED task resumed, state=WAIT, pri=22
+s1: pub telem t=3355841857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355841857 - 09 47 0F 00
+obstacle: 150 deg  echo 11849 us  status 0  -> 204 cm
+obstacle: 150 deg  echo 12634 us  status 0  -> 218 cm
+obstacle: 150 deg  echo 11849 us  status 0  -> 204 cm
+obstacle: 135 deg  echo 12391 us  status 0  -> 214 cm
+obstacle: 135 deg  echo  7995 us  status 0  -> 138 cm
+s1: pub telem t=3355842357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 135 deg  echo 12417 us  status 0  -> 214 cm
+obstacle: 105 deg  echo  2379 us  status 0  -> 41 cm
+obstacle: 105 deg  echo  2404 us  status 0  -> 41 cm
+obstacle: 105 deg  echo  2404 us  status 0  -> 41 cm
+s1: pub telem t=3355842857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355842858 - 09 48 0F 00
+obstacle:  75 deg  echo  7843 us  status 0  -> 135 cm
+obstacle:  75 deg  echo  8015 us  status 0  -> 138 cm
+obstacle:  75 deg  echo  9801 us  status 0  -> 169 cm
+obstacle: PROFILE seq 12 detected 1 closest 41 cm @90 deg, width 11 cm (+/-11), planned 34 cm, left 40 cm, right 16 cm, action 1, objects 1, scan 2702 ms
+monitor: batch  n=245 last=40 from core 1
+monitor: t=3355843300 ms  samples=245  min=0 max=100 avg=49  free slots=4  free blocks=4
+s1: pub telem t=3355843357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub telem t=3355843857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355843858 - 09 49 0F 00
+s1: pub telem t=3355844357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  7979 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7883 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7858 us  status 0  -> 135 cm
+monitor: batch  n=250 last=90 from core 1
+monitor: t=3355844805 ms  samples=250  min=0 max=100 avg=49  free slots=4  free blocks=4
+obstacle:  90 deg  echo  7883 us  status 0  -> 136 cm
+s1: pub telem t=3355844857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355844858 - 09 4A 0F 00
+obstacle:  90 deg  echo  7929 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7934 us  status 0  -> 137 cm
+obstacle:  90 deg  echo  7904 us  status 0  -> 136 cm
+safety: inhibit released (a newer epoch is needed to move)
+obstacle:  90 deg  echo  7833 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7813 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  8030 us  status 0  -> 138 cm
+obstacle:  90 deg  echo  7834 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  7834 us  status 0  -> 135 cm
+s1: pub telem t=3355845357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  7834 us  status 0  -> 135 cm
+obstacle:  90 deg  echo  2354 us  status 0  -> 41 cm
+obstacle:  90 deg  echo  2369 us  status 0  -> 41 cm
+safety: INHIBIT set (faults 0x0, obstacle state 1)
+s1: pub telem t=3355845857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355845858 - 09 4B 0F 00
+obstacle:  30 deg  echo 15680 us  status 0  -> 270 cm
+obstacle:  30 deg  echo 12720 us  status 0  -> 219 cm
+obstacle:  30 deg  echo 12766 us  status 0  -> 220 cm
+obstacle:  60 deg  echo  2379 us  status 0  -> 41 cm
+obstacle:  60 deg  echo  2359 us  status 0  -> 41 cm
+monitor: batch  n=255 last=60 from core 1
+monitor: t=3355846310 ms  samples=255  min=0 max=100 avg=50  free slots=4  free blocks=4
+obstacle:  60 deg  echo  2399 us  status 0  -> 41 cm
+s1: pub telem t=3355846357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  2298 us  status 0  -> 40 cm
+obstacle:  90 deg  echo  2349 us  status 0  -> 41 cm
+obstacle:  90 deg  echo  2354 us  status 0  -> 41 cm
+obstacle: 120 deg  echo  2465 us  status 0  -> 43 cm
+s1: pub telem t=3355846857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355846858 - 09 4C 0F 00
+obstacle: 120 deg  echo  2470 us  status 0  -> 43 cm
+obstacle: 120 deg  echo  7808 us  status 0  -> 135 cm
+obstacle: 150 deg  echo 12664 us  status 0  -> 218 cm
+obstacle: 150 deg  echo 11628 us  status 0  -> 200 cm
+obstacle: 150 deg  echo  6356 us  status 0  -> 110 cm
+s1: pub telem t=3355847357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 135 deg  echo 12347 us  status 0  -> 213 cm
+obstacle: 135 deg  echo 11238 us  status 0  -> 194 cm
+obstacle: 135 deg  echo 10505 us  status 0  -> 181 cm
+obstacle: 105 deg  echo  2480 us  status 0  -> 43 cm
+obstacle: 105 deg  echo  2455 us  status 0  -> 42 cm
+monitor: batch  n=260 last=10 from core 1
+monitor: t=3355847815 ms  samples=260  min=0 max=100 avg=50  free slots=4  free blocks=4
+obstacle: 105 deg  echo  2455 us  status 0  -> 42 cm
+s1: pub telem t=3355847857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355847858 - 09 4D 0F 00
+obstacle:  75 deg  echo  2425 us  status 0  -> 42 cm
+obstacle:  75 deg  echo  2450 us  status 0  -> 42 cm
+obstacle:  75 deg  echo  2424 us  status 0  -> 42 cm
+s1: pub telem t=3355848357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  45 deg  echo  7751 us  status 0  -> 134 cm
+obstacle:  45 deg  echo  7752 us  status 0  -> 134 cm
+obstacle:  45 deg  echo  7925 us  status 0  -> 137 cm
+obstacle: PROFILE seq 13 detected 1 closest 41 cm @60 deg, width 32 cm (+/-11), planned 56 cm, left 40 cm, right 38 cm, action 1, objects 1, scan 3164 ms
+s1: pub telem t=3355848857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355848858 - 09 4E 0F 00
+monitor: batch  n=265 last=40 from core 1
+monitor: t=3355849320 ms  samples=265  min=0 max=100 avg=49  free slots=4  free blocks=4
+s1: pub telem t=3355849357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub telem t=3355849857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355849858 - 09 4F 0F 00
+obstacle:  90 deg  echo  2424 us  status 0  -> 42 cm
+obstacle:  90 deg  echo  2424 us  status 0  -> 42 cm
+s1: pub telem t=3355850357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  30 deg  echo 12670 us  status 0  -> 218 cm
+obstacle:  30 deg  echo 12108 us  status 0  -> 209 cm
+obstacle:  30 deg  echo 12598 us  status 0  -> 217 cm
+monitor: batch  n=270 last=90 from core 1
+monitor: t=3355850825 ms  samples=270  min=0 max=100 avg=49  free slots=4  free blocks=4
+monitor: LED task paused, state=WAIT+SUSPEND, pri=23
+s1: pub telem t=3355850857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355850858 - 09 50 0F 00
+obstacle:  60 deg  echo  2875 us  status 0  -> 50 cm
+obstacle:  60 deg  echo  2627 us  status 0  -> 45 cm
+obstacle:  60 deg  echo  2602 us  status 0  -> 45 cm
+obstacle:  90 deg  echo  2450 us  status 0  -> 42 cm
+obstacle:  90 deg  echo  2429 us  status 0  -> 42 cm
+s1: pub telem t=3355851357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  2404 us  status 0  -> 41 cm
+obstacle: 120 deg  echo  2566 us  status 0  -> 44 cm
+obstacle: 120 deg  echo  2521 us  status 0  -> 43 cm
+obstacle: 120 deg  echo  2667 us  status 0  -> 46 cm
+s1: pub telem t=3355851857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355851858 - 09 51 0F 00
+obstacle: 150 deg  echo 12685 us  status 0  -> 219 cm
+obstacle: 150 deg  echo 12661 us  status 0  -> 218 cm
+obstacle: 150 deg  echo 12640 us  status 0  -> 218 cm
+obstacle: 135 deg  echo 12565 us  status 0  -> 217 cm
+obstacle: 135 deg  echo 12396 us  status 0  -> 214 cm
+obstacle: 135 deg  echo 12370 us  status 0  -> 213 cm
+monitor: batch  n=275 last=60 from core 1
+monitor: t=3355852330 ms  samples=275  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: pub telem t=3355852357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 105 deg  echo  2485 us  status 0  -> 43 cm
+obstacle: 105 deg  echo  2455 us  status 0  -> 42 cm
+obstacle: 105 deg  echo  2480 us  status 0  -> 43 cm
+obstacle:  75 deg  echo  2450 us  status 0  -> 42 cm
+s1: pub telem t=3355852857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355852858 - 09 52 0F 00
+obstacle:  75 deg  echo  2450 us  status 0  -> 42 cm
+obstacle:  75 deg  echo  2450 us  status 0  -> 42 cm
+obstacle:  45 deg  echo  7797 us  status 0  -> 134 cm
+obstacle:  45 deg  echo  7798 us  status 0  -> 134 cm
+obstacle:  45 deg  echo  7777 us  status 0  -> 134 cm
+s1: pub telem t=3355853357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: PROFILE seq 14 detected 1 closest 42 cm @75 deg, width 34 cm (+/-11), planned 59 cm, left 41 cm, right 40 cm, action 1, objects 1, scan 3164 ms
+monitor: batch  n=280 last=10 from core 1
+monitor: t=3355853835 ms  samples=280  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: pub telem t=3355853857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355853858 - 09 53 0F 00
+s1: pub telem t=3355854357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub telem t=3355854857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355854858 - 09 54 0F 00
+obstacle:  90 deg  echo  2404 us  status 0  -> 41 cm
+obstacle:  90 deg  echo  2404 us  status 0  -> 41 cm
+monitor: batch  n=285 last=40 from core 1
+monitor: t=3355855340 ms  samples=285  min=0 max=100 avg=49  free slots=4  free blocks=4
+s1: pub telem t=3355855357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  30 deg  echo  7803 us  status 0  -> 135 cm
+obstacle:  30 deg  echo 14030 us  status 0  -> 242 cm
+obstacle:  30 deg  echo 45698 us  status 1  -> 511 cm
+obstacle:  60 deg  echo  7782 us  status 0  -> 134 cm
+obstacle:  60 deg  echo  2627 us  status 0  -> 45 cm
+s1: pub telem t=3355855857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355855858 - 09 55 0F 00
+obstacle:  60 deg  echo  2774 us  status 0  -> 48 cm
+obstacle:  90 deg  echo  2424 us  status 0  -> 42 cm
+obstacle:  90 deg  echo  2404 us  status 0  -> 41 cm
+obstacle:  90 deg  echo  2450 us  status 0  -> 42 cm
+s1: pub telem t=3355856357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 120 deg  echo  2541 us  status 0  -> 44 cm
+obstacle: 120 deg  echo  7879 us  status 0  -> 136 cm
+obstacle: 120 deg  echo  2668 us  status 0  -> 46 cm
+obstacle: 150 deg  echo 12524 us  status 0  -> 216 cm
+obstacle: 150 deg  echo 12615 us  status 0  -> 218 cm
+obstacle: 150 deg  echo 12590 us  status 0  -> 217 cm
+monitor: batch  n=290 last=90 from core 1
+monitor: t=3355856845 ms  samples=290  min=0 max=100 avg=49  free slots=4  free blocks=4
+s1: pub telem t=3355856857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355856858 - 09 56 0F 00
+obstacle: 135 deg  echo  5860 us  status 0  -> 101 cm
+obstacle: 135 deg  echo 12513 us  status 0  -> 216 cm
+obstacle: 135 deg  echo 12300 us  status 0  -> 212 cm
+obstacle: 105 deg  echo  2480 us  status 0  -> 43 cm
+obstacle: 105 deg  echo  2455 us  status 0  -> 42 cm
+s1: pub telem t=3355857357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 105 deg  echo  2434 us  status 0  -> 42 cm
+obstacle:  75 deg  echo  2450 us  status 0  -> 42 cm
+obstacle:  75 deg  echo  2470 us  status 0  -> 43 cm
+obstacle:  75 deg  echo  2475 us  status 0  -> 43 cm
+s1: pub telem t=3355857857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355857858 - 09 57 0F 00
+obstacle:  45 deg  echo  7873 us  status 0  -> 136 cm
+obstacle:  45 deg  echo  7772 us  status 0  -> 134 cm
+obstacle:  45 deg  echo  7752 us  status 0  -> 134 cm
+obstacle: PROFILE seq 15 detected 1 closest 42 cm @90 deg, width 36 cm (+/-12), planned 62 cm, left 42 cm, right 42 cm, action 3, objects 1, scan 3164 ms
+monitor: batch  n=295 last=60 from core 1
+monitor: t=3355858350 ms  samples=295  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: pub telem t=3355858357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+safety: inhibit released (a newer epoch is needed to move)
+safety: INHIBIT set (faults 0x0, obstacle state 1)
+s1: pub telem t=3355858857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355858857 - 09 58 0F 00
+obstacle:  30 deg  echo 12542 us  status 0  -> 216 cm
+obstacle:  30 deg  echo 12619 us  status 0  -> 218 cm
+obstacle:  30 deg  echo 12400 us  status 0  -> 214 cm
+s1: pub telem t=3355859357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  60 deg  echo  2874 us  status 0  -> 50 cm
+obstacle:  60 deg  echo  2606 us  status 0  -> 45 cm
+obstacle:  60 deg  echo  2556 us  status 0  -> 44 cm
+obstacle:  90 deg  echo  2389 us  status 0  -> 41 cm
+obstacle:  90 deg  echo  2414 us  status 0  -> 42 cm
+monitor: batch  n=300 last=10 from core 1
+monitor: t=3355859855 ms  samples=300  min=0 max=100 avg=50  free slots=4  free blocks=4
+monitor: LED task resumed, state=WAIT, pri=22
+s1: pub telem t=3355859857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355859858 - 09 59 0F 00
+obstacle:  90 deg  echo  2389 us  status 0  -> 41 cm
+obstacle: 120 deg  echo  2313 us  status 0  -> 40 cm
+obstacle: 120 deg  echo  7838 us  status 0  -> 135 cm
+obstacle: 120 deg  echo  2404 us  status 0  -> 41 cm
+s1: pub telem t=3355860357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 150 deg  echo 12452 us  status 0  -> 215 cm
+obstacle: 150 deg  echo  6037 us  status 0  -> 104 cm
+obstacle: 150 deg  echo  6037 us  status 0  -> 104 cm
+obstacle: 135 deg  echo 12447 us  status 0  -> 215 cm
+obstacle: 135 deg  echo 12564 us  status 0  -> 217 cm
+obstacle: 135 deg  echo 11875 us  status 0  -> 205 cm
+s1: pub telem t=3355860857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355860858 - 09 5A 0F 00
+obstacle: 105 deg  echo  7762 us  status 0  -> 134 cm
+obstacle: 105 deg  echo  7858 us  status 0  -> 135 cm
+obstacle: 105 deg  echo  7783 us  status 0  -> 134 cm
+obstacle:  75 deg  echo  9755 us  status 0  -> 168 cm
+obstacle:  75 deg  echo  8014 us  status 0  -> 138 cm
+s1: pub telem t=3355861357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+monitor: batch  n=305 last=40 from core 1
+monitor: t=3355861360 ms  samples=305  min=0 max=100 avg=49  free slots=4  free blocks=4
+obstacle:  75 deg  echo  8652 us  status 0  -> 149 cm
+obstacle:  45 deg  echo  7823 us  status 0  -> 135 cm
+obstacle:  45 deg  echo  7803 us  status 0  -> 135 cm
+obstacle:  45 deg  echo  7752 us  status 0  -> 134 cm
+s1: pub telem t=3355861857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355861858 - 09 5B 0F 00
+obstacle: PROFILE seq 0 detected 1 closest 41 cm @90 deg, width 10 cm (+/-10), planned 20 cm, left 510 cm, right 510 cm, action 3 (partial), objects 3, scan 3164 ms
+s1: pub telem t=3355862357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+safety: inhibit released (a newer epoch is needed to move)
+safety: INHIBIT set (faults 0x0, obstacle state 1)
+obstacle:  30 deg  echo 45664 us  status 1  -> 511 cm
+obstacle:  30 deg  echo 14107 us  status 0  -> 243 cm
+s1: pub telem t=3355862857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355862858 - 09 5C 0F 00
+monitor: batch  n=310 last=90 from core 1
+monitor: t=3355862865 ms  samples=310  min=0 max=100 avg=49  free slots=4  free blocks=4
+obstacle:  30 deg  echo 45687 us  status 1  -> 511 cm
+obstacle:  60 deg  echo  7787 us  status 0  -> 134 cm
+obstacle:  60 deg  echo  7934 us  status 0  -> 137 cm
+obstacle:  60 deg  echo  2409 us  status 0  -> 42 cm
+s1: pub telem t=3355863357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  2308 us  status 0  -> 40 cm
+obstacle:  90 deg  echo  2293 us  status 0  -> 40 cm
+obstacle:  90 deg  echo  2293 us  status 0  -> 40 cm
+obstacle: 120 deg  echo  2505 us  status 0  -> 43 cm
+obstacle: 120 deg  echo  2435 us  status 0  -> 42 cm
+obstacle: 120 deg  echo  2556 us  status 0  -> 44 cm
+s1: pub telem t=3355863857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355863858 - 09 5D 0F 00
+obstacle: 150 deg  echo  6113 us  status 0  -> 105 cm
+obstacle: 150 deg  echo  6331 us  status 0  -> 109 cm
+obstacle: 150 deg  echo  6229 us  status 0  -> 107 cm
+obstacle: 135 deg  echo 11233 us  status 0  -> 194 cm
+obstacle: 135 deg  echo 12441 us  status 0  -> 215 cm
+s1: pub telem t=3355864357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+monitor: batch  n=315 last=60 from core 1
+monitor: t=3355864370 ms  samples=315  min=0 max=100 avg=50  free slots=4  free blocks=4
+obstacle: 135 deg  echo 12416 us  status 0  -> 214 cm
+obstacle: 105 deg  echo  2369 us  status 0  -> 41 cm
+obstacle: 105 deg  echo  2344 us  status 0  -> 40 cm
+obstacle: 105 deg  echo  2369 us  status 0  -> 41 cm
+s1: pub telem t=3355864857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355864858 - 09 5E 0F 00
+obstacle:  75 deg  echo  2338 us  status 0  -> 40 cm
+obstacle:  75 deg  echo  2339 us  status 0  -> 40 cm
+obstacle:  75 deg  echo  2343 us  status 0  -> 40 cm
+obstacle: PROFILE seq 1 detected 1 closest 40 cm @75 deg, width 21 cm (+/-10), planned 45 cm, left 40 cm, right 27 cm, action 1, objects 1, scan 2702 ms
+s1: pub telem t=3355865357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub telem t=3355865857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355865858 - 09 5F 0F 00
+monitor: batch  n=320 last=10 from core 1
+monitor: t=3355865875 ms  samples=320  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: pub telem t=3355866357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  2318 us  status 0  -> 40 cm
+obstacle:  90 deg  echo  2318 us  status 0  -> 40 cm
+s1: pub telem t=3355866857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355866858 - 09 60 0F 00
+obstacle:  30 deg  echo 12569 us  status 0  -> 217 cm
+obstacle:  30 deg  echo 12862 us  status 0  -> 222 cm
+obstacle:  30 deg  echo 12670 us  status 0  -> 218 cm
+s1: pub telem t=3355867357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+monitor: batch  n=325 last=40 from core 1
+monitor: t=3355867380 ms  samples=325  min=0 max=100 avg=49  free slots=4  free blocks=4
+obstacle:  60 deg  echo  2526 us  status 0  -> 44 cm
+obstacle:  60 deg  echo  2450 us  status 0  -> 42 cm
+obstacle:  60 deg  echo  2546 us  status 0  -> 44 cm
+obstacle:  90 deg  echo  2318 us  status 0  -> 40 cm
+obstacle:  90 deg  echo  2343 us  status 0  -> 40 cm
+obstacle:  90 deg  echo  2318 us  status 0  -> 40 cm
+s1: pub telem t=3355867857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355867857 - 09 61 0F 00
+obstacle: 120 deg  echo  2429 us  status 0  -> 42 cm
+obstacle: 120 deg  echo  2505 us  status 0  -> 43 cm
+obstacle: 120 deg  echo  2652 us  status 0  -> 46 cm
+obstacle: 150 deg  echo 12451 us  status 0  -> 215 cm
+s1: pub telem t=3355868357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 150 deg  echo 12299 us  status 0  -> 212 cm
+obstacle: 150 deg  echo 12396 us  status 0  -> 214 cm
+obstacle: 135 deg  echo 12416 us  status 0  -> 214 cm
+obstacle: 135 deg  echo 12345 us  status 0  -> 213 cm
+obstacle: 135 deg  echo 12321 us  status 0  -> 212 cm
+s1: pub telem t=3355868857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355868858 - 09 62 0F 00
+monitor: batch  n=330 last=90 from core 1
+monitor: t=3355868885 ms  samples=330  min=0 max=100 avg=49  free slots=4  free blocks=4
+monitor: LED task paused, state=WAIT+SUSPEND, pri=23
+obstacle: 105 deg  echo  2369 us  status 0  -> 41 cm
+obstacle: 105 deg  echo  2344 us  status 0  -> 40 cm
+obstacle: 105 deg  echo  2343 us  status 0  -> 40 cm
+obstacle:  75 deg  echo  2364 us  status 0  -> 41 cm
+obstacle:  75 deg  echo  2364 us  status 0  -> 41 cm
+s1: pub telem t=3355869357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  75 deg  echo  2364 us  status 0  -> 41 cm
+obstacle:  45 deg  echo  7848 us  status 0  -> 135 cm
+obstacle:  45 deg  echo  7903 us  status 0  -> 136 cm
+obstacle:  45 deg  echo  7757 us  status 0  -> 134 cm
+s1: pub telem t=3355869857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355869857 - 09 63 0F 00
+obstacle: PROFILE seq 2 detected 1 closest 40 cm @90 deg, width 33 cm (+/-11), planned 58 cm, left 40 cm, right 40 cm, action 1, objects 1, scan 3164 ms
+s1: pub telem t=3355870357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+monitor: batch  n=335 last=60 from core 1
+monitor: t=3355870390 ms  samples=335  min=0 max=100 avg=50  free slots=4  free blocks=4
+s1: pub telem t=3355870857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355870857 - 09 64 0F 00
+s1: pub telem t=3355871357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  2318 us  status 0  -> 40 cm
+obstacle:  90 deg  echo  2339 us  status 0  -> 40 cm
+obstacle:  30 deg  echo 13104 us  status 0  -> 226 cm
+s1: pub telem t=3355871857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355871857 - 09 65 0F 00
+monitor: batch  n=340 last=10 from core 1
+monitor: t=3355871895 ms  samples=340  min=0 max=100 avg=50  free slots=4  free blocks=4
+obstacle:  30 deg  echo 12715 us  status 0  -> 219 cm
+obstacle:  30 deg  echo 12719 us  status 0  -> 219 cm
+obstacle:  60 deg  echo  2424 us  status 0  -> 42 cm
+obstacle:  60 deg  echo  2374 us  status 0  -> 41 cm
+obstacle:  60 deg  echo  2495 us  status 0  -> 43 cm
+s1: pub telem t=3355872357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  90 deg  echo  2318 us  status 0  -> 40 cm
+obstacle:  90 deg  echo  2338 us  status 0  -> 40 cm
+obstacle:  90 deg  echo  2293 us  status 0  -> 40 cm
+obstacle: 120 deg  echo  2404 us  status 0  -> 41 cm
+s1: pub telem t=3355872857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355872857 - 09 66 0F 00
+obstacle: 120 deg  echo  2454 us  status 0  -> 42 cm
+obstacle: 120 deg  echo  2505 us  status 0  -> 43 cm
+obstacle: 150 deg  echo 11434 us  status 0  -> 197 cm
+obstacle: 150 deg  echo 12587 us  status 0  -> 217 cm
+obstacle: 150 deg  echo 11015 us  status 0  -> 190 cm
+s1: pub telem t=3355873357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 135 deg  echo 12345 us  status 0  -> 213 cm
+monitor: batch  n=345 last=40 from core 1
+monitor: t=3355873400 ms  samples=345  min=0 max=100 avg=49  free slots=4  free blocks=4
+obstacle: 135 deg  echo 12321 us  status 0  -> 212 cm
+obstacle: 135 deg  echo 12346 us  status 0  -> 213 cm
+obstacle: 105 deg  echo  2348 us  status 0  -> 40 cm
+obstacle: 105 deg  echo  2343 us  status 0  -> 40 cm
+obstacle: 105 deg  echo  2343 us  status 0  -> 40 cm
+s1: pub telem t=3355873857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355873857 - 09 67 0F 00
+obstacle:  75 deg  echo  2363 us  status 0  -> 41 cm
+obstacle:  75 deg  echo  2363 us  status 0  -> 41 cm
+obstacle:  75 deg  echo  2363 us  status 0  -> 41 cm
+obstacle:  45 deg  echo  7705 us  status 0  -> 133 cm
+s1: pub telem t=3355874357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  45 deg  echo  7732 us  status 0  -> 133 cm
+obstacle:  45 deg  echo  7853 us  status 0  -> 135 cm
+obstacle: PROFILE seq 3 detected 1 closest 40 cm @90 deg, width 32 cm (+/-11), planned 55 cm, left 39 cm, right 38 cm, action 1, objects 1, scan 3164 ms
+s1: pub telem t=3355874857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355874857 - 09 68 0F 00
+monitor: batch  n=350 last=90 from core 1
+monitor: t=3355874905 ms  samples=350  min=0 max=100 avg=49  free slots=4  free blocks=4
+s1: pub telem t=3355875357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+---- Closed the serial port COM3 ----

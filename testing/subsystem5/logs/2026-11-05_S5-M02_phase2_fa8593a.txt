@@ -1,0 +1,301 @@
+---- Opened the serial port COM3 ----
+s1: pub telem t=3355771357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub telem t=3355771857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355771858 - 09 01 0F 00
+s1: pub telem t=3355772357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+monitor: batch  n=10 last=90 from core 1
+monitor: t=3355772565 ms  samples=10  min=0 max=90 avg=45  free slots=4  free blocks=4
+s1: pub telem t=3355772857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355772858 - 09 02 0F 00
+s1: pub telem t=3355773357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub telem t=3355773857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355773858 - 09 03 0F 00
+monitor: batch  n=15 last=60 from core 1
+monitor: t=3355774070 ms  samples=15  min=0 max=100 avg=56  free slots=4  free blocks=4
+s1: pub telem t=3355774357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s5 phase 2:  60 deg  pulse 1170 us
+s1: pub telem t=3355774857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355774858 - 09 04 0F 00
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  80 deg  pulse 1370 us
+s1: pub telem t=3355775357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  95 deg  pulse 1520 us
+monitor: batch  n=20 last=10 from core 1
+monitor: t=3355775575 ms  samples=20  min=0 max=100 avg=50  free slots=4  free blocks=4
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2: 105 deg  pulse 1620 us
+s1: pub telem t=3355775857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355775857 - 09 05 0F 00
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 115 deg  pulse 1720 us
+s1: pub telem t=3355776357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2:  90 deg  pulse 1470 us
+s1: pub telem t=3355776857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355776858 - 09 06 0F 00
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  75 deg  pulse 1320 us
+monitor: batch  n=25 last=40 from core 1
+monitor: t=3355777080 ms  samples=25  min=0 max=100 avg=44  free slots=4  free blocks=4
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  65 deg  pulse 1220 us
+s1: pub telem t=3355777357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  75 deg  pulse 1320 us
+s1: pub telem t=3355777857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355777858 - 09 07 0F 00
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2: 100 deg  pulse 1570 us
+s1: pub telem t=3355778357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 110 deg  pulse 1670 us
+monitor: batch  n=30 last=90 from core 1
+monitor: t=3355778585 ms  samples=30  min=0 max=100 avg=48  free slots=4  free blocks=4
+monitor: LED task paused, state=WAIT+SUSPEND, pri=23
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 120 deg  pulse 1770 us
+s1: pub telem t=3355778857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355778858 - 09 08 0F 00
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2:  95 deg  pulse 1520 us
+s1: pub telem t=3355779357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  70 deg  pulse 1270 us
+s1: pub telem t=3355779857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355779858 - 09 09 0F 00
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  60 deg  pulse 1170 us
+monitor: batch  n=35 last=60 from core 1
+monitor: t=3355780090 ms  samples=35  min=0 max=100 avg=52  free slots=4  free blocks=4
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  70 deg  pulse 1270 us
+s1: pub telem t=3355780357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  95 deg  pulse 1520 us
+s1: pub telem t=3355780857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355780858 - 09 0A 0F 00
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 120 deg  pulse 1770 us
+s1: pub telem t=3355781357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 115 deg  pulse 1720 us
+monitor: batch  n=40 last=10 from core 1
+monitor: t=3355781595 ms  samples=40  min=0 max=100 avg=50  free slots=4  free blocks=4
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 100 deg  pulse 1570 us
+s1: pub telem t=3355781857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355781858 - 09 0B 0F 00
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  75 deg  pulse 1320 us
+s1: pub telem t=3355782357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  65 deg  pulse 1220 us
+s1: pub telem t=3355782857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355782858 - 09 0C 0F 00
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  75 deg  pulse 1320 us
+monitor: batch  n=45 last=40 from core 1
+monitor: t=3355783100 ms  samples=45  min=0 max=100 avg=46  free slots=4  free blocks=4
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  90 deg  pulse 1470 us
+s1: pub telem t=3355783357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 115 deg  pulse 1720 us
+s1: pub telem t=3355783857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355783858 - 09 0D 0F 00
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 105 deg  pulse 1620 us
+s1: pub telem t=3355784357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2:  95 deg  pulse 1520 us
+monitor: batch  n=50 last=90 from core 1
+monitor: t=3355784605 ms  samples=50  min=0 max=100 avg=49  free slots=4  free blocks=4
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  80 deg  pulse 1370 us
+s1: pub telem t=3355784857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355784858 - 09 0E 0F 00
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  60 deg  pulse 1170 us
+s1: pub telem t=3355785357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  80 deg  pulse 1370 us
+s1: pub telem t=3355785857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355785858 - 09 0F 0F 00
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  95 deg  pulse 1520 us
+monitor: batch  n=55 last=60 from core 1
+monitor: t=3355786110 ms  samples=55  min=0 max=100 avg=51  free slots=4  free blocks=4
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2: 105 deg  pulse 1620 us
+s1: pub telem t=3355786357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 115 deg  pulse 1720 us
+s1: pub telem t=3355786857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355786858 - 09 10 0F 00
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2:  90 deg  pulse 1470 us
+s1: pub telem t=3355787357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  75 deg  pulse 1320 us
+monitor: batch  n=60 last=10 from core 1
+monitor: t=3355787615 ms  samples=60  min=0 max=100 avg=50  free slots=4  free blocks=4
+monitor: LED task resumed, state=WAIT, pri=22
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  65 deg  pulse 1220 us
+s1: pub telem t=3355787857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355787858 - 09 11 0F 00
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  75 deg  pulse 1320 us
+s1: pub telem t=3355788357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2: 100 deg  pulse 1570 us
+s1: pub telem t=3355788857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355788858 - 09 12 0F 00
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 115 deg  pulse 1720 us
+monitor: batch  n=65 last=40 from core 1
+monitor: t=3355789120 ms  samples=65  min=0 max=100 avg=47  free slots=4  free blocks=4
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 120 deg  pulse 1770 us
+s1: pub telem t=3355789357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2:  95 deg  pulse 1520 us
+s1: pub telem t=3355789857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355789858 - 09 13 0F 00
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  70 deg  pulse 1270 us
+s1: pub telem t=3355790357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  60 deg  pulse 1170 us
+monitor: batch  n=70 last=90 from core 1
+monitor: t=3355790625 ms  samples=70  min=0 max=100 avg=49  free slots=4  free blocks=4
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  70 deg  pulse 1270 us
+s1: pub telem t=3355790857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355790858 - 09 14 0F 00
+s5 phase 2:  75 deg  pulse 1320 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  95 deg  pulse 1520 us
+s1: pub telem t=3355791357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 120 deg  pulse 1770 us
+s1: pub telem t=3355791857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355791858 - 09 15 0F 00
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 115 deg  pulse 1720 us
+s5 phase 2: 110 deg  pulse 1670 us
+monitor: batch  n=75 last=60 from core 1
+monitor: t=3355792130 ms  samples=75  min=0 max=100 avg=51  free slots=4  free blocks=4
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 100 deg  pulse 1570 us
+s1: pub telem t=3355792357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2:  90 deg  pulse 1470 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  75 deg  pulse 1320 us
+s1: pub telem t=3355792857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355792858 - 09 16 0F 00
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  65 deg  pulse 1220 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  60 deg  pulse 1170 us
+s5 phase 2:  65 deg  pulse 1220 us
+s1: pub telem t=3355793357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s5 phase 2:  70 deg  pulse 1270 us
+s5 phase 2:  75 deg  pulse 1320 us
+monitor: batch  n=80 last=10 from core 1
+monitor: t=3355793635 ms  samples=80  min=0 max=100 avg=50  free slots=4  free blocks=4
+s5 phase 2:  80 deg  pulse 1370 us
+s5 phase 2:  85 deg  pulse 1420 us
+s5 phase 2:  90 deg  pulse 1470 us
+s1: pub telem t=3355793857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355793858 - 09 17 0F 00
+s5 phase 2:  95 deg  pulse 1520 us
+s5 phase 2: 100 deg  pulse 1570 us
+s5 phase 2: 105 deg  pulse 1620 us
+s5 phase 2: 110 deg  pulse 1670 us
+s5 phase 2: 115 deg  pulse 1720 us
+s1: pub telem t=3355794357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 120 deg  pulse 1770 us
+s5 phase 2: 115 deg  pulse 1720 us
+---- Closed serial port COM3 due to disconnection from the machine ----
