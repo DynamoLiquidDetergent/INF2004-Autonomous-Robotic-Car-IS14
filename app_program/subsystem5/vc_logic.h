@@ -63,6 +63,7 @@
 #define VC_SW_PASS		3u
 #define VC_SW_RET		4u
 #define VC_SW_FIND		5u
+#define VC_SW_SETTLE		6u	/* line met while the car is turned: straighten to face along the travel first */
 
 /* ---- Obstacle Detection state that lets the car drive ---- */
 #define VC_OBS_IDLE		0u	/* OBS_ST_IDLE_MONITORING */
@@ -211,6 +212,11 @@
 #define VC_BYP_SMOOTH		1
 #endif
 #define VC_SW_NPSI		4	/* peak headings tried, gentlest first: see vc_sw_psi_d10[] / vc_sw_k_pm[] in vc_logic.c */
+#ifndef VC_SW_TRIM_MM
+#define VC_SW_TRIM_MM		10	/* mm taken off the sideways reach the profile asks for (it already holds the
+					   measurement uncertainty, the car's half width and a margin) */
+#endif
+#define VC_SW_D_MIN_MM		80	/* never swerve less than this (the car's own half width) */
 #define VC_SW_LO_MIN_MM		150
 #define VC_SW_LO_MAX_MM		1200
 #ifndef VC_SW_RUN_PCT
@@ -223,6 +229,11 @@
 #define VC_SW_PASS_SPEED	150	/* mm/s on the straight past the obstacle */
 #define VC_SW_FIND_SPEED	60	/* mm/s while looking for the line at the end */
 #define VC_SW_FIND_MM		150	/* straight look for the line after the curve */
+#define VC_SW_ZONE_LO		3	/* the line is only taken over when it is this close to the middle ... */
+#define VC_SW_ZONE_HI		5	/* ... of the sensor (zones 3..5), not just at its edge; the last look takes any zone */
+#define VC_SW_SETTLE_D10	100	/* heading (tenths of a degree) up to which the line is taken over at once */
+#define VC_SW_SETTLE_MM		60	/* the car straightens up over this distance ... */
+#define VC_SW_SETTLE_SPEED	60	/* ... at this speed, then the line controller takes over */
 #define VC_SW_OUT_DETECT_PCT	40	/* on the curve out the line is only taken after this share of it (the line just left is still close) */
 #define VC_SW_KH		2	/* mm/s of steering per degree of heading error */
 #define VC_SW_STEER_MAX		90	/* mm/s */
@@ -280,6 +291,7 @@ typedef struct {
 	int		smooth;		/* 1 = smooth S-curve bypass, 0 = the rectangle of turns (tests) */
 	unsigned	sw_kind;	/* leg of the smooth bypass: VC_SW_BACK .. VC_SW_FIND */
 	int		byp_wait;	/* bypass over early: do not start another until the obstacle task has left BYPASSING */
+	int		sw_psi0;	/* heading when the settle leg began, tenths of a degree */
 	int		sw_psi_d10;	/* peak heading of this bypass, tenths of a degree */
 	int		sw_d_mm;	/* the sideways reach D */
 	int		sw_lo_mm;	/* length of each curve */

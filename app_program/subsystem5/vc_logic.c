@@ -79,6 +79,7 @@ void vc_init(VC_STATE *v, unsigned epoch)
 	v->sw_kind      = 0;
 	v->sw_d_mm      = 0;
 	v->sw_psi_d10   = 450;
+	v->sw_psi0      = 0;
 	v->byp_wait     = 0;
 	v->sw_lo_mm     = 0;
 	v->sw_lp_mm     = 0;
@@ -334,6 +335,14 @@ static int sw_moved(const VC_STATE *v, const VC_IN *in)
 	return m + (int)v->jn_acc;
 }
 
+static void sw_done(VC_STATE *v, const VC_IN *in, VC_OUT *o)
+{
+	v->byp_step = 0;
+	v->sw_kind  = 0;
+	jn_finish(v, in, o);
+	o->event |= VC_EV_BYP_DONE;
+}
+
 /* One cycle of the smooth bypass. Returns 1 when it has filled the command, 0 when the detour is over
    (line following takes over). */
 static int sw_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
@@ -354,9 +363,10 @@ static int sw_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 	if (in->lost) {
 		v->saw_lost = 1;		/* the 'seen' flag is stale until subsystem 3 has noticed */
 	}
-	if (v->sw_kind != VC_SW_BACK) {
+	if (v->sw_kind != VC_SW_BACK && v->sw_kind != VC_SW_SETTLE) {
 		if (in->dt_ms > 0) {
-			if (v->saw_lost && in->line_fresh && !in->lost && in->zone != 0) {
+			if (v->saw_lost && in->line_fresh && !in->lost && in->zone != 0 &&
+			    (v->sw_kind == VC_SW_FIND || (in->zone >= VC_SW_ZONE_LO && in->zone <= VC_SW_ZONE_HI))) {
 				v->found_cnt++;
 			} else {
 				v->found_cnt = 0;
@@ -364,14 +374,18 @@ static int sw_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 		}
 		if (v->found_cnt >= VC_SEARCH_FOUND_MSGS &&
 		    (v->sw_kind != VC_SW_OUT || s * 100 >= v->sw_lo_mm * VC_SW_OUT_DETECT_PCT)) {
+			int hd = heading_d10(v);
+
 			if (v->sw_kind == VC_SW_OUT || v->sw_kind == VC_SW_PASS) {
 				o->event |= VC_EV_BYP_PASSED | VC_EV_BYP_RETURN;	/* the line came back early */
 				v->byp_wait = 1;
 			}
-			v->byp_step = 0;
-			v->sw_kind  = 0;
-			jn_finish(v, in, o);
-			o->event |= VC_EV_BYP_DONE;
+			if (hd > VC_SW_SETTLE_D10 || hd < -VC_SW_SETTLE_D10) {
+				v->sw_psi0 = hd;				/* face along the travel first */
+				sw_leg(v, VC_SW_SETTLE);
+				return sw_step(v, in, o);
+			}
+			sw_done(v, in, o);
 			return 0;
 		}
 	}
@@ -418,6 +432,16 @@ static int sw_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 		psi_ref = 0;
 		ff = 0;
 		break;
+	case VC_SW_SETTLE:
+		len = VC_SW_SETTLE_MM;
+		if (s >= len) {
+			sw_done(v, in, o);
+			return 0;
+		}
+		speed   = VC_SW_SETTLE_SPEED;
+		psi_ref = (int)(((int64_t)v->sw_psi0 * (len - s)) / len);
+		ff      = (int)(((int64_t)(-v->sw_psi0) * (2 * VC_SW_SLOPE_D) / len * speed * 349) / 100000);
+		break;
 	default:				/* VC_SW_FIND */
 		if (s >= VC_SW_FIND_MM) {
 			v->byp_step = 0;
@@ -453,6 +477,10 @@ static void sw_begin(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 
 	if (d > VC_BYP_MAX_LEG_MM) {
 		d = VC_BYP_MAX_LEG_MM;
+	}
+	d -= VC_SW_TRIM_MM;					/* the profile's reach already holds its own margins */
+	if (d < VC_SW_D_MIN_MM) {
+		d = VC_SW_D_MIN_MM;
 	}
 	gap = (int)in->prof_closest_cm * 10 + VC_SW_FRONT_MM;		/* axle to the obstacle */
 	for (i = 0; i < VC_SW_NPSI; i++) {				/* gentlest curve that fits the room */
