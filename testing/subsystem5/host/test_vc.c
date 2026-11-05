@@ -629,12 +629,12 @@ int main(void)
 		b.odo_mm = odo + 30;
 		o = vc_step(&v, &b);
 		CHECK("S5-H92b", o.mode == VC_MODE_DRIVE && o.steer == 0 && o.mission_state == VC_MS_TURNING,
-		      "30 mm of 55 mm driven: still driving on, mission state TURNING");
+		      "30 mm of 43 mm driven: still driving on, mission state TURNING");
 		b = line_in(4, 0);
 		b.odo_mm = odo + 56;
 		o = vc_step(&v, &b);
 		CHECK("S5-H92c", o.mode == VC_MODE_TURN && o.turn_deg == 90 && o.speed == VC_TURN_SPEED && o.busy,
-		      "55 mm reached: TURN +90 degrees (clockwise) at 100 mm/s");
+		      "56 mm driven, past 43 mm: TURN +90 degrees (clockwise) at 100 mm/s");
 		/* wheels spin: left +100, right -100 for 20 ms steps. 120 mm track: 90 degrees = 188.5 mm differential */
 		turning_seen = 1;
 		for (k = 0; k < 40; k++) {
