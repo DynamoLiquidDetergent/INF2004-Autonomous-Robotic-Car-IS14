@@ -98,9 +98,17 @@
 #define VC_ACT_RIGHT		3u
 
 /* ---- Junction manoeuvre (tune on the track, tests S5-M27 to M29) ---- */
-#define VC_JN_CONFIRM_MSGS	4	/* junction flag in this many line messages in a row (80 ms) */
-#define VC_JN_ADVANCE_MM	55	/* drive on after the flag before a turn: sensors to wheel axle */
-#define VC_JN_CROSS_MM		80	/* FORWARD: straight over the junction, no steering by sensors */
+/* Subsystem 3 (2026-11-04) raises the junction flag ONCE per crossbar, only after a bar-length
+   run of GP26 + centre both black with GP28 dark too, holds it 5 line cycles (100 ms) and then
+   keeps 500 ms quiet. So one message is enough; asking for several in a row could miss it when
+   this task falls behind and drops older line messages. The flag rises when the sensors have
+   just LEFT the crossbar's far edge. Measured by subsystem 3 (s3_drive_demo.c): */
+#define VC_SENSOR_AXLE_MM	60	/* line sensors to the wheel axle */
+#define VC_BAR_MM		35	/* crossbar / line width */
+#define VC_JN_CONFIRM_MSGS	1	/* junction flag in this many line messages in a row */
+#define VC_JN_ADVANCE_MM	(VC_SENSOR_AXLE_MM - VC_BAR_MM / 2)	/* after the flag, before a turn: axle over the bar's centre */
+#define VC_JN_CROSS_MM		25	/* FORWARD: straight on after the flag, no steering by sensors, until the sensors are back on the line */
+#define VC_BC_STEER_MAX		8	/* mm/s steering limit while GP28 reads a barcode and the line is <= 1 zone off */
 #define VC_JN_SPEED		60	/* mm/s for those two */
 #define VC_JN_REARM_MM		100	/* after a manoeuvre: flag low and this far before the next */
 #define VC_BC_EXPIRE_MM		1500	/* a command not used by a junction this far on is dropped */
@@ -169,6 +177,7 @@
 #define VC_BYP_CAR_MM		150	/* car body behind the ultrasonic sensor that must also clear it */
 #define VC_BYP_MAX_LEG_MM	1000	/* S2 / odometry sanity limit for one leg */
 #define VC_BYP_FIND_EXTRA_MM	120	/* look for the line this much farther than the shift */
+#define VC_BYP_ADV_MM		(VC_SENSOR_AXLE_MM + VC_BAR_MM / 2)	/* line first seen at its near edge: axle over its centre */
 #define VC_RETRY_BACK_MM	100	/* REVERSE_RETRY: back away this far, straight */
 
 typedef struct {
@@ -234,6 +243,7 @@ typedef struct {
 	int		auto_start;	/* 1 = start by itself once ready (bench); 0 = wait for RESUME */
 	unsigned	fault_mask;	/* faults the Safety Monitor is handling now (IF-12 bits) */
 	int		junction;	/* junction flag of the newest line message */
+	int		bc_busy;	/* subsystem 3: GP28 is inside a possible barcode (keep the steering small) */
 	int		obst_present;	/* Obstacle Detection has an obstacle (no spinning near it) */
 	int		phase7;		/* the Vehicle Controller does the bypass (S5_STANDALONE 0) */
 	unsigned	prof_action;	/* newest profile: OBS_ACT_* */

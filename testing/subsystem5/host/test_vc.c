@@ -601,32 +601,30 @@ int main(void)
 		CHECK("S5-H91a", o.barcodes == 1 && (o.event & VC_EV_BC_TAKEN) && !o.busy,
 		      "barcode command taken and counted, nothing happens yet");
 		for (k = 0; k < 3; k++) {
-			b = line_in(5, 0);
+			b = line_in(5, 1);		/* flag, but the line is reported lost: not a junction */
 			b.junction = 1;
 			o = vc_step(&v, &b);
 		}
 		b = line_in(4, 0);
 		o = vc_step(&v, &b);
 		CHECK("S5-H91b", !o.busy && o.mode == VC_MODE_DRIVE && v.bc_pending == VC_BC_RIGHT,
-		      "flag for only 3 line messages: no manoeuvre, command still waiting");
+		      "junction flag while the line is reported lost: no manoeuvre, command still waiting");
 
-		/* H92: RIGHT. Flag for 4 messages starts it: drive on 55 mm straight (steer 0, 60 mm/s),
+		/* H92: RIGHT. The flag in one line message starts it: drive on 43 mm straight (steer 0, 60 mm/s),
 		   then TURN +90 at 100 mm/s, TURNING all the time; when S2 reports done, back to the line */
 		vc_init(&v, 0);
 		b = line_in(4, 0);
 		b.bc_cmd = VC_BC_RIGHT; b.bc_n = 1;
 		o = vc_step(&v, &b);
 		odo = 1000;
-		for (k = 0; k < 4; k++) {
-			b = line_in(5, 0);
-			b.junction = 1;
-			b.odo_mm = odo;
-			o = vc_step(&v, &b);
-		}
+		b = line_in(5, 0);
+		b.junction = 1;
+		b.odo_mm = odo;
+		o = vc_step(&v, &b);
 		CHECK("S5-H92a", (o.event & VC_EV_JN_START) && o.busy && o.mode == VC_MODE_DRIVE &&
 		      o.speed == VC_JN_SPEED && o.steer == 0 && o.mission_state == VC_MS_TURNING &&
 		      o.last_action == VC_ACT_RIGHT,
-		      "4th message with the flag: manoeuvre starts, driving on straight (steer 0, 60 mm/s), TURNING");
+		      "the message with the flag: manoeuvre starts, driving on straight (steer 0, 60 mm/s), TURNING");
 		b = line_in(4, 0);
 		b.odo_mm = odo + 30;
 		o = vc_step(&v, &b);
@@ -675,18 +673,18 @@ int main(void)
 		CHECK("S5-H94", o.mode == VC_MODE_TURN && o.turn_deg == 180 && v.last_action == VC_ACT_UTURN &&
 		      o.mission_state == VC_MS_TURNING, "U-TURN: TURN 180 straight away, TURNING");
 
-		/* H95: FORWARD: straight over the junction (steer 0, no sensor steering) for 80 mm, no TURN,
+		/* H95: FORWARD: straight over the junction (steer 0, no sensor steering) for 25 mm, no TURN,
 		   RUNNING state, then back to the line */
 		vc_init(&v, 0);
 		b = line_in(4, 0); b.bc_cmd = VC_BC_FORWARD; b.bc_n = 1; b.odo_mm = 500; o = vc_step(&v, &b);
 		for (k = 0; k < 4; k++) { b = line_in(6, 0); b.junction = 1; b.odo_mm = 500; o = vc_step(&v, &b); }
 		CHECK("S5-H95a", o.mode == VC_MODE_DRIVE && o.steer == 0 && o.busy && o.mission_state == VC_MS_RUNNING &&
 		      v.last_action == VC_ACT_FORWARD, "FORWARD: straight on, zone 6 pull ignored, RUNNING");
-		b = line_in(6, 0); b.junction = 1; b.odo_mm = 500 + 60; o = vc_step(&v, &b);
-		CHECK("S5-H95b", o.steer == 0 && o.busy, "60 mm of 80: still straight");
-		b = line_in(4, 0); b.junction = 1; b.odo_mm = 500 + 82; o = vc_step(&v, &b);
+		b = line_in(6, 0); b.junction = 1; b.odo_mm = 500 + 15; o = vc_step(&v, &b);
+		CHECK("S5-H95b", o.steer == 0 && o.busy, "15 mm of 25: still straight");
+		b = line_in(4, 0); b.junction = 1; b.odo_mm = 500 + 27; o = vc_step(&v, &b);
 		CHECK("S5-H95c", !o.busy && (o.event & VC_EV_JN_DONE) && o.mode == VC_MODE_DRIVE,
-		      "80 mm reached: done, line following");
+		      "25 mm reached: done, line following");
 
 		/* H96: no second trigger on the same junction: flag still up after the manoeuvre, then low,
 		   then the next junction needs a new command and 100 mm */
@@ -735,10 +733,10 @@ int main(void)
 		      "PAUSE during the drive-on: stopped, manoeuvre kept");
 		b = line_in(4, 0); b.odo_mm = 30; b.sup_cmd = VC_SUP_RESUME; o = vc_step(&v, &b);
 		CHECK("S5-H98b", o.mode == VC_MODE_DRIVE && o.speed == VC_JN_SPEED, "RESUME: driving on again");
-		b = line_in(4, 0); b.odo_mm = 30 + 20; o = vc_step(&v, &b);
-		CHECK("S5-H98c", o.mode == VC_MODE_DRIVE, "30 + 20 = 50 mm: not yet 55");
-		b = line_in(4, 0); b.odo_mm = 30 + 26; o = vc_step(&v, &b);
-		CHECK("S5-H98d", o.mode == VC_MODE_TURN && o.turn_deg == 90, "30 + 26 = 56 mm: the turn starts");
+		b = line_in(4, 0); b.odo_mm = 30 + 10; o = vc_step(&v, &b);
+		CHECK("S5-H98c", o.mode == VC_MODE_DRIVE, "30 + 10 = 40 mm: not yet 43");
+		b = line_in(4, 0); b.odo_mm = 30 + 14; o = vc_step(&v, &b);
+		CHECK("S5-H98d", o.mode == VC_MODE_TURN && o.turn_deg == 90, "30 + 14 = 44 mm: the turn starts");
 
 		/* PAUSE half-way through the turn: after RESUME only the rest is turned */
 		for (k = 0; k < 20; k++) {			/* 20 x 20 ms at +-100 mm/s = 80 mm = 38 degrees */
@@ -804,9 +802,33 @@ int main(void)
 		/* done flag from an earlier move is not believed in the first 100 ms */
 		vc_init(&v, 0);
 		b = line_in(4, 0); b.bc_cmd = VC_BC_UTURN; b.bc_n = 1; o = vc_step(&v, &b);
-		for (k = 0; k < 4; k++) { b = line_in(5, 0); b.junction = 1; o = vc_step(&v, &b); }
+		b = line_in(5, 0); b.junction = 1; o = vc_step(&v, &b);
 		b = line_in(4, 0); b.motion_state = 0; b.motion_done = 1; o = vc_step(&v, &b);
 		CHECK("S5-H99c", o.mode == VC_MODE_TURN && o.busy, "old 'done' right after the TURN was sent: ignored");
+	}
+
+	/* H120: GP28 inside a barcode: steering limited to 8 mm/s while the line is 1 zone off or less */
+	{
+		VC_IN b;
+		VC_OUT bo;
+
+		vc_init(&v, 0);
+		b = line_in(5, 0); b.bc_busy = 1;
+		bo = vc_step(&v, &b);
+		CHECK("S5-H120a", bo.mode == VC_MODE_DRIVE && bo.steer == VC_BC_STEER_MAX,
+		      "zone 5 (30 mm/s steering normally) while reading a barcode: limited to 8 mm/s");
+		vc_init(&v, 0);
+		b = line_in(3, 0); b.bc_busy = 1;
+		bo = vc_step(&v, &b);
+		CHECK("S5-H120b", bo.steer == -VC_BC_STEER_MAX, "zone 3: limited to -8 mm/s");
+		vc_init(&v, 0);
+		b = line_in(6, 0); b.bc_busy = 1;
+		bo = vc_step(&v, &b);
+		CHECK("S5-H120c", bo.steer >= 60, "zone 6 (two zones off): not limited");
+		vc_init(&v, 0);
+		b = line_in(5, 0); b.bc_busy = 0;
+		bo = vc_step(&v, &b);
+		CHECK("S5-H120d", bo.steer == 30, "not in a barcode: zone 5 gives the normal 30 mm/s");
 	}
 
 	/* H100: the status shows the barcode count and the last action */
@@ -929,8 +951,8 @@ int main(void)
 		CHECK("S5-H110c", w.order[0] == 90 && w.order[1] == 150 && w.order[2] == -90 && w.order[3] == 150 &&
 		      w.order[4] == -90 && w.order[5] == 60 && w.order[6] == 90 && w.n_order == 7,
 		      "order of legs: turn +90, drive 150 mm/s, turn -90, drive 150 mm/s, turn -90, drive 60 mm/s (to the line, then on), turn +90");
-		CHECK("S5-H110d", w.drive_total >= 205 + 520 + 210 - 15 && w.drive_total <= 210 + 520 + 205 + 55 + 15,
-		      "distance driven about 210 + 520 + 205 + 55 mm");
+		CHECK("S5-H110d", w.drive_total >= 205 + 520 + 210 - 15 && w.drive_total <= 210 + 520 + 205 + 77 + 15,
+		      "distance driven about 210 + 520 + 205 + 77 mm");
 		bo = world_step(&w, 1, 21, 17, 0);
 		CHECK("S5-H110e", bo.mode == VC_MODE_DRIVE && !bo.busy && !v.line_gave_up, "afterwards: line following (REACQUIRING still exempt from the hold)");
 

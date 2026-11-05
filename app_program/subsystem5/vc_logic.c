@@ -105,6 +105,10 @@ static int follow_line(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 	v->err_prev  = err;
 	v->have_prev = 1;
 	o->steer = clamp(-VC_LF_STEER_SIGN * turn, VC_LF_STEER_MAX);
+	if (in->bc_busy && iabs(err) <= 1) {
+		/* GP28 is reading bars: a steady speed over them matters more than a tidy line */
+		o->steer = clamp(o->steer, VC_BC_STEER_MAX);
+	}
 	o->speed = VC_LF_SPEED - VC_LF_SLOW_PER_ZONE * iabs(err);
 	if (o->speed < VC_LF_MIN_SPEED) {
 		o->speed = VC_LF_MIN_SPEED;
@@ -297,7 +301,7 @@ static int byp_next(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 		drive_set(v, v->byp_s_mm + VC_BYP_FIND_EXTRA_MM, VC_JN_SPEED, 1);	/* until the line is seen */
 		return 1;
 	case 7:
-		drive_set(v, VC_JN_ADVANCE_MM, VC_JN_SPEED, 0);		/* wheels over the line */
+		drive_set(v, VC_BYP_ADV_MM, VC_JN_SPEED, 0);		/* wheels over the line */
 		return 1;
 	case 8:
 		turn_set(v, v->byp_dir, VC_BYP_TURN_DEG);		/* face along the line */

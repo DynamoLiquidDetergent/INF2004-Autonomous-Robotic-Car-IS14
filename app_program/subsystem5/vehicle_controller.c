@@ -21,6 +21,8 @@
 
 #if S5_PHASE >= 6
 
+IMPORT bool barcode_decode_busy(void);		/* subsystem 3: GP28 inside a possible barcode */
+
 #define VC_SEND_MS		50	/* < S2_CMD_TIMEOUT_MS (100 ms) */
 #define VC_NODATA_MS		200	/* no line message this long -> stop */
 #define VC_PRINT_MS		500
@@ -243,6 +245,7 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 			in.zone       = line_data_zone(m);
 			in.lost       = line_data_lost(m) ? 1 : 0;
 			in.junction   = line_data_junction(m) ? 1 : 0;
+			in.bc_busy    = barcode_decode_busy() ? 1 : 0;
 			in.line_fresh = 1;
 			in.dt_ms      = now - last_step;
 			last_step     = now;
