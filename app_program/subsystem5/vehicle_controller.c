@@ -362,23 +362,36 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 				}
 				if (o.event & VC_EV_BYP_START) {
 					subsystem3_set_bypass(true);		/* IF-09: leaving the line on purpose */
-					tm_printf((UB*)"vc: bypass round the %s, %d cm over, gap %d cm\n",
-						  (v.byp_dir > 0) ? "right" : "left", (INT)(v.byp_s_mm / 10),
-						  (INT)in.prof_closest_cm);
+					if (v.smooth) {
+						tm_printf((UB*)"vc: smooth bypass round the %s, %d cm over, gap %d cm: back %d mm, "
+							  "curve %d mm, straight %d mm\n",
+							  (v.byp_dir > 0) ? "right" : "left", (INT)(v.sw_d_mm / 10),
+							  (INT)in.prof_closest_cm, (INT)v.sw_back_mm, (INT)v.sw_lo_mm,
+							  (INT)v.sw_lp_mm);
+					} else {
+						tm_printf((UB*)"vc: bypass round the %s, %d cm over, gap %d cm\n",
+							  (v.byp_dir > 0) ? "right" : "left", (INT)(v.byp_s_mm / 10),
+							  (INT)in.prof_closest_cm);
+					}
 				}
 				if (o.event & VC_EV_BYP_PASSED) {
 					tk_set_flg(flg_s5_ctrl, S5_CTRL_BYPASS_DONE);
-					tm_printf((UB*)"vc: obstacle passed, turning back towards the line\n");
+					tm_printf((UB*)"vc: obstacle passed, %s\n", v.smooth ? "curving back towards the line" : "turning back towards the line");
 				}
 				if (o.event & VC_EV_BYP_RETURN) {
 					subsystem3_set_bypass(false);		/* line-lost reports on, to see the line */
-					tm_printf((UB*)"vc: looking for the line (up to %d mm)\n",
-						  (INT)(v.byp_s_mm + VC_BYP_FIND_EXTRA_MM));
+					if (v.smooth) {
+						tm_printf((UB*)"vc: curving back to the line (then up to %d mm straight)\n",
+							  (INT)VC_SW_FIND_MM);
+					} else {
+						tm_printf((UB*)"vc: looking for the line (up to %d mm)\n",
+							  (INT)(v.byp_s_mm + VC_BYP_FIND_EXTRA_MM));
+					}
 				}
 				if (o.event & VC_EV_BYP_DONE) {
 					subsystem3_set_bypass(false);
 					tk_set_flg(flg_s5_ctrl, S5_CTRL_LINE_FOUND);
-					tm_printf((UB*)"vc: back on the line, facing along it\n");
+					tm_printf((UB*)"vc: back on the line\n");
 				}
 				if (o.event & VC_EV_BYP_FAIL) {
 					subsystem3_set_bypass(false);

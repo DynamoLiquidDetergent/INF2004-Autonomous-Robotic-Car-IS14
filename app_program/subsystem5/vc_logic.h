@@ -58,6 +58,11 @@
 #define VC_MODE_DRIVE		1u
 #define VC_MODE_TURN		2u
 #define VC_STATE_INHIBITED	5u	/* S2_STATE_INHIBITED */
+#define VC_SW_BACK		1u	/* smooth bypass legs (VC_STATE.sw_kind) */
+#define VC_SW_OUT		2u
+#define VC_SW_PASS		3u
+#define VC_SW_RET		4u
+#define VC_SW_FIND		5u
 
 /* ---- Obstacle Detection state that lets the car drive ---- */
 #define VC_OBS_IDLE		0u	/* OBS_ST_IDLE_MONITORING */
@@ -178,6 +183,49 @@
 #define VC_BYP_MAX_LEG_MM	1000	/* S2 / odometry sanity limit for one leg */
 #define VC_BYP_FIND_EXTRA_MM	120	/* look for the line this much farther than the shift */
 #define VC_BYP_ADV_MM		(VC_SENSOR_AXLE_MM + VC_BAR_MM / 2)	/* line first seen at its near edge: axle over its centre */
+
+/* ---- Smooth bypass (replaces the rectangle of turns when VC_BYP_SMOOTH is 1) ----
+   The car follows a curve whose sideways reach is the shift D from the profile (half the planned
+   width of the obstacle + half the car + a margin). The heading along the curve, as a function of
+   the distance s driven along it (u = s / Lo), is a smooth hump that is 0 at both ends:
+	heading(s) = PSI * 4 u (1 - u)          (PSI = the heading in the middle of the curve)
+   The sideways distance reached is the sum of sin(heading) over the length: D = K(PSI) * Lo.
+	PSI 45 deg: K = 0.488 (Lo = 2.05 D)      PSI 50 deg: K = 0.533 (Lo = 1.88 D)
+	PSI 55 deg: K = 0.575 (Lo = 1.74 D)      PSI 60 deg: K = 0.614 (Lo = 1.63 D)
+   So a wide obstacle (large D) gives a long curve and a narrow one a short curve. The turn is
+   never more than 60 degrees (no 90 degree turns, no stopping to turn on the spot).
+   The curve needs room in front of the obstacle: the axle-to-obstacle distance (gap) must be at
+   least VC_SW_RUN_PCT percent of Lo (the clearance simulation S5-H122 in
+   testing/subsystem5/host/test_vc.c shows 75..85 percent is the least that clears; 100 adds
+   a margin). The gentlest PSI of the four that fits the room is used: far from the obstacle the
+   curve is 45 degrees, close to it up to 60 degrees. If even 60 degrees does not fit, the car
+   first backs straight away by the missing distance, at most VC_SW_BACK_MAX_MM (nothing watches
+   behind; it drives back over the line it has just driven).
+   Legs: back (if needed), curve out, straight past the obstacle (depth + car body), curve back,
+   a short straight look for the line. The curve follows the heading above with a feed-forward
+   steering from its curvature plus a correction from the heading error (the wheel speeds give the
+   heading). Near the end of the return curve the line controller takes over; there is no turn on
+   the spot at all. */
+#ifndef VC_BYP_SMOOTH
+#define VC_BYP_SMOOTH		1
+#endif
+#define VC_SW_NPSI		4	/* peak headings tried, gentlest first: see vc_sw_psi_d10[] / vc_sw_k_pm[] in vc_logic.c */
+#define VC_SW_LO_MIN_MM		150
+#define VC_SW_LO_MAX_MM		1200
+#ifndef VC_SW_RUN_PCT
+#define VC_SW_RUN_PCT		100	/* gap (axle to obstacle) needed, percent of the curve length */
+#endif
+#define VC_SW_FRONT_MM		60	/* front of the car (sensor) to the wheel axle */
+#define VC_SW_BACK_MAX_MM	150
+#define VC_SW_BACK_SPEED	60	/* mm/s while backing for runway */
+#define VC_SW_SPEED		110	/* mm/s on the two curves */
+#define VC_SW_PASS_SPEED	150	/* mm/s on the straight past the obstacle */
+#define VC_SW_FIND_SPEED	60	/* mm/s while looking for the line at the end */
+#define VC_SW_FIND_MM		150	/* straight look for the line after the curve */
+#define VC_SW_DETECT_PCT	90	/* the line may be taken from this share of the return curve on */
+#define VC_SW_KH		2	/* mm/s of steering per degree of heading error */
+#define VC_SW_STEER_MAX		90	/* mm/s */
+#define VC_SW_SLOPE_D		15	/* mm either side of s for the curvature */
 #define VC_RETRY_BACK_MM	100	/* REVERSE_RETRY: back away this far, straight */
 
 typedef struct {
@@ -228,6 +276,13 @@ typedef struct {
 	int		drv_speed;
 	int		drv_find;	/* the drive leg ends when the line is seen again */
 	int		saw_lost;	/* subsystem 3 has reported the line lost since the leg began */
+	int		smooth;		/* 1 = smooth S-curve bypass, 0 = the rectangle of turns (tests) */
+	unsigned	sw_kind;	/* leg of the smooth bypass: VC_SW_BACK .. VC_SW_FIND */
+	int		sw_psi_d10;	/* peak heading of this bypass, tenths of a degree */
+	int		sw_d_mm;	/* the sideways reach D */
+	int		sw_lo_mm;	/* length of each curve */
+	int		sw_lp_mm;	/* straight past the obstacle */
+	int		sw_back_mm;	/* runway made by backing away first */
 } VC_STATE;
 
 typedef struct {

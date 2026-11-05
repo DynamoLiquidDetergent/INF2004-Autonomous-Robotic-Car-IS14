@@ -4,6 +4,7 @@
  * Output lines: [HOST] S5-H47 PASS ...
  */
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "../../../app_program/subsystem5/vc_logic.h"
 
@@ -115,6 +116,146 @@ static VC_OUT world_step(WORLD *w, int action, int shift, int closest, unsigned 
 	if (o.event & VC_EV_BYP_PASSED) { w->obs = 5; }	/* the task moves to REACQUIRING */
 	if (o.event & (VC_EV_BYP_DONE | VC_EV_BYP_FAIL)) { w->obs = 0; }
 	return o;
+}
+
+
+/* ---- kinematic simulation of the smooth bypass (S5-H122): a car (axle at the origin, 60 mm of nose in front,
+   90 mm of tail behind, 80 mm half width) driven by the real vc_step, wheel speeds ramping 25 mm/s per 20 ms,
+   a box of any width and depth on the line, the line sensor row 50 mm in front of the axle ---- */
+#include <math.h>
+
+static int sim_never_find;	/* 1 = the line is never seen again after the start */
+
+typedef struct {
+	int   ok;		/* finished with VC_EV_BYP_DONE */
+	int   fail_ev;		/* VC_EV_BYP_FAIL */
+	int   hit;		/* the car touched the box */
+	double clear_mm;	/* smallest gap between car and box (0 if hit) */
+	int   ms;		/* time from BYP_START to BYP_DONE */
+	double end_y_mm;	/* lateral error 3 s after the hand-over */
+	int   lost_after;	/* line lost during those 3 s */
+	double max_head_deg;	/* heading at the hand-over (absolute) */
+	int   back_mm, lo_mm, lp_mm, d_mm;
+	int   turns, zero_steer, max_steer;	/* turns on the spot, steer 0 commands, largest |steer| during the detour */
+} SIMRES;
+
+static double rect_dist(double px, double py, double x0, double x1, double y0, double y1)
+{
+	double dx = (px < x0) ? x0 - px : (px > x1) ? px - x1 : 0.0;
+	double dy = (py < y0) ? y0 - py : (py > y1) ? py - y1 : 0.0;
+
+	return sqrt(dx * dx + dy * dy);
+}
+
+/* side: +1 round the right, -1 round the left. face_mm = true distance from the sensor to the box
+   (the sensor read closest_cm). */
+static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, int closest_cm, int face_err_mm,
+			 int shift_cm_override)
+{
+	SIMRES r;
+	double x = 0, y = 0, th = 0, vl = 0, vr = 0, odo = 0;
+	double box_x0 = 60.0 + closest_cm * 10.0 + face_err_mm, box_x1 = box_x0 + depth_mm;
+	double box_y0 = centre_mm - width_mm / 2.0, box_y1 = centre_mm + width_mm / 2.0;
+	int    shift_cm, t, started = 0, done_t = -1, start_t = 0;
+	double edge;
+	VC_IN b;
+	VC_OUT o;
+	int    obs = 4;
+
+	memset(&r, 0, sizeof r);
+	r.clear_mm = 1e9;
+	edge = (side > 0) ? box_y1 : -box_y0;		/* edge of the box on the bypass side, from the line */
+	if (edge < 0) { edge = 0; }
+	shift_cm = (int)ceil((edge + 80 + 30) / 10.0);
+	if (shift_cm_override > 0) { shift_cm = shift_cm_override; }
+
+	vc_init(&v, 0);
+	v.smooth = 1;
+	for (t = 0; t < 2000 * 50 / 20 + 400; t++) {
+		double sy, rel;
+		int    lost, zone, k;
+		double cs = cos(th), sn = sin(th);
+
+		b = line_in(4, 0);
+		b.phase7 = 1;
+		b.obs_state = (unsigned)obs;
+		b.prof_action = (side > 0) ? 1u : 2u;
+		b.prof_shift_cm = (unsigned)shift_cm;
+		b.prof_closest_cm = (unsigned)closest_cm;
+		b.odo_mm = ((unsigned)(long)floor(odo)) & 0xFFFFu;
+		b.wheel_l = (int)lround(vl);
+		b.wheel_r = (int)lround(vr);
+		sy = y + 50.0 * sn;
+		rel = -sy / (cs > 0.2 ? cs : 0.2);		/* line position across the sensor row, + = to the right */
+		lost = (fabs(rel) > 32.0 || (sim_never_find && started)) ? 1 : 0;
+		zone = lost ? 0 : 4 + (int)lround(rel / 10.0);
+		if (zone < 1 && !lost) { zone = 1; }
+		if (zone > 7) { zone = 7; }
+		b.lost = lost;
+		b.zone = lost ? 0 : zone;
+		o = vc_step(&v, &b);
+		if (started && done_t < 0) {
+			if (o.mode == VC_MODE_TURN) { r.turns++; }
+			if (o.mode == VC_MODE_DRIVE && o.busy && o.steer == 0) { r.zero_steer++; }
+			if (o.busy && (o.steer > r.max_steer || -o.steer > r.max_steer)) { r.max_steer = o.steer < 0 ? -o.steer : o.steer; }
+		}
+		if (o.event & VC_EV_BYP_START) {
+			started = 1; start_t = t;
+			r.back_mm = v.sw_back_mm; r.lo_mm = v.sw_lo_mm; r.lp_mm = v.sw_lp_mm; r.d_mm = v.sw_d_mm;
+		}
+		if (o.event & VC_EV_BYP_FAIL) { r.fail_ev = 1; break; }
+		if (o.event & VC_EV_BYP_PASSED) { obs = 5; }
+		if (o.event & VC_EV_BYP_DONE) {
+			obs = 0; r.ok = 1; done_t = t; r.ms = (t - start_t) * 20;
+			r.max_head_deg = fabs(th) * 57.2958;
+		}
+		if (done_t >= 0 && t - done_t > 150) { break; }
+		/* wheel targets */
+		{
+			double tl = 0, tr = 0;
+
+			if (o.mode == VC_MODE_DRIVE && o.busy) {
+				tl = o.speed + o.steer; tr = o.speed - o.steer;
+			} else if (o.mode == VC_MODE_DRIVE) {
+				/* line following: steering from the zone, 30 mm/s a zone (as the controller does) */
+				tl = o.speed + o.steer; tr = o.speed - o.steer;
+			}
+			vl += (tl > vl + 25) ? 25 : (tl < vl - 25) ? -25 : tl - vl;
+			vr += (tr > vr + 25) ? 25 : (tr < vr - 25) ? -25 : tr - vr;
+		}
+		/* move 20 ms */
+		{
+			double vm = (vl + vr) / 2.0, w = (vl - vr) / 120.0;
+
+			x += vm * cs * 0.02; y += vm * sn * 0.02; th += w * 0.02; odo += vm * 0.02;
+		}
+		/* clearance: sample the car outline */
+		cs = cos(th); sn = sin(th);
+		for (k = 0; k < 4 * 32; k++) {
+			double ax, ay, px, py, d;
+			int    e = k / 32, i = k % 32;
+			double f = i / 32.0;
+
+			switch (e) {
+			case 0: ax = -90 + f * 150; ay = -80; break;
+			case 1: ax = 60; ay = -80 + f * 160; break;
+			case 2: ax = 60 - f * 150; ay = 80; break;
+			default: ax = -90; ay = 80 - f * 160; break;
+			}
+			py = y + ax * sn + ay * cs;
+			px = x + ax * cs - ay * sn;
+			d = rect_dist(px, py, box_x0, box_x1, box_y0, box_y1);
+			if (started && d < r.clear_mm) { r.clear_mm = d; }
+		}
+		if (getenv("S5_SIM_TRACE") != NULL && (t % 10) == 0 && started && done_t < 0) {
+			printf("[TR] t%4d kind%u x%7.1f y%7.1f th%6.1f vl%4.0f vr%4.0f st%d clr %.0f\n", t, v.sw_kind, x, y, th * 57.2958, vl, vr, o.steer, r.clear_mm);
+		}
+		if (r.clear_mm < 0.5) { r.hit = 1; }
+		if (done_t >= 0 && t - done_t == 150) { r.end_y_mm = y; }
+		if (done_t >= 0 && t > done_t && lost) { r.lost_after = 1; }
+	}
+	if (!r.ok) { r.end_y_mm = y; }
+	return r;
 }
 
 int main(void)
@@ -979,7 +1120,7 @@ int main(void)
 		   (170 + 200 + 150), -90, look for the line, drive on 55, +90, done */
 		memset(&w, 0, sizeof w);
 		w.obs = 4; w.find_at = 205;
-		vc_init(&v, 0);
+		vc_init(&v, 0); v.smooth = 0;	/* the old rectangle detour */
 		bo = world_step(&w, 1, 21, 17, 0);
 		CHECK("S5-H110a", (bo.event & VC_EV_BYP_START) && bo.mode == VC_MODE_TURN && bo.turn_deg == 90 &&
 		      !bo.holding && bo.mission_state == VC_MS_AVOIDING,
@@ -1001,7 +1142,7 @@ int main(void)
 		/* H111: round the LEFT mirrors it */
 		memset(&w, 0, sizeof w);
 		w.obs = 4; w.find_at = 205;
-		vc_init(&v, 0);
+		vc_init(&v, 0); v.smooth = 0;	/* the old rectangle detour */
 		bo = world_step(&w, 2, 21, 17, 0);
 		CHECK("S5-H111a", bo.mode == VC_MODE_TURN && bo.turn_deg == -90, "action LEFT: TURN -90 first");
 		for (k = 0; k < 3000 && !(w.events & (VC_EV_BYP_DONE | VC_EV_BYP_FAIL)); k++) {
@@ -1013,7 +1154,7 @@ int main(void)
 		/* H112: the line is not where it should be: stopped after shift + 120 mm, line fault */
 		memset(&w, 0, sizeof w);
 		w.obs = 4; w.find_at = -1;
-		vc_init(&v, 0);
+		vc_init(&v, 0); v.smooth = 0;	/* the old rectangle detour */
 		for (k = 0; k < 3000 && !(w.events & (VC_EV_BYP_DONE | VC_EV_BYP_FAIL)); k++) {
 			bo = world_step(&w, 1, 21, 17, 0);
 		}
@@ -1024,7 +1165,7 @@ int main(void)
 		/* H113: unusable profile (STOP action, or shift 0): the car stays held, no detour */
 		memset(&w, 0, sizeof w);
 		w.obs = 4;
-		vc_init(&v, 0);
+		vc_init(&v, 0); v.smooth = 0;	/* the old rectangle detour */
 		bo = world_step(&w, 4, 0, 5, 0);
 		CHECK("S5-H113a", bo.mode == VC_MODE_STOP && bo.holding && !(bo.event & VC_EV_BYP_START) && v.byp_step == 0,
 		      "profile action STOP in BYPASSING: held");
@@ -1036,7 +1177,7 @@ int main(void)
 		{
 			VC_IN b = line_in(4, 0);
 			b.obs_state = 4; b.prof_action = 1; b.prof_shift_cm = 21; b.prof_closest_cm = 17;
-			vc_init(&v, 0);
+			vc_init(&v, 0); v.smooth = 0;	/* the old rectangle detour */
 			bo = vc_step(&v, &b);
 			CHECK("S5-H114", bo.mode == VC_MODE_STOP && bo.holding && v.byp_step == 0, "phase7 off (phases 5, 6): BYPASSING holds, no detour");
 		}
@@ -1044,7 +1185,7 @@ int main(void)
 		/* H115: PAUSE in the middle of the sideways leg: after RESUME only the rest of the 210 mm is driven */
 		memset(&w, 0, sizeof w);
 		w.obs = 4; w.find_at = 205;
-		vc_init(&v, 0);
+		vc_init(&v, 0); v.smooth = 0;	/* the old rectangle detour */
 		for (k = 0; k < 3000 && !(v.byp_step == 2 && w.drive_total >= 100); k++) {
 			bo = world_step(&w, 1, 21, 17, 0);
 		}
@@ -1058,7 +1199,7 @@ int main(void)
 		/* H116: Obstacle Detection falls into FAULT in the middle: the detour is dropped */
 		memset(&w, 0, sizeof w);
 		w.obs = 4; w.find_at = 205;
-		vc_init(&v, 0);
+		vc_init(&v, 0); v.smooth = 0;	/* the old rectangle detour */
 		for (k = 0; k < 3000 && !(v.byp_step == 4 && w.drive_total >= 300); k++) {
 			bo = world_step(&w, 1, 21, 17, 0);
 		}
@@ -1070,13 +1211,13 @@ int main(void)
 		/* H117: legs are limited (shift 100 cm and a gap of 90 cm stay within 1000 mm) */
 		memset(&w, 0, sizeof w);
 		w.obs = 4; w.find_at = 500;
-		vc_init(&v, 0);
+		vc_init(&v, 0); v.smooth = 0;	/* the old rectangle detour */
 		bo = world_step(&w, 1, 100, 90, 0);
 		CHECK("S5-H117", v.byp_s_mm == 1000 && v.byp_f_mm == 1000, "shift 100 cm and 90 cm gap: legs capped at 1000 mm");
 
 		/* H118: REVERSE_RETRY: backs away 100 mm straight (-40 mm/s, steer 1), then REVERSE_DONE, then waits */
 		memset(&w, 0, sizeof w);
-		vc_init(&v, 0);
+		vc_init(&v, 0); v.smooth = 0;	/* the old rectangle detour */
 		{
 			VC_IN b;
 			int odo = 1000, back_total = 0;
@@ -1100,7 +1241,7 @@ int main(void)
 		/* H119: SAFETY: the Safety Monitor's stop latch holds the detour too */
 		memset(&w, 0, sizeof w);
 		w.obs = 4; w.find_at = 205;
-		vc_init(&v, 0);
+		vc_init(&v, 0); v.smooth = 0;	/* the old rectangle detour */
 		bo = world_step(&w, 1, 21, 17, 0);
 		{
 			VC_IN b = line_in(4, 0);
@@ -1108,6 +1249,123 @@ int main(void)
 			b.motion_state = VC_STATE_INHIBITED;
 			bo = vc_step(&v, &b);
 			CHECK("S5-H119", bo.mode == VC_MODE_STOP && bo.holding && v.byp_step == 1, "stop latch set during the detour: held, detour kept");
+		}
+	}
+
+
+	if (getenv("S5_SIM_TRACE") != NULL) {
+		SIMRES q = sim_bypass(-1, 60, 100, 0, 20, 0, 0);
+
+		printf("[TRACE] done %d clr %.0f ms %d\n", q.ok, q.clear_mm, q.ms);
+		return 0;
+	}
+	/* H122: the smooth bypass clears boxes of every width, side and distance */
+	{
+		static const int widths[] = { 60, 100, 150, 200, 250 };
+		static const int depths[] = { 100, 200 };
+		static const int centres[] = { -20, 0, 20 };
+		static const int closest[] = { 12, 15, 17, 20, 25 };
+		static const int errs[] = { -8, 0, 8 };
+		int side, iw, id, ic, iq, ie, n = 0, n_ok = 0, n_hit = 0, n_lost = 0, n_fail = 0, n_slow = 0, n_off = 0;
+		double worst_clear = 1e9, worst_ms = 0, worst_y = 0, worst_head = 0;
+
+		for (side = -1; side <= 1; side += 2) {
+			for (iw = 0; iw < 5; iw++) for (id = 0; id < 2; id++) for (ic = 0; ic < 3; ic++)
+			for (iq = 0; iq < 5; iq++) for (ie = 0; ie < 3; ie++) {
+				SIMRES r = sim_bypass(side, widths[iw], depths[id], centres[ic], closest[iq], errs[ie], 0);
+
+				n++;
+				if (r.ok) { n_ok++; }
+				if (r.fail_ev) { n_fail++; }
+				if (r.hit) { n_hit++; }
+				if (r.lost_after) { n_lost++; }
+				if (r.ms > 15000) { n_slow++; }
+				if (fabs(r.end_y_mm) > 20.0) { n_off++; }
+				if (r.clear_mm < worst_clear) { worst_clear = r.clear_mm; }
+				if (r.ms > worst_ms) { worst_ms = r.ms; }
+				if (fabs(r.end_y_mm) > worst_y) { worst_y = fabs(r.end_y_mm); }
+				if (r.max_head_deg > worst_head) { worst_head = r.max_head_deg; }
+				if (getenv("S5_SIM_VERBOSE") != NULL && (!r.ok || r.hit || r.clear_mm < 25.0 || fabs(r.end_y_mm) > 20.0 || r.lost_after)) {
+					printf("[SIM] side %d W%d dep%d c%d q%d e%d: ok%d fail%d hit%d clear %.0f ms %d y %.0f lost%d head %.0f  back %d lo %d lp %d d %d\n",
+					       side, widths[iw], depths[id], centres[ic], closest[iq], errs[ie], r.ok, r.fail_ev, r.hit,
+					       r.clear_mm, r.ms, r.end_y_mm, r.lost_after, r.max_head_deg, r.back_mm, r.lo_mm, r.lp_mm, r.d_mm);
+				}
+			}
+		}
+		printf("[HOST] INFO H122: %d cases, worst clearance %.0f mm, longest %.1f s, worst lateral error %.0f mm, worst heading at hand-over %.0f deg\n",
+		       n, worst_clear, worst_ms / 1000.0, worst_y, worst_head);
+		CHECK("S5-H122a", n_ok == n && n_fail == 0, "every case: detour finishes with BYP_DONE (no failure)");
+		CHECK("S5-H122b", n_hit == 0 && worst_clear >= 20.0, "no case touches the box; at least 20 mm between the car and the box");
+		CHECK("S5-H122c", n_slow == 0, "every detour is shorter than the 15 s limit");
+		CHECK("S5-H122d", n_lost == 0 && n_off == 0, "line following takes over and holds the line (no loss, under 20 mm off after 3 s)");
+	}
+
+	/* H123: how the curve is chosen from the obstacle */
+	{
+		int psi_far = 0, back_far = 0, lo_far = 0;
+		SIMRES c;
+		int psi_near, back_near, lo_near, psi_wide, lo_wide;
+		VC_IN b;
+		VC_OUT o;
+		int k;
+
+		vc_init(&v, 0); v.smooth = 1;
+		b = line_in(4, 0); b.phase7 = 1; b.obs_state = 4; b.prof_action = 1; b.prof_shift_cm = 16; b.prof_closest_cm = 30;
+		o = vc_step(&v, &b);
+		psi_far = v.sw_psi_d10; back_far = v.sw_back_mm; lo_far = v.sw_lo_mm;
+		CHECK("S5-H123a", (o.event & VC_EV_BYP_START) && psi_far == 450 && back_far == 0 && o.mode == VC_MODE_DRIVE && !o.holding,
+		      "plenty of room: the gentle 45 degree curve, no backing up, starts at once");
+
+		vc_init(&v, 0); v.smooth = 1;
+		b = line_in(4, 0); b.phase7 = 1; b.obs_state = 4; b.prof_action = 1; b.prof_shift_cm = 16; b.prof_closest_cm = 17;
+		o = vc_step(&v, &b);
+		psi_near = v.sw_psi_d10; back_near = v.sw_back_mm; lo_near = v.sw_lo_mm;
+		CHECK("S5-H123b", psi_near > psi_far && psi_near <= 600 && lo_near < lo_far + 1 + 0 * back_near,
+		      "17 cm from the box: a steeper curve (up to 60 degrees) so the car does not have to back up as far");
+
+		vc_init(&v, 0); v.smooth = 1;
+		b = line_in(4, 0); b.phase7 = 1; b.obs_state = 4; b.prof_action = 1; b.prof_shift_cm = 25; b.prof_closest_cm = 30;
+		o = vc_step(&v, &b);
+		psi_wide = v.sw_psi_d10; lo_wide = v.sw_lo_mm;
+		CHECK("S5-H123c", lo_wide > lo_far && psi_wide >= 450 && psi_wide <= 600 && v.sw_d_mm == 250,
+		      "wider obstacle (larger shift): longer curve, sideways reach = the shift from the profile");
+
+		vc_init(&v, 0); v.smooth = 1;
+		b = line_in(4, 0); b.phase7 = 1; b.obs_state = 4; b.prof_action = 1; b.prof_shift_cm = 20; b.prof_closest_cm = 10;
+		o = vc_step(&v, &b);
+		CHECK("S5-H123d", v.sw_back_mm > 0 && v.sw_back_mm <= VC_SW_BACK_MAX_MM && v.sw_psi_d10 == 600 && o.speed < 0 && o.steer == 1,
+		      "box very close: backs up (at most the limit) with the 60 degree curve, steer 1 so S2 does not hold straight");
+
+		/* never a turn on the spot, never steer 0, never more than the limit, in a full run */
+		c = sim_bypass(1, 200, 200, 0, 17, 0, 0);
+		CHECK("S5-H123e", c.turns == 0 && c.zero_steer == 0 && c.max_steer > 0 && c.max_steer <= VC_SW_STEER_MAX,
+		      "no turn on the spot, steer never 0, never over the limit during the detour");
+		sim_never_find = 1;
+		c = sim_bypass(-1, 150, 200, 0, 20, 0, 0);
+		sim_never_find = 0;
+		CHECK("S5-H123i", c.fail_ev && !c.ok && c.turns == 0 && !c.hit,
+		      "line never found again: the 150 mm look ends in BYP_FAIL (car stops, no turn, no hit)");
+		c = sim_bypass(1, 200, 200, 0, 17, 0, 0);
+		CHECK("S5-H123f", c.ok && !c.hit && c.clear_mm >= 20.0 && c.ms < 15000,
+		      "20 cm box, 17 cm away (the M33 set-up): done, clear of the box, under 15 s");
+
+		/* pause in the middle of the curve (stop latch), then go on */
+		vc_init(&v, 0); v.smooth = 1;
+		b = line_in(4, 0); b.phase7 = 1; b.obs_state = 4; b.prof_action = 1; b.prof_shift_cm = 21; b.prof_closest_cm = 30;
+		o = vc_step(&v, &b);
+		for (k = 0; k < 30; k++) { b.odo_mm = (unsigned)(k * 3); o = vc_step(&v, &b); }
+		{
+			unsigned kind0 = v.sw_kind;
+
+			b.motion_state = VC_STATE_INHIBITED;
+			o = vc_step(&v, &b);
+			CHECK("S5-H123g", o.holding && o.mode == VC_MODE_STOP && v.byp_step == 1, "stop latch in the curve: held, the detour is kept");
+			b.motion_state = 1;
+			b.odo_mm = (unsigned)(30 * 3);
+			o = vc_step(&v, &b);
+			o = vc_step(&v, &b);
+			CHECK("S5-H123h", !o.holding && o.mode == VC_MODE_DRIVE && v.sw_kind == kind0 && o.steer != 0,
+			      "released: the same curve goes on from where it was");
 		}
 	}
 

@@ -49,7 +49,7 @@
 					   Each ping costs about 60 ms (HC-SR04 minimum cycle). */
 #define S5_USE_BACKGROUND	1	/* take an empty-track scan at start-up and subtract it.
 					   Needs the track in front of the robot to be CLEAR at power-up. */
-#define S5_BYPASS_LIMIT_MS	15000	/* the detour (turns, sideways, past the obstacle, back to the line) or
+#define S5_BYPASS_LIMIT_MS	20000	/* the detour (turns, sideways, past the obstacle, back to the line) or
 					   the back-away of a retry must finish within this; the clock restarts
 					   when it begins, so the scans before it do not count (NFR31's 5 s is
 					   detection to profile, S5-M09) */

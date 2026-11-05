@@ -18,6 +18,7 @@ static int iabs(int v)
 #define JN_NONE		0u
 #define JN_DRIVE	1u	/* driving on (sensors are ahead of the wheels), or straight over */
 #define JN_TURN		2u	/* turning on the spot */
+#define JN_SWERVE	3u	/* smooth bypass leg (VC_SW_*) */
 
 /* signed distance since a 16-bit odometry mark (mm) */
 static int odo_since(unsigned now, unsigned mark)
@@ -74,6 +75,13 @@ void vc_init(VC_STATE *v, unsigned epoch)
 	v->drv_speed    = 0;
 	v->drv_find     = 0;
 	v->saw_lost     = 0;
+	v->smooth       = VC_BYP_SMOOTH;
+	v->sw_kind      = 0;
+	v->sw_d_mm      = 0;
+	v->sw_psi_d10   = 450;
+	v->sw_lo_mm     = 0;
+	v->sw_lp_mm     = 0;
+	v->sw_back_mm   = 0;
 }
 
 /* The line controller: one cycle. Fills speed and steer. Returns 1 to stop. */
@@ -279,6 +287,212 @@ static void drive_set(VC_STATE *v, int mm, int speed, int find)
 
 static void jn_finish(VC_STATE *v, const VC_IN *in, VC_OUT *o);
 
+/* ---- smooth bypass ---------------------------------------------------------------------- */
+
+/* Heading since the start of the bypass, tenths of a degree, + = clockwise (turn_dir is 1). */
+static int heading_d10(const VC_STATE *v)
+{
+	return (int)(((int64_t)v->turn_arc_um * 573) / ((int64_t)VC_TRACK_MM * 1000));
+}
+
+/* Heading of the curve at distance s along it (magnitude, tenths of a degree):
+   PSI * 4 u (1 - u), 0 at both ends and PSI in the middle. */
+static int sw_mag_d10(int psi_d10, int lo_mm, int s_mm)
+{
+	int64_t u;
+
+	if (lo_mm <= 0) {
+		return 0;
+	}
+	if (s_mm < 0) {
+		s_mm = 0;
+	}
+	if (s_mm > lo_mm) {
+		s_mm = lo_mm;
+	}
+	u = ((int64_t)s_mm * 1000) / lo_mm;
+	return (int)(((int64_t)psi_d10 * 4 * u * (1000 - u)) / 1000000);
+}
+
+static void sw_leg(VC_STATE *v, unsigned kind)
+{
+	v->jn_state = JN_SWERVE;
+	v->sw_kind  = kind;
+	v->jn_on    = 0;
+	v->jn_acc   = 0;
+}
+
+/* Distance driven on this leg in the direction of the leg (mm), including what was driven before a stop */
+static int sw_moved(const VC_STATE *v, const VC_IN *in)
+{
+	int m = odo_since(in->odo_mm, v->jn_odo0);
+
+	if (v->sw_kind == VC_SW_BACK) {
+		m = -m;
+	}
+	return m + (int)v->jn_acc;
+}
+
+/* One cycle of the smooth bypass. Returns 1 when it has filled the command, 0 when the detour is over
+   (line following takes over). */
+static int sw_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
+{
+	int s, len, psi_ref, ff, steer, sg, speed;
+
+	if (!v->jn_on) {
+		v->jn_on   = 1;
+		v->jn_odo0 = in->odo_mm & 0xFFFFu;
+	}
+	s = sw_moved(v, in);
+	if (s < 0) {
+		s = 0;
+	}
+	sg = (v->sw_kind == VC_SW_OUT) ? v->byp_dir : -v->byp_dir;
+	o->mode = VC_MODE_DRIVE;
+
+	if (in->lost) {
+		v->saw_lost = 1;		/* the 'seen' flag is stale until subsystem 3 has noticed */
+	}
+	if (v->sw_kind == VC_SW_RET || v->sw_kind == VC_SW_FIND) {
+		if (in->dt_ms > 0) {
+			if (v->saw_lost && in->line_fresh && !in->lost && in->zone != 0) {
+				v->found_cnt++;
+			} else {
+				v->found_cnt = 0;
+			}
+		}
+		if (v->found_cnt >= VC_SEARCH_FOUND_MSGS &&
+		    (v->sw_kind == VC_SW_FIND || s * 100 >= v->sw_lo_mm * VC_SW_DETECT_PCT)) {
+			v->byp_step = 0;
+			v->sw_kind  = 0;
+			jn_finish(v, in, o);
+			o->event |= VC_EV_BYP_DONE;
+			return 0;
+		}
+	}
+
+	switch (v->sw_kind) {
+	case VC_SW_BACK:
+		if (s >= v->sw_back_mm) {
+			sw_leg(v, VC_SW_OUT);
+			return sw_step(v, in, o);
+		}
+		o->speed = -VC_SW_BACK_SPEED;
+		o->steer = 1;			/* not 0: keeps the S2 straight-line hold off while reversing */
+		return 1;
+	case VC_SW_OUT:
+	case VC_SW_RET:
+		len   = v->sw_lo_mm;
+		speed = VC_SW_SPEED;
+		if (s >= len) {
+			if (v->sw_kind == VC_SW_OUT) {
+				sw_leg(v, VC_SW_PASS);
+				if (v->sw_lp_mm <= 0) {
+					o->event |= VC_EV_BYP_PASSED;
+					o->event |= VC_EV_BYP_RETURN;
+					sw_leg(v, VC_SW_RET);
+				}
+			} else {
+				sw_leg(v, VC_SW_FIND);
+			}
+			return sw_step(v, in, o);
+		}
+		psi_ref = sg * sw_mag_d10(v->sw_psi_d10, len, s);
+		ff = sg * (sw_mag_d10(v->sw_psi_d10, len, s + VC_SW_SLOPE_D) -
+			   sw_mag_d10(v->sw_psi_d10, len, s - VC_SW_SLOPE_D));
+		ff = (int)(((int64_t)ff * speed * 349) / 100000);	/* d(psi)/ds x speed x half the track */
+		break;
+	case VC_SW_PASS:
+		if (s >= v->sw_lp_mm) {
+			o->event |= VC_EV_BYP_PASSED;
+			o->event |= VC_EV_BYP_RETURN;
+			sw_leg(v, VC_SW_RET);
+			return sw_step(v, in, o);
+		}
+		speed = VC_SW_PASS_SPEED;
+		psi_ref = 0;
+		ff = 0;
+		break;
+	default:				/* VC_SW_FIND */
+		if (s >= VC_SW_FIND_MM) {
+			v->byp_step = 0;
+			v->sw_kind  = 0;
+			jn_finish(v, in, o);
+			v->line_gave_up = 1;
+			o->event |= VC_EV_BYP_FAIL | VC_EV_GAVE_UP;
+			return 0;
+		}
+		speed = VC_SW_FIND_SPEED;
+		psi_ref = 0;
+		ff = 0;
+		break;
+	}
+	steer = ff + (VC_SW_KH * (psi_ref - heading_d10(v))) / 10;
+	steer = clamp(steer, VC_SW_STEER_MAX);
+	if (steer == 0) {
+		steer = 1;			/* not 0: keeps the S2 straight-line hold off */
+	}
+	o->speed = speed;
+	o->steer = steer;
+	return 1;
+}
+
+/* Peak headings (tenths of a degree), gentlest first, and K = D / Lo in permille for each */
+static const int vc_sw_psi_d10[VC_SW_NPSI] = { 450, 500, 550, 600 };
+static const int vc_sw_k_pm[VC_SW_NPSI]    = { 488, 533, 575, 614 };
+
+static void sw_begin(VC_STATE *v, const VC_IN *in, VC_OUT *o)
+{
+	int d = (int)in->prof_shift_cm * 10;
+	int lo = 0, gap, back, lp, i;
+
+	if (d > VC_BYP_MAX_LEG_MM) {
+		d = VC_BYP_MAX_LEG_MM;
+	}
+	gap = (int)in->prof_closest_cm * 10 + VC_SW_FRONT_MM;		/* axle to the obstacle */
+	for (i = 0; i < VC_SW_NPSI; i++) {				/* gentlest curve that fits the room */
+		lo = (int)(((int32_t)d * 1000) / vc_sw_k_pm[i]);
+		if (lo < VC_SW_LO_MIN_MM) {
+			lo = VC_SW_LO_MIN_MM;
+		}
+		if (lo > VC_SW_LO_MAX_MM) {
+			lo = VC_SW_LO_MAX_MM;
+		}
+		if (gap * 100 >= lo * VC_SW_RUN_PCT) {
+			break;
+		}
+	}
+	if (i >= VC_SW_NPSI) {						/* even the steepest does not fit: back away */
+		i = VC_SW_NPSI - 1;
+	}
+	back = (lo * VC_SW_RUN_PCT) / 100 - gap;
+	if (back < 0) {
+		back = 0;
+	}
+	if (back > VC_SW_BACK_MAX_MM) {
+		back = VC_SW_BACK_MAX_MM;
+	}
+	lp = gap + back + VC_BYP_DEPTH_MM + VC_BYP_CAR_MM - lo;		/* rear of the car past the obstacle */
+	if (lp < 0) {
+		lp = 0;
+	}
+	if (lp > VC_BYP_MAX_LEG_MM) {
+		lp = VC_BYP_MAX_LEG_MM;
+	}
+	v->sw_psi_d10 = vc_sw_psi_d10[i];
+	v->sw_d_mm    = d;
+	v->sw_lo_mm   = lo;
+	v->sw_lp_mm   = lp;
+	v->sw_back_mm = back;
+	v->byp_step   = 1;
+	v->saw_lost   = 0;
+	v->found_cnt  = 0;
+	v->turn_dir   = 1;			/* heading is kept in turn_arc_um, + = clockwise */
+	v->turn_arc_um = 0;
+	sw_leg(v, (back > 0) ? VC_SW_BACK : VC_SW_OUT);
+	o->event |= VC_EV_BYP_START;
+}
+
 /* Next step of the bypass detour. Returns 1 when a new leg was set up, 0 when the detour is over. */
 static int byp_next(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 {
@@ -416,6 +630,9 @@ static int turn_over(VC_STATE *v, const VC_IN *in, VC_OUT *o)
    filled the command, 0 to go on with line following. */
 static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 {
+	if (v->jn_state == JN_SWERVE) {
+		return sw_step(v, in, o);
+	}
 	if (v->jn_state == JN_NONE) {
 		if (!v->jn_armed && !in->junction &&
 		    odo_since(in->odo_mm, v->jn_rearm_odo) >= VC_JN_REARM_MM) {
@@ -540,6 +757,10 @@ static void byp_begin(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 
 	v->byp_dir  = (in->prof_action == VC_ACT_OBS_RIGHT) ? 1 : -1;
 	v->byp_s_mm = (int)in->prof_shift_cm * 10;
+	if (v->smooth) {
+		sw_begin(v, in, o);
+		return;
+	}
 	f = (int)in->prof_closest_cm * 10 + VC_BYP_DEPTH_MM + VC_BYP_CAR_MM;
 	v->byp_f_mm = (f > VC_BYP_MAX_LEG_MM) ? VC_BYP_MAX_LEG_MM : f;
 	if (v->byp_s_mm > VC_BYP_MAX_LEG_MM) {
@@ -603,7 +824,7 @@ static VC_OUT vc_step_inner(VC_STATE *v, const VC_IN *in0)
 		v->lost_ms   = 0;
 		o.event |= VC_EV_BYP_FAIL;
 	}
-	if (v->jn_state == JN_TURN) {		/* count the angle turned, also while held */
+	if (v->jn_state == JN_TURN || v->jn_state == JN_SWERVE) {	/* count the angle turned, also while held */
 		v->turn_arc_um += (int32_t)(in->wheel_l - in->wheel_r) * (int32_t)in->elapsed_ms;
 	}
 	o.mission_state = mission_of(v, in);
@@ -647,6 +868,16 @@ static VC_OUT vc_step_inner(VC_STATE *v, const VC_IN *in0)
 
 				if (moved > 0) {
 					v->jn_acc += (unsigned)moved;
+				}
+			}
+			if (v->jn_state == JN_SWERVE && v->jn_on) {
+				int m = odo_since(in->odo_mm, v->jn_odo0);
+
+				if (v->sw_kind == VC_SW_BACK) {
+					m = -m;
+				}
+				if (m > 0) {
+					v->jn_acc += (unsigned)m;
 				}
 			}
 			v->jn_on     = 0;		/* drive-on and turn go on with what is left */
