@@ -68,9 +68,11 @@ EXPORT ER subsystem5_init(void)
 		return mbf_obstacle;
 	}
 
-	/* IF-14: supervisor commands from subsystem 1, 1 byte each, room for 4 */
+	/* IF-14: supervisor commands from subsystem 1, 1 byte each, room for 4.
+	   The kernel stores every message as a 4 byte header plus the data rounded up to 4 bytes,
+	   so a 1 byte command takes 8 bytes (found by S5-U10 on the board: 4 * (1 + 4) held only 2). */
 	cmbf.mbfatr = TA_TFIFO;
-	cmbf.bufsz  = 4 * (1 + 4);
+	cmbf.bufsz  = 4 * (4 + 4);
 	cmbf.maxmsz = 1;
 	mbf_sup_cmd = tk_cre_mbf(&cmbf);
 	return (mbf_sup_cmd < E_OK) ? mbf_sup_cmd : E_OK;

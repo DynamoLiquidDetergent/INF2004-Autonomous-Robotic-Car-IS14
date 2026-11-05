@@ -13,10 +13,6 @@
 
 #if APP_TEST
 
-#ifndef S5_TEST_START_DELAY_MS
-#define S5_TEST_START_DELAY_MS	6000	/* ms after boot before the S5-U tests print */
-#endif
-
 EXPORT void subsystem5_test(void)
 {
 	TEST_INIT();
@@ -25,9 +21,8 @@ EXPORT void subsystem5_test(void)
 	uint8_t seq = 0;
 	UINT got = 0;
 
-	/* let obstacle_detect_task run its driver init first, and give the serial monitor on the PC
-	   time to connect after a reset or a power-up so the S5-U lines are not printed unseen */
-	tk_dly_tsk(S5_TEST_START_DELAY_MS);
+	/* let obstacle_detect_task run its driver init first */
+	tk_dly_tsk(500);
 
 	TEST_CHECK("S5-U01", tk_get_tid() > 0, "running in a task context");
 
@@ -72,22 +67,22 @@ EXPORT void subsystem5_test(void)
 	/* IF-14: the supervisor command buffer takes 1-byte messages in order */
 	{
 		UB b, r = 0;
-		UB cmds[3] = { SUP_CMD_PAUSE, SUP_CMD_RESUME | SUP_LINK_UP, SUP_CMD_ABORT };
+		UB cmds[4] = { SUP_CMD_PAUSE, SUP_CMD_RESUME | SUP_LINK_UP, SUP_CMD_PAUSE, SUP_CMD_ABORT };
 		INT i, ok = 1;
 
 		while (tk_rcv_mbf(mbf_sup_cmd, &b, TMO_POL) > 0) { }
-		for (i = 0; i < 3; i++) {
+		for (i = 0; i < 4; i++) {
 			if (tk_snd_mbf(mbf_sup_cmd, &cmds[i], 1, TMO_POL) != E_OK) {
 				ok = 0;
 			}
 		}
-		for (i = 0; i < 3; i++) {
+		for (i = 0; i < 4; i++) {
 			if (tk_rcv_mbf(mbf_sup_cmd, &r, TMO_POL) != 1 || r != cmds[i]) {
 				ok = 0;
 			}
 		}
 		TEST_CHECK("S5-U10", mbf_sup_cmd > 0 && ok,
-			   "IF-14 buffer exists and returns three 1-byte commands in order");
+			   "IF-14 buffer exists and holds four 1-byte commands, returned in order");
 	}
 
 	TEST_SUMMARY("subsystem5");
