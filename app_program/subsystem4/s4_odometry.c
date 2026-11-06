@@ -74,6 +74,7 @@ void s4_height_step(s4_height_t *h,const s4_odometry_t *o,
         h->active=true;h->chain_valid=true;h->moved=false;
         h->saw_climbing=false;h->start_ms=ms;
         h->current_mm=0.0F;h->peak_mm=0.0F;
+        h->interpolated_samples=0U;h->max_interpolated_us=0U;
         h->last_valid=false;h->last_mm=0.0F;h->reason=S4_HEIGHT_OK;
     }
     if(h->active&&(state==S4_CLIMBING)){h->saw_climbing=true;}
@@ -141,6 +142,46 @@ void s4_height_step(s4_height_t *h,const s4_odometry_t *o,
         }
         else if(h->reason==S4_HEIGHT_OK){h->reason=S4_HEIGHT_NO_MOVEMENT;}
         h->active=false;
+    }
+}
+void s4_height_step_quality(s4_height_t *h,const s4_odometry_t *o,
+                    const s4_orientation_t *a,uint8_t quality,bool clock_ok,
+                    uint32_t us,uint32_t ms,uint8_t state,float exit_deg,
+                    bool completed,bool aborted)
+{
+    uint32_t skipped=h->pending_samples, gap=0U, age=0U;
+    bool deferrable=(quality==S4_IMU_WAIT)||(quality==S4_IMU_DYNAMIC);
+    bool endpoint=(quality==S4_IMU_GOOD)&&a->orientation_valid;
+    bool was_valid=h->have_previous&&(!h->active||h->chain_valid);
+    if(h->have_previous){gap=interval(o,&h->previous);}
+    if(o->clock_format==S4_ODOM_MS16)
+    {age=(uint32_t)(uint16_t)((uint16_t)ms-(uint16_t)o->timestamp)*1000U;}
+    else {age=us-o->timestamp;}
+    /* Defer only: no rejected angle is consumed and no distance is invented.
+     * A later qualified endpoint must arrive within max_gap_us. The strict
+     * estimator below still verifies that full endpoint interval and distance.
+     * An I/O error/saturation/impact is a hard failure, even for one sample. */
+    if(deferrable&&was_valid&&clock_ok&&o->valid&&o->forward&&
+       state!=S4_FAULT&&!aborted&&!completed&&
+       o->clock_format==h->previous.clock_format&&age<=h->max_age_us&&
+       gap<h->max_gap_us&&
+       (uint32_t)(ms-h->previous_receipt_ms)<h->max_gap_us/1000U&&
+       (uint16_t)(o->distance_mm-h->previous.distance_mm)<=h->max_step_mm&&
+       (gap!=0U||o->distance_mm==h->previous.distance_mm)&&
+       (!h->active||(uint32_t)(ms-h->start_ms)<=h->max_candidate_ms))
+    {
+        ++h->pending_samples;h->odometry_valid=false;return;
+    }
+    h->pending_samples=0U;
+    s4_height_step(h,o,a,endpoint,clock_ok,us,ms,state,exit_deg,completed,aborted);
+    if(endpoint&&skipped!=0U&&was_valid&&h->chain_valid&&h->odometry_valid)
+    {
+        if(gap!=0U&&h->previous_receipt_ms==ms)
+        {
+            h->interpolated_samples+=skipped;
+            if(gap>h->max_interpolated_us){h->max_interpolated_us=gap;}
+        }
+        else {h->pending_samples=skipped;} /* duplicate odometry did not close the interval */
     }
 }
 const char *s4_height_reason_name(uint8_t reason)

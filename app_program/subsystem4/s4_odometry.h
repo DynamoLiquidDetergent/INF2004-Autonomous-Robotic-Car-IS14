@@ -32,6 +32,7 @@ typedef struct
     s4_odometry_t previous;
     uint32_t previous_receipt_ms, start_ms;
     float previous_sine, current_mm, peak_mm, last_mm, highest_mm;
+    uint32_t interpolated_samples, max_interpolated_us, pending_samples;
     uint8_t reason;
     bool have_previous, baseline_ready, active, chain_valid;
     bool saw_climbing, moved, odometry_valid, last_valid, highest_valid;
@@ -43,6 +44,16 @@ void s4_height_init(s4_height_t *height);
 void s4_odometry_decode_word(uint32_t word,bool forward,s4_odometry_t *out);
 void s4_height_step(s4_height_t *height,const s4_odometry_t *odometry,
                     const s4_orientation_t *orientation,bool imu_fresh,
+                    bool timebase_consistent,uint32_t now_us,uint32_t now_ms,
+                    uint8_t terrain_state,float level_exit_deg,
+                    bool completed,bool aborted);
+/* Quality is explicit: I/O errors, saturation and impacts must never be bridged.
+ * WAIT/DYNAMIC may defer an interval, using only qualified endpoint angles,
+ * within the existing 60 ms gap and 50 mm distance guards. Counts are local
+ * diagnostic metadata, not additions to the agreed packed wire interface. */
+enum { S4_IMU_GOOD=0, S4_IMU_WAIT, S4_IMU_DYNAMIC, S4_IMU_FAULT };
+void s4_height_step_quality(s4_height_t *height,const s4_odometry_t *odometry,
+                    const s4_orientation_t *orientation,uint8_t quality,
                     bool timebase_consistent,uint32_t now_us,uint32_t now_ms,
                     uint8_t terrain_state,float level_exit_deg,
                     bool completed,bool aborted);
