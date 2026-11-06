@@ -36,8 +36,8 @@ IMPORT ID q_barcode_cmd;
 // IF-08: Safety Monitor event-flag group (owned by Buddy 5). Buddy 3 sets S3_FAULT_BIT on debounced LINE_LOST outside bypass; Safety Monitor reads and clears it — S3 never clears this flag
 IMPORT ID flg_fault_i14;
 
-// Bit inside flg_fault_i14 that belongs to S3. (1u << 2) = bit 2; confirm with S5 owner
-#define S3_FAULT_BIT   (1u << 2)
+// S5 allocation: bit 1 = line sensor; bit 2 = IMU. Keep owners distinct.
+#define S3_FAULT_BIT   (1u << 1)
 
 // line_data_pack() packs the zone (0–7), junction flag and line-lost flag into one byte. The following constants define the bit layout of that byte.
 typedef uint8_t LINE_DATA_MSG;

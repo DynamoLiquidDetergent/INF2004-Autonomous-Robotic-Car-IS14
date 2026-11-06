@@ -18,6 +18,8 @@
 #include "../subsystem2/subsystem2.h"	/* IF-10, IF-16, IF-17 */
 #include "../subsystem3/subsystem3.h"	/* IF-05, calibration */
 #include "../subsystem1/subsystem1.h"	/* IF-13 */
+#include "../subsystem4/s4_integration.h"
+#include "../subsystem4/s4_bench_stop.h"
 
 #if S5_PHASE >= 6
 
@@ -81,7 +83,7 @@ LOCAL void send_status(UINT ms, UW run_ms, UINT barcodes, UINT last_action, INT 
 	si.letter        = letter;		/* 0 = A .. 25 = Z, -1 none yet */
 	si.last_action   = last_action;
 	si.barcodes      = barcodes;
-	si.hump_mm       = -1;			/* subsystem 4 has no hump interface yet */
+	si.hump_mm       = subsystem4_highest_hump_mm();
 	vc_status_fill(&si, &vs);
 
 	st.mission_time_ds = (uint16_t)vs.mission_time_ds;
@@ -192,6 +194,10 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 	UW		start, now, last_data, last_step, last_print, st;
 	UINT		last_state = 0xFFFFu;
 	INT		rc;
+#if S4_POWERED_BENCH_KIND
+	s4_bench_stop_t height_bench;
+	int height_bench_announced = 0;
+#endif
 	int		last_hold = 0;
 	int		last_creep = 0;
 	int		done_sent = 0;
@@ -224,6 +230,12 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 	start = last_data = last_step = last_print = last_vc = now_ms();
 	in.ready      = 1;
 	in.auto_start = VC_AUTO_START;
+#if S4_POWERED_BENCH_KIND
+	s4_bench_stop_init(&height_bench,S4_POWERED_BENCH_KIND,start,
+		(uint16_t)s2_odo_dist_mm(s2_get_odometry()),subsystem4_completed_humps());
+	tm_printf((UB*)"S4_BENCH START kind=%u odo_mm=%u humps=%u\n",
+		(UINT)height_bench.kind,(UINT)height_bench.start_mm,(UINT)height_bench.start_humps);
+#endif
 #if VC_AUTO_START
 	tm_printf((UB*)"vc: following the line at up to %d mm/s (starts by itself; VC_AUTO_START 0 waits for RESUME)\n",
 		  VC_LF_SPEED);
@@ -325,6 +337,18 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 				  (in.sup_cmd == VC_SUP_RESUME) ? "RESUME" : "ABORT");
 		}
 
+#if S4_POWERED_BENCH_KIND
+		/* Test image only. Keep the sole motion sender and normal Safety path.
+		 * ABORT is latched by vc_step(); reset is required for the next run. */
+		if (!height_bench_announced && s4_bench_stop_step(&height_bench,now,
+			(uint16_t)in.odo_mm,subsystem4_completed_humps())) {
+			in.sup_cmd = VC_SUP_ABORT;
+			height_bench_announced = 1;
+			tm_printf((UB*)"S4_BENCH STOP kind=%u reason=%s odo_mm=%u humps=%u\n",
+				(UINT)height_bench.kind,s4_bench_stop_reason(height_bench.reason),
+				(UINT)in.odo_mm,(UINT)subsystem4_completed_humps());
+		}
+#endif
 		/* the line controller only advances on a new line message (dt_ms > 0);
 		   in between the previous answer stays valid */
 		if (in.dt_ms > 0 || !in.line_fresh || in.obs_state != 0 ||

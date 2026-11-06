@@ -16,6 +16,12 @@
 
 #include "subsystem5.h"
 #include "../subsystem2/subsystem2.h"	/* subsystem2_bind_safety() */
+#include "../subsystem3/subsystem3.h"
+#include "../subsystem4/s4_integration.h"
+
+#if S3_FAULT_BIT != FLT_LINE_BIT || FLT_IMU_BIT == FLT_LINE_BIT
+#error Fault owners must use separate bits in the existing S5 event group
+#endif
 
 EXPORT ID		flg_fault_i14;
 EXPORT ID		flg_s5_ctrl;
@@ -26,6 +32,7 @@ EXPORT ER subsystem5_init(void)
 {
 	T_CFLG	cflg = {0};
 	T_CMBF	cmbf = {0};
+	ER er;
 
 	/* Fault flags: starts with every bit clear. Several tasks set bits,
 	   one task (the Safety Monitor) waits and clears. */
@@ -34,6 +41,12 @@ EXPORT ER subsystem5_init(void)
 	flg_fault_i14 = tk_cre_flg(&cflg);
 	if (flg_fault_i14 < E_OK) {
 		return flg_fault_i14;
+	}
+	/* i19/IF-17: bind copied S2 odometry before either core starts S4.
+	 * i14/IF-12: S4 sets only the IMU bit of this existing group. */
+	er = subsystem4_connect_motion(flg_fault_i14, FLT_IMU_BIT);
+	if (er != E_OK) {
+		return er;
 	}
 
 	/* Control flags into Obstacle Detection. In stand-alone bench mode the

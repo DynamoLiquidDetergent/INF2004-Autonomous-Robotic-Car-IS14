@@ -1,0 +1,121 @@
+{
+  "record_type": "reviewed functional subset of saved bench run; not a new physical test",
+  "run": "2026-10-28_180316",
+  "code_commit": "31a6b57ff01590cfad904c9e6d387c997ab0412c",
+  "tester": "Bryan",
+  "tester_entry_as_recorded": "Bryan'",
+  "started_singapore": "2026-10-28T18:03:45.312566+08:00",
+  "finished_singapore": "2026-10-28T18:09:47.423695+08:00",
+  "scope": [
+    "level calibration",
+    "pitch direction",
+    "roll direction",
+    "startup movement rejection and recovery"
+  ],
+  "result": "PASS",
+  "host": "PASS",
+  "build": "PASS",
+  "calibration": "PASS",
+  "pitch_sign": "PASS",
+  "roll_sign": "PASS",
+  "startup_movement_rejection": "PASS",
+  "calibration_after_movement": "PASS",
+  "observations": {
+    "level_startup": {
+      "paired_rows": 30,
+      "fresh_successful_rows": 30,
+      "calibrated_rows": 16,
+      "uncalibrated_rows": 14,
+      "read_error_rows": 0,
+      "max_missed": 0,
+      "mean_pitch_deg": 0.236,
+      "std_pitch_deg": 0.552,
+      "mean_roll_deg": 0.069,
+      "std_roll_deg": 0.543
+    },
+    "front_up": {
+      "paired_rows": 12,
+      "fresh_successful_rows": 12,
+      "calibrated_rows": 12,
+      "uncalibrated_rows": 0,
+      "read_error_rows": 0,
+      "max_missed": 0,
+      "mean_pitch_deg": 17.237,
+      "std_pitch_deg": 0.474,
+      "mean_roll_deg": -11.528,
+      "std_roll_deg": 0.228,
+      "operator_confirmed_steady": true
+    },
+    "front_down": {
+      "paired_rows": 12,
+      "fresh_successful_rows": 12,
+      "calibrated_rows": 12,
+      "uncalibrated_rows": 0,
+      "read_error_rows": 0,
+      "max_missed": 0,
+      "mean_pitch_deg": -20.909,
+      "std_pitch_deg": 1.984,
+      "mean_roll_deg": -3.087,
+      "std_roll_deg": 0.618,
+      "operator_confirmed_steady": true
+    },
+    "left_side_up": {
+      "paired_rows": 12,
+      "fresh_successful_rows": 12,
+      "calibrated_rows": 12,
+      "uncalibrated_rows": 0,
+      "read_error_rows": 0,
+      "max_missed": 0,
+      "mean_pitch_deg": -15.285,
+      "std_pitch_deg": 0.521,
+      "mean_roll_deg": 23.206,
+      "std_roll_deg": 0.436,
+      "operator_confirmed_steady": true
+    },
+    "right_side_up": {
+      "paired_rows": 12,
+      "fresh_successful_rows": 12,
+      "calibrated_rows": 12,
+      "uncalibrated_rows": 0,
+      "read_error_rows": 0,
+      "max_missed": 0,
+      "mean_pitch_deg": -13.403,
+      "std_pitch_deg": 0.246,
+      "mean_roll_deg": -19.256,
+      "std_roll_deg": 0.139,
+      "operator_confirmed_steady": true
+    },
+    "moving_during_startup": {
+      "paired_rows": 15,
+      "fresh_successful_rows": 15,
+      "calibrated_rows": 0,
+      "uncalibrated_rows": 15,
+      "read_error_rows": 0,
+      "max_missed": 0
+    },
+    "calibration_after_movement": {
+      "paired_rows": 24,
+      "fresh_successful_rows": 24,
+      "calibrated_rows": 23,
+      "uncalibrated_rows": 1,
+      "read_error_rows": 0,
+      "max_missed": 0,
+      "mean_pitch_deg": -0.036,
+      "std_pitch_deg": 0.206,
+      "mean_roll_deg": -0.027,
+      "std_roll_deg": 0.176
+    }
+  },
+  "evidence": {
+    "host": "2026-10-28_180316_phase3_host.txt",
+    "build": "2026-10-28_180316_phase3_build.txt",
+    "console": "2026-10-28_180316_phase3_sensor.txt"
+  },
+  "firmware_sha256": "246d3d0ae7fff8d7e526c5a144d6021d3341ba8e0610b92a92c0c1c33425ebd7",
+  "source_summary_sha256": "efad2fb77a291cb67206da88bd8c80efe87e2611e8af77b126688302e445c540",
+  "source_summary_preserved_outside_repository": true,
+  "other_console_test_failures": [
+    "[TEST] INT-01 FAIL  samples flow from subsystem 2 to subsystem 3   (../app_program/subsystem3/subsystem3_test.c:34)"
+  ],
+  "measurement_note": "Recorded sensor readings and pose labels are unchanged. PASS applies only to the listed functional checks; no numerical accuracy or all-features certification is claimed."
+}

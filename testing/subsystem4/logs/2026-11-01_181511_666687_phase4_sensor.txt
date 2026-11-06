@@ -1,0 +1,315 @@
+Firmware checkpoint: a522381353bd23f30b08a2e8be5cbfeffa4014cf
+Tester: Bryan
+UF2 SHA256: 6de61bbf64a14e97084a23d6aa1f60839446b549e248a2c5bff0735d55b57896
+
+--- startup 2026-11-01T18:15:55.011648+08:00 ---
+[2026-11-01T18:15:55.615254+08:00] S4 t_us=1118948 state=CALIBRATING motion=UNCLASSIFIED calibrated=0 valid=0 fresh=1 rc=0 pitch_md=0 roll_md=0 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:15:55.705670+08:00] [TEST] S1-U02 PASS  LED task sleeps between ticks
+[2026-11-01T18:15:55.707447+08:00] [TEST] subsystem1 SUMMARY 2 passed, 0 failed
+[2026-11-01T18:15:55.733495+08:00] [TEST] S2-U01 PASS  sample values stay within 0..100
+[2026-11-01T18:15:55.737045+08:00] [TEST] S2-U02 PASS  free slots and free blocks within pool size
+[2026-11-01T18:15:55.738643+08:00] [TEST] subsystem2 SUMMARY 2 passed, 0 failed
+[2026-11-01T18:15:56.608123+08:00] S4 t_us=2118931 state=CALIBRATING motion=UNCLASSIFIED calibrated=0 valid=0 fresh=1 rc=0 pitch_md=0 roll_md=0 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:15:56.665990+08:00] S4 t_us=2178927 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=57 roll_md=-10 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:15:57.612399+08:00] S4 t_us=3118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=12 roll_md=-42 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:15:57.708618+08:00] [TEST] INT-01 PASS  samples flow from subsystem 2 to subsystem 3
+[2026-11-01T18:15:57.708618+08:00] [TEST] S3-U01 PASS  min <= max, both within 0..100
+[2026-11-01T18:15:57.708618+08:00] [TEST] subsystem3 SUMMARY 2 passed, 0 failed
+[2026-11-01T18:15:57.708618+08:00] [TEST] S4-U03 PASS  IMU task exists at priority 18; no hardware yet
+[2026-11-01T18:15:57.708618+08:00] [TEST] subsystem4 SUMMARY 1 passed, 0 failed
+[2026-11-01T18:15:57.717105+08:00] [TEST] S5-U01 PASS  example: running in a task context
+[2026-11-01T18:15:57.717105+08:00] [TEST] subsystem5 SUMMARY 1 passed, 0 failed
+[2026-11-01T18:15:57.717105+08:00] [TEST] === test run end ===
+[2026-11-01T18:15:58.611907+08:00] S4 t_us=4118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-29 roll_md=-110 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+
+--- flat_preparation 2026-11-01T18:15:58.654425+08:00 ---
+[2026-11-01T18:15:59.607233+08:00] S4 t_us=5118931 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=73 roll_md=54 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:00.611570+08:00] S4 t_us=6118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-31 roll_md=-175 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:01.608605+08:00] S4 t_us=7118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=84 roll_md=350 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+
+--- flat_baseline 2026-11-01T18:16:01.692217+08:00 ---
+[2026-11-01T18:16:02.606798+08:00] S4 t_us=8118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=23 roll_md=135 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:03.611086+08:00] S4 t_us=9119046 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-202 roll_md=248 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:04.611000+08:00] S4 t_us=10118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-171 roll_md=304 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:05.607900+08:00] S4 t_us=11118926 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-14 roll_md=646 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:06.611033+08:00] S4 t_us=12118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-84 roll_md=698 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:07.611072+08:00] S4 t_us=13118922 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-116 roll_md=805 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:08.606788+08:00] S4 t_us=14118927 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=65 roll_md=796 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:09.606735+08:00] S4 t_us=15118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-52 roll_md=706 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:10.609910+08:00] S4 t_us=16118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-24 roll_md=760 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:11.610438+08:00] S4 t_us=17118922 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=154 roll_md=974 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:12.614716+08:00] S4 t_us=18118939 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=95 roll_md=1148 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:13.608853+08:00] S4 t_us=19118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=59 roll_md=1430 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:14.608954+08:00] S4 t_us=20118927 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=34 roll_md=1321 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:15.607092+08:00] S4 t_us=21118927 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=156 roll_md=1379 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:16.611157+08:00] S4 t_us=22118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=176 roll_md=1591 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:17.608508+08:00] S4 t_us=23118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-60 roll_md=1906 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:18.606586+08:00] S4 t_us=24118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-82 roll_md=1501 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:19.605975+08:00] S4 t_us=25118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=173 roll_md=1777 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:20.605949+08:00] S4 t_us=26118921 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=171 roll_md=1887 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:21.613507+08:00] S4 t_us=27118935 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=10 roll_md=1589 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:22.609624+08:00] S4 t_us=28118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=160 roll_md=1894 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:23.611263+08:00] S4 t_us=29118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-255 roll_md=1958 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:24.610837+08:00] S4 t_us=30118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-31 roll_md=1833 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:25.610684+08:00] S4 t_us=31118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-93 roll_md=2018 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:26.607273+08:00] S4 t_us=32118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-85 roll_md=1732 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:27.608033+08:00] S4 t_us=33118927 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=110 roll_md=1919 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:28.609443+08:00] S4 t_us=34118921 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-4 roll_md=1975 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:29.608936+08:00] S4 t_us=35118927 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=34 roll_md=1917 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:30.611249+08:00] S4 t_us=36118933 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-97 roll_md=2039 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:31.605843+08:00] S4 t_us=37118922 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-62 roll_md=2286 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+
+--- operator_confirmation 2026-11-01T18:16:31.703641+08:00 ---
+[2026-11-01T18:16:32.605563+08:00] S4 t_us=38118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=332 roll_md=2041 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:33.605380+08:00] S4 t_us=39118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-65 roll_md=2194 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:34.610628+08:00] S4 t_us=40119053 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=121 roll_md=2019 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+
+--- operator_setup 2026-11-01T18:16:34.924424+08:00 ---
+[2026-11-01T18:16:35.605753+08:00] S4 t_us=41118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=223 roll_md=1613 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:36.611873+08:00] S4 t_us=42118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=2534 roll_md=-2490 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:37.605795+08:00] S4 t_us=43118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-1280 roll_md=456 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:38.610603+08:00] S4 t_us=44118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=147 roll_md=-1258 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:39.608179+08:00] S4 t_us=45118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=106 roll_md=2033 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:40.608333+08:00] S4 t_us=46118922 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1833 roll_md=331 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:41.613257+08:00] S4 t_us=47118928 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=3640 roll_md=-218 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:42.606773+08:00] S4 t_us=48118922 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=4103 roll_md=-1297 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:43.606425+08:00] S4 t_us=49118936 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-756 roll_md=1206 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:44.611310+08:00] S4 t_us=50118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-687 roll_md=412 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:45.608602+08:00] S4 t_us=51118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-349 roll_md=523 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:46.603601+08:00] S4 t_us=52118922 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-783 roll_md=765 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:47.606564+08:00] S4 t_us=53118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=0 fresh=0 rc=0 pitch_md=-525 roll_md=591 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:48.611133+08:00] S4 t_us=54118926 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-589 roll_md=454 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:49.608046+08:00] S4 t_us=55118921 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-690 roll_md=436 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:50.606564+08:00] S4 t_us=56118921 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-616 roll_md=761 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:51.609006+08:00] S4 t_us=57118926 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-726 roll_md=772 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:52.608134+08:00] S4 t_us=58118932 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-702 roll_md=491 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:53.609304+08:00] S4 t_us=59118927 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-900 roll_md=904 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:54.607705+08:00] S4 t_us=60118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=666 roll_md=562 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:55.609891+08:00] S4 t_us=61118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-922 roll_md=-858 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:56.608623+08:00] S4 t_us=62118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=2535 roll_md=-565 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:56.829985+08:00] S4 t_us=62338922 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=9835 roll_md=-854 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:57.609268+08:00] S4 t_us=63118923 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=3429 roll_md=-2036 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:58.050818+08:00] S4 t_us=63558925 state=DESCENDING motion=DESCENDING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-16235 roll_md=-1623 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:58.308673+08:00] S4 t_us=63818922 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-257 roll_md=-1857 impact=0 hump=1 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:58.612170+08:00] S4 t_us=64118926 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=973 roll_md=-446 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:16:59.607904+08:00] S4 t_us=65118922 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-1303 roll_md=244 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:00.607100+08:00] S4 t_us=66118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-1096 roll_md=671 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:01.610431+08:00] S4 t_us=67118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-1142 roll_md=665 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:02.617181+08:00] S4 t_us=68118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-1070 roll_md=694 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:03.609140+08:00] S4 t_us=69118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-980 roll_md=589 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:04.612297+08:00] S4 t_us=70118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-1356 roll_md=511 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:05.610391+08:00] S4 t_us=71119047 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-941 roll_md=362 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:06.609826+08:00] S4 t_us=72118922 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-1138 roll_md=547 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:07.610553+08:00] S4 t_us=73118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-1007 roll_md=527 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:08.610494+08:00] S4 t_us=74118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-1438 roll_md=942 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:09.609604+08:00] S4 t_us=75118921 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-1261 roll_md=529 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:10.609877+08:00] S4 t_us=76118929 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-1375 roll_md=174 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:11.605280+08:00] S4 t_us=77118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-740 roll_md=596 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:12.605487+08:00] S4 t_us=78118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-1165 roll_md=607 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+
+--- hump_1_preparation 2026-11-01T18:17:13.185036+08:00 ---
+[2026-11-01T18:17:13.610683+08:00] S4 t_us=79118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-1121 roll_md=302 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:14.611287+08:00] S4 t_us=80118936 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-1297 roll_md=269 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:15.608137+08:00] S4 t_us=81118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=2216 roll_md=-423 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+
+--- hump_1_up 2026-11-01T18:17:15.702248+08:00 ---
+[2026-11-01T18:17:16.311676+08:00] S4 t_us=81818924 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=23046 roll_md=-450 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:16.606659+08:00] S4 t_us=82118925 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=23794 roll_md=-629 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+
+--- hump_1_crest 2026-11-01T18:17:17.522812+08:00 ---
+[2026-11-01T18:17:17.607813+08:00] S4 t_us=83118926 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=5698 roll_md=422 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+
+--- hump_1_down 2026-11-01T18:17:18.333135+08:00 ---
+[2026-11-01T18:17:18.609269+08:00] S4 t_us=84118924 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-280 roll_md=936 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:18.929251+08:00] S4 t_us=84438924 state=DESCENDING motion=DESCENDING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-13701 roll_md=-274 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:19.609802+08:00] S4 t_us=85118922 state=DESCENDING motion=DESCENDING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-18040 roll_md=-672 impact=0 hump=0 aborted=0 humps=1 impacts=0 aborts=0 max_us=4076 missed=0
+
+--- hump_1_finish 2026-11-01T18:17:20.158544+08:00 ---
+[2026-11-01T18:17:20.288834+08:00] S4 t_us=85798925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-620 roll_md=1095 impact=0 hump=1 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:20.611068+08:00] S4 t_us=86118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=322 roll_md=1084 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:21.611161+08:00] S4 t_us=87118928 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-39 roll_md=1033 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:22.611348+08:00] S4 t_us=88118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=528 roll_md=888 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+
+--- operator_confirmation 2026-11-01T18:17:22.690673+08:00 ---
+[2026-11-01T18:17:23.607035+08:00] S4 t_us=89118934 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=20 roll_md=1303 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:24.608218+08:00] S4 t_us=90118926 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-1032 roll_md=2159 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:25.605306+08:00] S4 t_us=91118926 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-1379 roll_md=2060 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:26.608871+08:00] S4 t_us=92118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-1760 roll_md=1930 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:27.607605+08:00] S4 t_us=93118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=851 roll_md=1494 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:28.606334+08:00] S4 t_us=94118927 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1072 roll_md=-136 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:29.608139+08:00] S4 t_us=95118926 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-253 roll_md=92 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:30.604653+08:00] S4 t_us=96118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=639 roll_md=1081 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:31.609048+08:00] S4 t_us=97118926 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1450 roll_md=292 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:32.605519+08:00] S4 t_us=98118931 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1721 roll_md=1242 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:33.608502+08:00] S4 t_us=99118927 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=2065 roll_md=-144 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:34.605860+08:00] S4 t_us=100118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1984 roll_md=-379 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:35.610652+08:00] S4 t_us=101118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1912 roll_md=-2337 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+
+--- operator_setup 2026-11-01T18:17:36.402307+08:00 ---
+[2026-11-01T18:17:36.610800+08:00] S4 t_us=102119050 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=664 roll_md=829 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:37.609741+08:00] S4 t_us=103118922 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=598 roll_md=409 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:38.606972+08:00] S4 t_us=104118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=527 roll_md=123 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:39.610664+08:00] S4 t_us=105118927 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=504 roll_md=748 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+
+--- hump_2_preparation 2026-11-01T18:17:40.271667+08:00 ---
+[2026-11-01T18:17:40.607895+08:00] S4 t_us=106118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=612 roll_md=584 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:41.605872+08:00] S4 t_us=107118928 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=2282 roll_md=851 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:42.031357+08:00] S4 t_us=107538924 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=21682 roll_md=-850 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:42.611280+08:00] S4 t_us=108118920 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=17784 roll_md=-701 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:43.608190+08:00] S4 t_us=109118924 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1443 roll_md=1566 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:44.609474+08:00] S4 t_us=110118922 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1978 roll_md=1521 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:45.609626+08:00] S4 t_us=111118931 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1637 roll_md=1424 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:46.609862+08:00] S4 t_us=112118926 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1769 roll_md=1287 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:47.605827+08:00] S4 t_us=113118923 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1971 roll_md=823 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:48.604523+08:00] S4 t_us=114118923 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1818 roll_md=1021 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:49.613096+08:00] S4 t_us=115118923 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1618 roll_md=1132 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:50.606845+08:00] S4 t_us=116118930 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1813 roll_md=895 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:51.607966+08:00] S4 t_us=117118922 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1952 roll_md=890 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=0 max_us=4076 missed=0
+[2026-11-01T18:17:52.049931+08:00] S4 t_us=117558924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1941 roll_md=940 impact=0 hump=0 aborted=1 humps=2 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:17:52.610223+08:00] S4 t_us=118118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=2071 roll_md=1185 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:17:53.608028+08:00] S4 t_us=119118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1852 roll_md=1144 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=1 max_us=4076 missed=0
+
+--- hump_2_up 2026-11-01T18:17:53.632351+08:00 ---
+[2026-11-01T18:17:54.307677+08:00] S4 t_us=119818928 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=9583 roll_md=-450 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:17:54.610557+08:00] S4 t_us=120118929 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=16179 roll_md=-810 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=1 max_us=4076 missed=0
+
+--- hump_2_crest 2026-11-01T18:17:55.454058+08:00 ---
+[2026-11-01T18:17:55.605021+08:00] S4 t_us=121118923 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=12403 roll_md=-1189 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=1 max_us=4076 missed=0
+
+--- hump_2_down 2026-11-01T18:17:56.365071+08:00 ---
+[2026-11-01T18:17:56.609814+08:00] S4 t_us=122118926 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-147 roll_md=864 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:17:56.903569+08:00] S4 t_us=122418925 state=DESCENDING motion=DESCENDING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-10848 roll_md=141 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:17:57.601951+08:00] S4 t_us=123118921 state=DESCENDING motion=DESCENDING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-7066 roll_md=999 impact=0 hump=0 aborted=0 humps=2 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:17:57.748820+08:00] S4 t_us=123258928 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-338 roll_md=1286 impact=0 hump=1 aborted=0 humps=3 impacts=0 aborts=1 max_us=4076 missed=0
+
+--- hump_2_finish 2026-11-01T18:17:58.186612+08:00 ---
+[2026-11-01T18:17:58.607632+08:00] S4 t_us=124118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=786 roll_md=1039 impact=0 hump=0 aborted=0 humps=3 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:17:59.610604+08:00] S4 t_us=125118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1559 roll_md=1009 impact=0 hump=0 aborted=0 humps=3 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:00.605086+08:00] S4 t_us=126118927 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1306 roll_md=899 impact=0 hump=0 aborted=0 humps=3 impacts=0 aborts=1 max_us=4076 missed=0
+
+--- operator_confirmation 2026-11-01T18:18:00.725872+08:00 ---
+[2026-11-01T18:18:01.604932+08:00] S4 t_us=127118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1393 roll_md=901 impact=0 hump=0 aborted=0 humps=3 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:02.607160+08:00] S4 t_us=128118922 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-372 roll_md=1367 impact=0 hump=0 aborted=0 humps=3 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:03.610651+08:00] S4 t_us=129118929 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-154 roll_md=1130 impact=0 hump=0 aborted=0 humps=3 impacts=0 aborts=1 max_us=4076 missed=0
+
+--- operator_setup 2026-11-01T18:18:03.772750+08:00 ---
+[2026-11-01T18:18:04.605117+08:00] S4 t_us=130118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-99 roll_md=880 impact=0 hump=0 aborted=0 humps=3 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:05.610062+08:00] S4 t_us=131118926 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=878 roll_md=397 impact=0 hump=0 aborted=0 humps=3 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:06.612638+08:00] S4 t_us=132118926 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=598 roll_md=209 impact=0 hump=0 aborted=0 humps=3 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:07.610231+08:00] S4 t_us=133119053 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1221 roll_md=-845 impact=0 hump=0 aborted=0 humps=3 impacts=0 aborts=1 max_us=4076 missed=0
+
+--- hump_3_preparation 2026-11-01T18:18:08.281584+08:00 ---
+[2026-11-01T18:18:08.604617+08:00] S4 t_us=134118927 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=123 roll_md=-192 impact=0 hump=0 aborted=0 humps=3 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:09.609688+08:00] S4 t_us=135118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1477 roll_md=355 impact=0 hump=0 aborted=0 humps=3 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:10.611350+08:00] S4 t_us=136118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=2257 roll_md=1205 impact=0 hump=0 aborted=0 humps=3 impacts=0 aborts=1 max_us=4076 missed=0
+
+--- hump_3_up 2026-11-01T18:18:10.708878+08:00 ---
+[2026-11-01T18:18:11.328149+08:00] S4 t_us=136839045 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=16486 roll_md=-482 impact=0 hump=0 aborted=0 humps=3 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:11.607435+08:00] S4 t_us=137118919 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=18229 roll_md=-476 impact=0 hump=0 aborted=0 humps=3 impacts=0 aborts=1 max_us=4076 missed=0
+
+--- hump_3_crest 2026-11-01T18:18:12.531240+08:00 ---
+[2026-11-01T18:18:12.605378+08:00] S4 t_us=138118928 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=7647 roll_md=411 impact=0 hump=0 aborted=0 humps=3 impacts=0 aborts=1 max_us=4076 missed=0
+
+--- hump_3_down 2026-11-01T18:18:13.444190+08:00 ---
+[2026-11-01T18:18:13.608529+08:00] S4 t_us=139118922 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-4963 roll_md=-255 impact=0 hump=0 aborted=0 humps=3 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:13.863515+08:00] S4 t_us=139378924 state=DESCENDING motion=DESCENDING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-6598 roll_md=-677 impact=0 hump=0 aborted=0 humps=3 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:14.610499+08:00] S4 t_us=140118921 state=DESCENDING motion=DESCENDING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-9444 roll_md=-1129 impact=0 hump=0 aborted=0 humps=3 impacts=0 aborts=1 max_us=4076 missed=0
+
+--- hump_3_finish 2026-11-01T18:18:15.270923+08:00 ---
+[2026-11-01T18:18:15.605460+08:00] S4 t_us=141118923 state=DESCENDING motion=DESCENDING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-1800 roll_md=-163 impact=0 hump=0 aborted=0 humps=3 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:15.647903+08:00] S4 t_us=141158933 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-676 roll_md=355 impact=0 hump=1 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:16.613958+08:00] S4 t_us=142118938 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=977 roll_md=965 impact=0 hump=0 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:17.608565+08:00] S4 t_us=143118926 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1243 roll_md=1043 impact=0 hump=0 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+
+--- operator_confirmation 2026-11-01T18:18:17.805669+08:00 ---
+[2026-11-01T18:18:18.609258+08:00] S4 t_us=144118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1281 roll_md=712 impact=0 hump=0 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:19.610118+08:00] S4 t_us=145118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=72 roll_md=166 impact=0 hump=0 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:20.611952+08:00] S4 t_us=146118922 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-72 roll_md=421 impact=0 hump=0 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+
+--- operator_setup 2026-11-01T18:18:20.624402+08:00 ---
+[2026-11-01T18:18:21.604669+08:00] S4 t_us=147118926 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-887 roll_md=-768 impact=0 hump=0 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:22.604642+08:00] S4 t_us=148118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=140 roll_md=455 impact=0 hump=0 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:23.605992+08:00] S4 t_us=149118927 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1585 roll_md=2505 impact=0 hump=0 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:24.608244+08:00] S4 t_us=150118922 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=2750 roll_md=563 impact=0 hump=0 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:25.610858+08:00] S4 t_us=151118930 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1150 roll_md=-2036 impact=0 hump=0 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:26.604699+08:00] S4 t_us=152118926 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=2385 roll_md=969 impact=0 hump=0 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:27.609878+08:00] S4 t_us=153118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=2061 roll_md=723 impact=0 hump=0 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:28.605587+08:00] S4 t_us=154118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-215 roll_md=48 impact=0 hump=0 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:29.609194+08:00] S4 t_us=155118922 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=2417 roll_md=-768 impact=0 hump=0 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:30.609575+08:00] S4 t_us=156118929 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1771 roll_md=-478 impact=0 hump=0 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+
+--- incomplete_preparation 2026-11-01T18:18:31.209011+08:00 ---
+[2026-11-01T18:18:31.611249+08:00] S4 t_us=157118926 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1559 roll_md=-407 impact=0 hump=0 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:32.605974+08:00] S4 t_us=158118926 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=3257 roll_md=103 impact=0 hump=0 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:33.604649+08:00] S4 t_us=159118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=3731 roll_md=-39 impact=0 hump=0 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+
+--- incomplete_up 2026-11-01T18:18:33.640745+08:00 ---
+[2026-11-01T18:18:34.208701+08:00] S4 t_us=159718925 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=13237 roll_md=-1660 impact=0 hump=0 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:34.609804+08:00] S4 t_us=160118933 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=17546 roll_md=-1941 impact=0 hump=0 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+
+--- incomplete_wait 2026-11-01T18:18:35.462812+08:00 ---
+[2026-11-01T18:18:35.610465+08:00] S4 t_us=161118924 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=14385 roll_md=-2645 impact=0 hump=0 aborted=0 humps=4 impacts=0 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:36.028142+08:00] S4 t_us=161538923 state=CLIMBING motion=CLIMBING calibrated=1 valid=0 fresh=1 rc=0 pitch_md=42503 roll_md=-60459 impact=1 hump=0 aborted=0 humps=4 impacts=1 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:36.602163+08:00] S4 t_us=162118923 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1446 roll_md=3218 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:37.607631+08:00] S4 t_us=163118923 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1344 roll_md=2020 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:38.605310+08:00] S4 t_us=164119045 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1298 roll_md=2186 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:39.612980+08:00] S4 t_us=165118924 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1778 roll_md=2018 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:40.607049+08:00] S4 t_us=166118923 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1231 roll_md=1949 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:41.611255+08:00] S4 t_us=167118924 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1308 roll_md=1680 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:42.608977+08:00] S4 t_us=168118924 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1565 roll_md=1690 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:43.609974+08:00] S4 t_us=169118923 state=CLIMBING motion=CLIMBING calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1500 roll_md=1998 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=1 max_us=4076 missed=0
+[2026-11-01T18:18:44.210296+08:00] S4 t_us=169718931 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1465 roll_md=1929 impact=0 hump=0 aborted=1 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:18:44.611039+08:00] S4 t_us=170118922 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1516 roll_md=1976 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:18:45.605956+08:00] S4 t_us=171118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1353 roll_md=2113 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:18:46.604630+08:00] S4 t_us=172118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1256 roll_md=1839 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:18:47.604419+08:00] S4 t_us=173118932 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1384 roll_md=1809 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+
+--- operator_confirmation 2026-11-01T18:18:48.505464+08:00 ---
+[2026-11-01T18:18:48.608109+08:00] S4 t_us=174118922 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1362 roll_md=1836 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:18:49.603302+08:00] S4 t_us=175118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-275 roll_md=1899 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:18:50.607958+08:00] S4 t_us=176118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=2327 roll_md=-102 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:18:51.611921+08:00] S4 t_us=177118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=967 roll_md=938 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:18:52.609341+08:00] S4 t_us=178118926 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=534 roll_md=936 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+
+--- operator_setup 2026-11-01T18:18:53.052702+08:00 ---
+[2026-11-01T18:18:53.611148+08:00] S4 t_us=179118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=0 fresh=0 rc=0 pitch_md=662 roll_md=855 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:18:54.604050+08:00] S4 t_us=180118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1705 roll_md=1086 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:18:55.609401+08:00] S4 t_us=181118921 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=2682 roll_md=505 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:18:56.605909+08:00] S4 t_us=182118932 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=781 roll_md=1064 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+
+--- downhill_preparation 2026-11-01T18:18:57.431645+08:00 ---
+[2026-11-01T18:18:57.609517+08:00] S4 t_us=183118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=462 roll_md=857 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:18:58.607077+08:00] S4 t_us=184118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-303 roll_md=1566 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:18:59.603009+08:00] S4 t_us=185118921 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-832 roll_md=1240 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+
+--- downhill_only 2026-11-01T18:18:59.663421+08:00 ---
+[2026-11-01T18:19:00.607097+08:00] S4 t_us=186118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-11265 roll_md=136 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+
+--- downhill_finish 2026-11-01T18:19:01.475268+08:00 ---
+[2026-11-01T18:19:01.604358+08:00] S4 t_us=187118922 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-9837 roll_md=361 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:19:02.604658+08:00] S4 t_us=188118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-21 roll_md=1398 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:19:03.608552+08:00] S4 t_us=189118926 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=792 roll_md=1486 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+
+--- operator_confirmation 2026-11-01T18:19:04.007623+08:00 ---
+[2026-11-01T18:19:04.607917+08:00] S4 t_us=190118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1065 roll_md=1591 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:19:05.604847+08:00] S4 t_us=191118931 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=2883 roll_md=-1370 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:19:06.610145+08:00] S4 t_us=192118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=1761 roll_md=-3615 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:19:07.609811+08:00] S4 t_us=193118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=319 roll_md=23 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:19:08.609900+08:00] S4 t_us=194118926 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=363 roll_md=158 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:19:09.608997+08:00] S4 t_us=195119059 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=152 roll_md=-42 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+
+--- operator_confirmation 2026-11-01T18:19:10.150943+08:00 ---
+[2026-11-01T18:19:10.602727+08:00] S4 t_us=196118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-17 roll_md=78 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:19:11.609675+08:00] S4 t_us=197118925 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=322 roll_md=182 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:19:12.608899+08:00] S4 t_us=198118926 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=87 roll_md=4 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+
+--- operator_confirmation 2026-11-01T18:19:13.262198+08:00 ---
+[2026-11-01T18:19:13.609613+08:00] S4 t_us=199118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-18 roll_md=-23 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:19:14.608297+08:00] S4 t_us=200118926 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=46 roll_md=375 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:19:15.610150+08:00] S4 t_us=201118926 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=250 roll_md=285 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:19:16.609245+08:00] S4 t_us=202118924 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=26 roll_md=232 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:19:17.610450+08:00] S4 t_us=203118921 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=60 roll_md=555 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:19:18.607993+08:00] S4 t_us=204118937 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=187 roll_md=324 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:19:19.604250+08:00] S4 t_us=205118927 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=0 fresh=0 rc=0 pitch_md=183 roll_md=279 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:19:20.602916+08:00] S4 t_us=206118922 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=130 roll_md=461 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0
+[2026-11-01T18:19:21.609695+08:00] S4 t_us=207118923 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=198 roll_md=608 impact=0 hump=0 aborted=0 humps=4 impacts=1 aborts=2 max_us=4076 missed=0

@@ -1,52 +1,39 @@
-/*
- *	subsystem4.c
- *	Subsystem 4 -- Monitor: creates its objects and starts its task.
- *
- *	APIs shown: tk_cre_flg, tk_cre_mbf, tk_cre_alm
- */
-
 #include "subsystem4.h"
 
-EXPORT ID	mbf_summary;	/* IF-03 */
-EXPORT ID	flg_events;	/* IF-03 */
-EXPORT ID	alm_monitor;
+EXPORT ID mbf_summary = 0;
+EXPORT ID flg_events = 0;
+EXPORT UW s4_lines_received = 0U;
+EXPORT ID tid_imu_terrain = 0;
 
 EXPORT ER subsystem4_init(void)
 {
-	T_CFLG	cflg = {0};
-	T_CMBF	cmbf = {0};
-	T_CALM	calm = {0};
-
-	/* Event flag: a 32-bit pattern of bits.  Tasks wait for a bit (or a
-	   combination of bits) to be set. */
-	cflg.flgatr  = TA_TFIFO | TA_WMUL;	/* allow several waiters */
-	cflg.iflgptn = 0;			/* all bits clear to begin with */
-	flg_events = tk_cre_flg(&cflg);
-	if (flg_events < E_OK) {
-		return flg_events;
-	}
-
-	/* Message buffer: COPIES variable-length data into a kernel ring
-	   buffer.  Here it carries short text lines from subsystem 3. */
-	cmbf.mbfatr = TA_TFIFO;
-	cmbf.bufsz  = 4 * S4_SUMMARY_MAX;	/* total buffer size, bytes */
-	cmbf.maxmsz = S4_SUMMARY_MAX;		/* largest single message */
-	mbf_summary = tk_cre_mbf(&cmbf);
-	if (mbf_summary < E_OK) {
-		return mbf_summary;
-	}
-
-	/* Alarm handler: called ONCE, a given time after tk_sta_alm().
-	   The monitor task re-arms it each time round its loop. */
-	calm.almatr = TA_HLNG;
-	calm.almhdr = (FP)monitor_alarm_handler;
-	alm_monitor = tk_cre_alm(&calm);
-	return (alm_monitor < E_OK) ? alm_monitor : E_OK;
+#if S4_KEEP_EXAMPLE_BRIDGE
+    T_CFLG flags = {0};
+    T_CMBF buffer = {0};
+    flags.flgatr = TA_TFIFO | TA_WMUL;
+    flg_events = tk_cre_flg(&flags);
+    if (flg_events < E_OK) { return flg_events; }
+    buffer.mbfatr = TA_TFIFO;
+    buffer.bufsz = 4 * S4_SUMMARY_MAX;
+    buffer.maxmsz = S4_SUMMARY_MAX;
+    mbf_summary = tk_cre_mbf(&buffer);
+    if (mbf_summary < E_OK)
+    {
+        (void)tk_del_flg(flg_events);
+        return mbf_summary;
+    }
+#endif
+    return E_OK;
 }
 
 EXPORT ER subsystem4_start(void)
 {
-	/* No affinity: the scheduler may run it on either core */
-	ID tid = app_start_task(monitor_task, S4_PRI_MONITOR, 0, "monitor_task");
-	return (tid < E_OK) ? tid : E_OK;
+    /* S4 init guard: app_main logs init failures but still calls _start. */
+#if S4_KEEP_EXAMPLE_BRIDGE
+    if((mbf_summary<=0)||(flg_events<=0)){return E_NOEXS;}
+#endif
+
+    tid_imu_terrain = app_start_task((FP)imu_terrain_task, S4_PRIORITY,
+                                    0U, "imu_terrain_task");
+    return (tid_imu_terrain < E_OK) ? tid_imu_terrain : E_OK;
 }
