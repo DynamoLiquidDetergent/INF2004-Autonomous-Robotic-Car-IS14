@@ -145,7 +145,13 @@ Firmware checkpoint: `31a6b57ff01590cfad904c9e6d387c997ab0412c`. All 148 capture
 | 2026-11-01 | S4-H05 | `a522381` | Bryan | NOT RUN | [Console](logs/2026-11-01_181511_666687_phase4_sensor.txt); [Summary](logs/2026-11-01_181511_666687_phase4_summary.json) | Optional sensor-disconnection check skipped by operator. |
 
 
-## S4/S5 integration test cases
+## Phase 5 — hump-height estimation
+
+The main physical demonstrations are detecting a complete hump, estimating its height using IMU pitch and real wheel distance, and keeping the highest valid estimate. Motor driving and line sensing belong to the other subsystems; they provide the motion and inputs for the integrated S4 test.
+
+### Supporting software checks
+
+These host checks protect the estimator from invalid inputs. Keep their executable tests; they are not separate live demonstrations of hump-height accuracy.
 
 | ID | What is tested | Method | Expected result |
 |---|---|---|---|
@@ -158,20 +164,21 @@ Firmware checkpoint: `31a6b57ff01590cfad904c9e6d387c997ab0412c`. All 148 capture
 | S4-H11 | Flat forward distance readiness | One independently measured flat segment with live encoders; record hand-pushed or motor-powered mode | Distance error <=5%, level, no false hump; not full S2-M06 |
 | S4-H10 | Actual hump-height accuracy | Three measured school-hump forward car traversals; record hand-pushed or motor-powered mode | Valid height on every proper traversal and each error <=10%; highest consistent within each run |
 
-## Powered straight hump trials — 2026-11-06
+### Main physical results — powered straight hump trials, 2026-11-06
 
 Tester: Bryan (`xcher21`). Profile: HEIGHT_ONLY; commanded speed 50 mm/s; S2 encoders + S4 IMU + Safety Monitor. No line/barcode/network/obstacle task. Reference supplied by operator: 23 mm. Configured wheelbase: 110 mm; independent physical confirmation is not recorded here.
 
 Tested build: `WT-e719d81481cc`, working snapshot `e719d81481cc06f953c69a5a0b04188ca2dd6d0f210d7394ab353f340d5fdeb7`, based on commit `ae2bfc2156178683bcd3e84fcec71a4bfe50802b`. These were working-tree tests; the base commit alone does not identify all test-image overrides. See [tested build manifest](logs/2026-11-06_tested_build.json) and [summary](logs/2026-11-06_three_trials_summary.json). Do not substitute a later documentation/code commit as the tested revision.
 
-### Test cases
+### Main physical test cases
 
 | ID | Purpose | Procedure | Acceptance | Result |
 |---|---|---|---|---|
 | S4-H10 | Actual hump-height accuracy | Three independent powered traversals from flat calibration, across measured hump, onto flat ground | Every valid traversal has absolute error <=10% | **FAIL: 2/3 within target** |
-| S4-H12 | Straight fixture functional completion | Same captures; check LEVEL → CLIMBING → DESCENDING → LEVEL, published height/highest and automatic HUMP stop request | All three captures show a completion, estimate and HUMP stop request | **PASS: 3/3** |
+| S4-H12 | Powered hump detection and completion | Same captures; check LEVEL → CLIMBING → DESCENDING → LEVEL, published height/highest and automatic HUMP stop request | All three captures show a completion, estimate and HUMP stop request | **PASS: 3/3** |
+| S4-H13 | Highest valid hump in one boot | Traverse at least two independently measured humps of different heights without resetting | Highest stored equals the largest valid estimate and does not decrease on the smaller hump | **NOT RUN** |
 
-S4-H10 existed before these runs. S4-H12 is a retrospective classification of the existing captures, not a new test claimed to have been defined/executed beforehand. Highest value was observed within each boot; maximum selection across different humps in one boot remains NOT RUN.
+S4-H10 existed before these runs. S4-H12 summarises functional observations from these same captures. Highest value was observed within each boot; maximum selection across different humps in one boot remains NOT RUN.
 
 | Trial | Completion (SGT) | Reference mm | Estimate mm | Absolute error | Functional | Accuracy <=10% | Evidence |
 |---|---|---|---|---|---|---|---|
@@ -181,10 +188,16 @@ S4-H10 existed before these runs. S4-H12 is a retrospective classification of th
 
 All three completion messages disclose two interpolated samples and a longest interval of 40 ms. Trial 1 includes raw S4 telemetry; trials 2/3 are pasted console displays. Three estimates are 24/17/21 mm (range 7 mm, mean 20.67 mm). The failed 17-mm accuracy trial remains part of this set. Results do not establish full robot integration, independent encoder accuracy, complete WCET or compliance across terrain types.
 
-### Earlier development attempts
+### Evidence retained after cleanup
 
-The older clock/setup runs are excluded from this later validation set. Their original statuses and evidence are retained in the [development archive](logs/archive/development_2026-11-06/DEVELOPMENT_RUNS.md). Earlier phases remain unchanged.
+The current evidence folder keeps the three latest trial captures, their summary and tested-build identity, plus the evidence supporting Phases 1–4. Older development archive files and duplicate test-fixture code snapshots were removed at Bryan's request. This cleanup does not change the latest accuracy failure: the 17-mm trial remains recorded above.
 
-### Next integrated session — planned for 2026-11-07
+### Next integrated test — planned, NOT RUN
 
-See [integration session plan](INTEGRATED_SESSION_PLAN.md). All new integrated cases are **NOT RUN**. Today's straight-drive results must not be used as evidence for line-following performance.
+- Confirm the physical axle-to-caster distance used by the configured wheelbase.
+- Run with the agreed integrated image and a continuous line; record its actual code/build identity. Today's HEIGHT_ONLY image has no line task.
+- Check S3 line readings and S2 forward motion while S4 reports terrain and height. Coordinate shared integration IDs with those subsystem owners.
+- Repeat the measured hump crossings; record every estimate and its error. The current three-run accuracy result is still FAIL until a new series demonstrates the requirement.
+- Test the highest value across different humps without rebooting (S4-H13), and confirm S5 receives S4's published highest value.
+
+The straight-driving stop is a test-harness convenience, not a new S4 responsibility. S4 reports sensor faults; the Safety Monitor owns the response and fault clearing. Do not claim barcode/network/obstacle or full mission integration from this isolated height test.
