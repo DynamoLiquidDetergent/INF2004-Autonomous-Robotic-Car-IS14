@@ -1,0 +1,72 @@
+{
+  "date_singapore": "2026-11-06",
+  "tester": "Bryan / xcher21",
+  "scope": "Motor-powered straight hump trials; no line task",
+  "build_id": "WT-e719d81481cc",
+  "source_base_commit": "ae2bfc2156178683bcd3e84fcec71a4bfe50802b",
+  "working_snapshot_sha256": "e719d81481cc06f953c69a5a0b04188ca2dd6d0f210d7394ab353f340d5fdeb7",
+  "firmware_sha256": "ed8bfc97a445e8525831c01276794aada9d2a22399ef9c5d180bbf6ff08ad01c",
+  "speed_command_mm_s": 50,
+  "configured_wheelbase_mm": 110,
+  "wheelbase_independently_confirmed_in_this_chat": false,
+  "current_files_differ_from_tested_snapshot": [],
+  "functional_result": "PASS: 3/3 captured completions and HUMP stop requests",
+  "accuracy_result": "FAIL: trial 2 exceeds 10%; 2/3 trials meet the target",
+  "trials": [
+    {
+      "trial": 1,
+      "completion_time_singapore": "23:22:58",
+      "reference_mm": 23,
+      "estimate_mm": 24,
+      "absolute_error_percent": 4.3478,
+      "functional_completion": "PASS",
+      "accuracy_within_10_percent": "PASS",
+      "highest_stored_mm": 24,
+      "interpolated_samples_at_completion": 2,
+      "max_interpolation_interval_ms": 40,
+      "stop_reason": "HUMP",
+      "evidence": "testing/subsystem4/logs/2026-11-06_50mmps_trial1_console.txt",
+      "evidence_sha256": "08d5bacd69165b349899310f16ac51f9a46dd1bf6aab04c24abc4339cda5595f",
+      "capture_type": "raw S4 + live display"
+    },
+    {
+      "trial": 2,
+      "completion_time_singapore": "23:28:35",
+      "reference_mm": 23,
+      "estimate_mm": 17,
+      "absolute_error_percent": 26.087,
+      "functional_completion": "PASS",
+      "accuracy_within_10_percent": "FAIL",
+      "highest_stored_mm": 17,
+      "interpolated_samples_at_completion": 2,
+      "max_interpolation_interval_ms": 40,
+      "stop_reason": "HUMP",
+      "evidence": "testing/subsystem4/logs/2026-11-06_50mmps_trial2_console.txt",
+      "evidence_sha256": "c18b21d9b11b00d918dc06ea715b5e4e307238ff0a5bea9a9e57068140afc5ce",
+      "capture_type": "live display pasted by operator"
+    },
+    {
+      "trial": 3,
+      "completion_time_singapore": "23:32:21",
+      "reference_mm": 23,
+      "estimate_mm": 21,
+      "absolute_error_percent": 8.6957,
+      "functional_completion": "PASS",
+      "accuracy_within_10_percent": "PASS",
+      "highest_stored_mm": 21,
+      "interpolated_samples_at_completion": 2,
+      "max_interpolation_interval_ms": 40,
+      "stop_reason": "HUMP",
+      "evidence": "testing/subsystem4/logs/2026-11-06_50mmps_trial3_console.txt",
+      "evidence_sha256": "12c659a4dae8e719e70ea8881f29613b23bce9bf28555e2d41305bd71ef49045",
+      "capture_type": "live display pasted by operator"
+    }
+  ],
+  "limitations": [
+    "One 23-mm reference hump; reference supplied by operator, independent metrology not recorded.",
+    "Separate boots; retaining a maximum across different humps in one boot NOT TESTED.",
+    "Trials 2/3 are pasted display captures, not full raw sensor streams.",
+    "50-Hz configured period; missed counters and work high-water observations are not a WCET/jitter proof.",
+    "Line-following, integrated mission, independent distance accuracy NOT TESTED by this fixture."
+  ]
+}

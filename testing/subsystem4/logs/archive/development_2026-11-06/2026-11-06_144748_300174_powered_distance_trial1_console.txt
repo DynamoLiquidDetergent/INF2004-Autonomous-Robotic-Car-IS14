@@ -1,0 +1,17 @@
+Actual MOTOR POWERED trial. Code: a8a917cff5df7f824edb97db1e45545384347705
+Image SHA256: 292f63e50e8656d01dbd79bf0160b6c2d6fb1bc5e04c34f7011c6e658973b055
+
+--- run 2026-11-06T14:47:51.402690+08:00 ---
+[2026-11-06T14:47:51.402690+08:00]  echo  7597 us  status 0  -> 131 cm
+[2026-11-06T14:47:51.410765+08:00] obstacle:  90 deg  echo  7622 us  status 0  -> 131 cm
+[2026-11-06T14:47:51.410765+08:00] obstacle:  90 deg  echo  7698 us  status 0  -> 133 cm
+[2026-11-06T14:47:51.410765+08:00] obstacle:  90 deg  echo  7576 us  status 0  -> 131 cm
+[2026-11-06T14:47:51.442536+08:00] obstacle:  90 deg  echo  7678 us  status 0  -> 132 cmobstacle:  90 deg  echo  7626 us  status 0  -> 131 cm
+[2026-11-06T14:47:51.447615+08:00] obstacle:  90 deg  echo  7601 us  status 0  -> 131 cm
+[2026-11-06T14:47:51.515273+08:00] obstacle:  90 deg  echo  7677 us  status 0  -> 132 cm
+[2026-11-06T14:47:51.535459+08:00] S4 t_us=14113332 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-377 roll_md=-38 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=5447 missed=0 bus_rc=0 init_rc=0 timebase=BAD odom_valid=0 height_valid=0 height_mm=-1 highest_valid=0 highest_mm=-1 height_reason=TIMEBASE odo_mm=0 odo_ms=12957 odo_forward=0 fault_rc=0 build_id=a8a917c profile=DISTANCE
+[2026-11-06T14:47:51.538656+08:00] s1: pub telem t=3355783858 - 01 37 00 45 00 02 08 00 80 F3 01 FF FE F3 03
+[2026-11-06T14:47:51.538656+08:00] s1: pub hb    t=3355783858 - 09 0D 05 00
+[2026-11-06T14:47:51.580474+08:00] obstacle:  90 deg  echo  7652 us  status 0  -> 132 cm
+[2026-11-06T14:47:51.605964+08:00] vc: t= 6038 zone=7 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=    0
+[2026-11-06T14:47:51.648862+08:00] obstacle:  90 deg  echo  7698 us  status 0  -> 133 cm

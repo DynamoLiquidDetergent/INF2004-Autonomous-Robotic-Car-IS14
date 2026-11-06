@@ -1,0 +1,139 @@
+{
+  "run": "2026-11-06_143942_669802",
+  "code_commit": "a8a917cff5df7f824edb97db1e45545384347705",
+  "tester": "Bryan",
+  "mode": "S4 HEIGHT ONLY / POWERED STRAIGHT",
+  "case": "height",
+  "case_id": "S4-H10",
+  "profile": {
+    "S5_PHASE": 5,
+    "VC_AUTO_START": 0,
+    "S4_POWERED_BENCH_KIND": 0,
+    "WIFI": "none",
+    "NET": "none",
+    "MQTT": 0,
+    "TEST": 0,
+    "SMP": 1
+  },
+  "firmware_sha256": "6913877b804df8edee665b1414153b37f3728a126df629d5ba4c49b418446687",
+  "image_overrides": {
+    "app_program/subsystem5/s5_phase.h": {
+      "before_sha256": "f89a9da95564edf8f12ca43dac1f8ffddea755c7d4b0daf590c6a57f64cc4b96",
+      "effective_sha256": "a65e7af9a72583a567f34ca31d3de520bb47ce1cfac1079490cea8395c6aacf3"
+    },
+    "app_program/subsystem5/subsystem5.h": {
+      "before_sha256": "05137329210857f5df5d0fbb314f6ebe97f8b542c0aafcac1adedf774604c7f7",
+      "effective_sha256": "5a2c7de29c1606af312f79f9920e5dcfad9e3493e31a775fdd136ad017dd52a5"
+    },
+    "app_program/subsystem4/s4_config.h": {
+      "before_sha256": "efa5a5514169ed8e65902801f8f3d2067be53b1a2c7b7f3e51dc8b71bfaad99f",
+      "effective_sha256": "6710c36d7caf9335cb0cefac21edd69b8899faea6b9c2114de055bc49b6b80e3"
+    },
+    "app_program/subsystem4/height_only_policy.h": {
+      "before_sha256": null,
+      "effective_sha256": "8364ef04bee071bf84927c47edaf3d7c951296d169c19982f756fe56733d9db3"
+    },
+    "app_program/subsystem4/height_only_policy.c": {
+      "before_sha256": null,
+      "effective_sha256": "d226c534973f8a142c5e5564dd9c9d6b5baa441b898b220ec3b508bf16ce0035"
+    },
+    "app_program/subsystem4/height_only_drive.c": {
+      "before_sha256": null,
+      "effective_sha256": "0ba9edeaa99103cf93bf05fa3a5d728fb291fe3b496d578c37dc60df156f6586"
+    },
+    "app_program/app_main.c": {
+      "before_sha256": "c5e7858cfaa9e90ae3babe317d93b8c1d4d2af76c7ea720ff42346bbef2b3d06",
+      "effective_sha256": "9c741a5f3420c8adbdbd6a59dae3d50a963db0e090867abb95a84f1cbfcde933"
+    },
+    "app_program/subsystem5/subsystem5.c": {
+      "before_sha256": "042aeaead24adb501a9bfcc70d7345a254c785c1ded5addf0d8c00789aaa28b6",
+      "effective_sha256": "a09524292a15dd390f8e9ef8842a51e8e5904225d6935cab7e25c63ecd850b3b"
+    },
+    "app_program/subsystem2/subsystem2.h": {
+      "before_sha256": "7f0d24124452d1167a7ab7fc3c9f08950de2a30dbd7ed67b700c0b303c3acb56",
+      "effective_sha256": "e6fa8dada78296da2c56a0d00adb9ec044c7ae7be9dd5df94e5c927c8cebbeb5"
+    },
+    "app_program/subsystem4/imu_terrain_task.c": {
+      "before_sha256": "3a0a8807d3b31ad32c5de93757e6f727fe53a72cd718547820d77d2df25a277f",
+      "effective_sha256": "b6d2a8faa313ffd17420e324ceedc34ca0ed072697dd24d317487ab1a443af07"
+    }
+  },
+  "test_fixture": {
+    "speed_command_mm_s": 100,
+    "period_ms": 50,
+    "startup_min_ms": 8000,
+    "ready_hold_ms": 500,
+    "startup_limit_ms": 30000,
+    "run_limit_ms": 30000,
+    "distance_limit_mm": 3000,
+    "active_tasks": [
+      "S2 Motion Control",
+      "S4 IMU/Terrain",
+      "S5 Safety Monitor",
+      "temporary straight-drive fixture"
+    ],
+    "inactive_tasks": [
+      "S1 networking",
+      "S3 line/barcode",
+      "S5 obstacle detection",
+      "S5 mission controller"
+    ],
+    "scope": "Physical S4 hump-height experiment; no line following or independent odometry certification."
+  },
+  "fixture_recipe": "2026-11-06_143942_669802_s4_height_only_fixture.py",
+  "fixture_recipe_sha256": "99c18ee91fcfa784939152ac10c62c1e61f10b033f29cd6ca842969580dd564f",
+  "started_singapore": "2026-11-06T14:39:42.679900+08:00",
+  "reference_height_mm": 5.0,
+  "measurement_notes": "rler",
+  "distance_check": "NOT RUN: outside this test scope",
+  "trials": [
+    {
+      "result": "FAIL",
+      "reason": "Hardware timer and kernel time disagree. Height is correctly blocked; timing setup still needs fixing. fault_rc=0",
+      "markers": {},
+      "captures": [
+        {
+          "max_us": 4450,
+          "aborts": 0,
+          "humps": 0,
+          "impacts": 0,
+          "t_us": 2114227,
+          "calibrated": 0,
+          "height_valid": 0,
+          "hump": 0,
+          "highest_mm": -1,
+          "aborted": 0,
+          "impact": 0,
+          "fresh": 1,
+          "timebase": "BAD",
+          "height_mm": -1,
+          "rc": 0,
+          "valid": 0,
+          "bus_rc": 0,
+          "state": "CALIBRATING",
+          "highest_valid": 0,
+          "missed": 0,
+          "odom_valid": 0,
+          "init_rc": 0,
+          "height_reason": "TIMEBASE",
+          "motion": "UNCLASSIFIED",
+          "pitch_md": 0,
+          "roll_md": 0,
+          "odo_mm": 0,
+          "odo_ms": 957,
+          "odo_forward": 0,
+          "fault_rc": 0,
+          "build_id": "a8a917c",
+          "profile": "HEIGHT_ONLY",
+          "received_singapore": "2026-11-06T14:40:14.273932+08:00",
+          "received_monotonic_s": 5715.375
+        }
+      ],
+      "console": "2026-11-06_143942_669802_s4_height_only_trial1_console.txt"
+    }
+  ],
+  "result": "INCOMPLETE",
+  "scope": "S4 height only using real S2 encoders; no line following, barcode, obstacle test or separate distance check. Odometry accuracy not independently established by this run.",
+  "error": "Hardware timer and kernel time disagree. Height is correctly blocked; timing setup still needs fixing. fault_rc=0",
+  "finished_singapore": "2026-11-06T14:40:14.528863+08:00"
+}

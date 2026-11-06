@@ -1,0 +1,5 @@
+Actual MOTOR POWERED trial. Code: a8a917cff5df7f824edb97db1e45545384347705
+Image SHA256: 6913877b804df8edee665b1414153b37f3728a126df629d5ba4c49b418446687
+
+--- run 2026-11-06T14:40:44.011257+08:00 ---
+[2026-11-06T14:40:44.715301+08:00] S4 t_us=1113306 state=CALIBRATING motion=UNCLASSIFIED calibrated=0 valid=0 fresh=1 rc=0 pitch_md=0 roll_md=0 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4121 missed=0 bus_rc=0 init_rc=0 timebase=BAD odom_valid=0 height_valid=0 height_mm=-1 highest_valid=0 highest_mm=-1 height_reason=TIMEBASE odo_mm=0 odo_ms=65493 odo_forward=0 fault_rc=0 build_id=a8a917c profile=HEIGHT_ONLY

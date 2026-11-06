@@ -157,3 +157,34 @@ Firmware checkpoint: `31a6b57ff01590cfad904c9e6d387c997ab0412c`. All 148 capture
 | S4-U12 | Powered test stop policy | Synthetic distance, count, timeout and wrap cases | Software stop/latched decision assertions pass; not stopping-distance proof |
 | S4-H11 | Flat forward distance readiness | One independently measured flat segment with live encoders; record hand-pushed or motor-powered mode | Distance error <=5%, level, no false hump; not full S2-M06 |
 | S4-H10 | Actual hump-height accuracy | Three measured school-hump forward car traversals; record hand-pushed or motor-powered mode | Valid height on every proper traversal and each error <=10%; highest consistent within each run |
+
+## Powered straight hump trials — 2026-11-06
+
+Tester: Bryan (`xcher21`). Profile: HEIGHT_ONLY; commanded speed 50 mm/s; S2 encoders + S4 IMU + Safety Monitor. No line/barcode/network/obstacle task. Reference supplied by operator: 23 mm. Configured wheelbase: 110 mm; independent physical confirmation is not recorded here.
+
+Tested build: `WT-e719d81481cc`, working snapshot `e719d81481cc06f953c69a5a0b04188ca2dd6d0f210d7394ab353f340d5fdeb7`, based on commit `ae2bfc2156178683bcd3e84fcec71a4bfe50802b`. These were working-tree tests; the base commit alone does not identify all test-image overrides. See [tested build manifest](logs/2026-11-06_tested_build.json) and [summary](logs/2026-11-06_three_trials_summary.json). Do not substitute a later documentation/code commit as the tested revision.
+
+### Test cases
+
+| ID | Purpose | Procedure | Acceptance | Result |
+|---|---|---|---|---|
+| S4-H10 | Actual hump-height accuracy | Three independent powered traversals from flat calibration, across measured hump, onto flat ground | Every valid traversal has absolute error <=10% | **FAIL: 2/3 within target** |
+| S4-H12 | Straight fixture functional completion | Same captures; check LEVEL → CLIMBING → DESCENDING → LEVEL, published height/highest and automatic HUMP stop request | All three captures show a completion, estimate and HUMP stop request | **PASS: 3/3** |
+
+S4-H10 existed before these runs. S4-H12 is a retrospective classification of the existing captures, not a new test claimed to have been defined/executed beforehand. Highest value was observed within each boot; maximum selection across different humps in one boot remains NOT RUN.
+
+| Trial | Completion (SGT) | Reference mm | Estimate mm | Absolute error | Functional | Accuracy <=10% | Evidence |
+|---|---|---|---|---|---|---|---|
+| 1 | 23:22:58 | 23 | 24 | 4.3% | PASS | PASS | [Capture](logs/2026-11-06_50mmps_trial1_console.txt) |
+| 2 | 23:28:35 | 23 | 17 | 26.1% | PASS | FAIL | [Capture](logs/2026-11-06_50mmps_trial2_console.txt) |
+| 3 | 23:32:21 | 23 | 21 | 8.7% | PASS | PASS | [Capture](logs/2026-11-06_50mmps_trial3_console.txt) |
+
+All three completion messages disclose two interpolated samples and a longest interval of 40 ms. Trial 1 includes raw S4 telemetry; trials 2/3 are pasted console displays. Three estimates are 24/17/21 mm (range 7 mm, mean 20.67 mm). The failed 17-mm accuracy trial remains part of this set. Results do not establish full robot integration, independent encoder accuracy, complete WCET or compliance across terrain types.
+
+### Earlier development attempts
+
+The older clock/setup runs are excluded from this later validation set. Their original statuses and evidence are retained in the [development archive](logs/archive/development_2026-11-06/DEVELOPMENT_RUNS.md). Earlier phases remain unchanged.
+
+### Next integrated session — planned for 2026-11-07
+
+See [integration session plan](INTEGRATED_SESSION_PLAN.md). All new integrated cases are **NOT RUN**. Today's straight-drive results must not be used as evidence for line-following performance.

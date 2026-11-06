@@ -1,0 +1,15 @@
+Actual MOTOR POWERED trial. Code: a8a917cff5df7f824edb97db1e45545384347705
+Image SHA256: 292f63e50e8656d01dbd79bf0160b6c2d6fb1bc5e04c34f7011c6e658973b055
+
+--- run 2026-11-06T14:47:38.079658+08:00 ---
+[2026-11-06T14:47:38.089652+08:00] s1: pub telem t=3355770358 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+[2026-11-06T14:47:38.170507+08:00] obstacle:  30 deg  echo  2268 us  status 0  -> 39 cm
+[2026-11-06T14:47:38.234967+08:00] obstacle:  30 deg  echo  2511 us  status 0  -> 43 cm
+[2026-11-06T14:47:38.295118+08:00] obstacle:  30 deg  echo  2607 us  status 0  -> 45 cm
+[2026-11-06T14:47:38.422465+08:00] obstacle:  45 deg  echo  2278 us  status 0  -> 39 cm
+[2026-11-06T14:47:38.489030+08:00] obstacle:  45 deg  echo  2450 us  status 0  -> 42 cm
+[2026-11-06T14:47:38.537256+08:00] S4 t_us=1113205 state=CALIBRATING motion=UNCLASSIFIED calibrated=0 valid=0 fresh=1 rc=0 pitch_md=0 roll_md=0 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4147 missed=0 bus_rc=0 init_rc=0 timebase=BAD odom_valid=0 height_valid=0 height_mm=-1 highest_valid=0 highest_mm=-1 height_reason=TIMEBASE odo_mm=0 odo_ms=65493 odo_forward=0 fault_rc=0 build_id=a8a917c profile=DISTANCE
+[2026-11-06T14:47:38.545264+08:00] s1: pub telem t=3355770858 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+[2026-11-06T14:47:38.545264+08:00] s1: pub hb    t=3355770858 - 09 00 0F 00
+[2026-11-06T14:47:38.550291+08:00] obstacle:  45 deg  echo  2597 us  status 0  -> 45 cm
+[2026-11-06T14:47:38.666077+08:00] obstacle:  60 deg  echo  2824 us  status 0  -> 49 cm
