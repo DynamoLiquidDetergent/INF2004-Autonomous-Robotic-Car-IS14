@@ -22,7 +22,7 @@ int main(void)
     CHECK(s4_motion_snapshot(&r,word(25,140),0,false,140,&o)&&!o.forward);
     CHECK(s4_motion_snapshot(&r,word(25,140),0,false,150,&o)&&!o.forward);
     CHECK(s4_motion_snapshot(&r,word(35,160),0,true,160,&o)&&!o.forward);
-    CHECK(!s4_motion_snapshot(&r,word(45,180),1,false,180,&o)); /* new command epoch */
+    CHECK(s4_motion_snapshot(&r,word(45,180),1,false,180,&o)&&o.forward); /* fresh cumulative data across new command */
     CHECK(s4_motion_snapshot(&r,word(55,200),1,false,200,&o)&&o.forward);
     CHECK(!s4_motion_snapshot(&r,word(56,200),1,false,200,&o)); /* changed distance, same time */
     CHECK(!s4_motion_snapshot(&r,word(107,220),1,false,220,&o)); /* excessive jump */
@@ -37,6 +37,19 @@ int main(void)
     s4_motion_reader_init(&r);
     CHECK(!s4_motion_snapshot(&r,word(0,65530),0,false,0xfffffffaU,&o));
     CHECK(s4_motion_snapshot(&r,word(5,14),0,false,14U,&o)); /* full local-ms wrap */
+    s4_motion_reader_init(&r);
+    (void)s4_motion_snapshot(&r,word(100,100),0,false,100,&o);
+    CHECK(s4_motion_snapshot(&r,word(102,120),0,false,120,&o)&&o.forward);
+    CHECK(s4_motion_snapshot(&r,word(102,120),1,false,125,&o)&&o.forward); /* same live word, new command */
+    CHECK(s4_motion_snapshot(&r,word(102,120),1,true,130,&o)&&!o.forward);
+    CHECK(s4_motion_snapshot(&r,word(102,120),2,false,135,&o)&&!o.forward); /* cannot unblock old data */
+    CHECK(s4_motion_snapshot(&r,word(104,140),2,false,140,&o)&&o.forward);
+    CHECK(s4_motion_snapshot(&r,word(103,160),3,false,160,&o)&&!o.forward); /* reverse still rejected */
+    CHECK(!s4_motion_snapshot(&r,word(154,180),4,false,180,&o)); /* jump still rejected */
+    CHECK(!s4_motion_snapshot(&r,word(155,200),5,false,241,&o)); /* stale despite new command */
+    s4_motion_reader_init(&r);
+    (void)s4_motion_snapshot(&r,word(65530,65530),15,false,65530,&o);
+    CHECK(s4_motion_snapshot(&r,word(4,14),0,false,65550,&o)&&o.forward); /* data and epoch wrap */
     printf("S4-U10: %s (%u checks, %u failures); synthetic IF-17 words.\n",failures?"FAIL":"PASS",checks,failures);
     return failures?1:0;
 }

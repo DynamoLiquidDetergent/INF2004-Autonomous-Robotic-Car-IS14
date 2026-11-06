@@ -16,7 +16,10 @@ never spun on. These independently published words are not a transactional
 snapshot; clock/data guards reduce risk but exact sample alignment still needs
 physical validation. First input establishes a baseline. Source age <=40 ms,
 update gap <=60 ms, normal forward distance increment <=50 mm, ordinary wraps,
-unchanged duplicates and epoch changes are checked. These are the existing
+unchanged duplicates and command epochs are observed. A normal command-epoch
+change does not reset IF-17 distance and does not invalidate otherwise fresh,
+continuous forward data. Turning, reverse, inhibit, stall, stale data and
+distance/timestamp discontinuities still block height. These are the existing
 Phase 5 development guards, not newly validated operating requirements.
 
 Forward/non-reversing distance is derived from successive signed modular

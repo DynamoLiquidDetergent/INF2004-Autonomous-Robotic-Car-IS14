@@ -17,12 +17,12 @@ bool s4_motion_snapshot(s4_motion_reader_t *r,uint32_t word,uint8_t epoch,
     }
     if(word==r->previous_word)
     {
-        valid=(age<=40U)&&((uint32_t)(now_ms-r->changed_ms)<=40U)&&
-              (epoch==r->previous_epoch);
+        valid=(age<=40U)&&((uint32_t)(now_ms-r->changed_ms)<=40U);
         out->forward=r->forward&&!blocked;
         /* If a manoeuvre starts between odometry updates, keep it blocked
          * until a new snapshot; an unchanged word cannot prove recovery. */
-        if(blocked||epoch!=r->previous_epoch){r->forward=false;}
+        if(blocked){r->forward=false;}
+        r->previous_epoch=epoch;
     }
     else
     {
@@ -30,8 +30,7 @@ bool s4_motion_snapshot(s4_motion_reader_t *r,uint32_t word,uint8_t epoch,
         uint16_t moved=(uint16_t)((uint16_t)(word>>16U)-
                                   (uint16_t)(r->previous_word>>16U));
         valid=(age<=40U)&&(elapsed>0U)&&(elapsed<=60U)&&
-              ((uint32_t)(now_ms-r->changed_ms)<=60U)&&
-              (epoch==r->previous_epoch);
+              ((uint32_t)(now_ms-r->changed_ms)<=60U);
         /* Same 50 mm per-update guard as the Phase 5 height module. These
          * development bounds still require physical distance validation. */
         if(moved<0x8000U&&moved>50U){valid=false;}
@@ -39,6 +38,10 @@ bool s4_motion_snapshot(s4_motion_reader_t *r,uint32_t word,uint8_t epoch,
         out->forward=r->forward;
         r->previous_word=word;r->changed_ms=now_ms;r->previous_epoch=epoch;
     }
+    /* IF-17 remains cumulative across ordinary S2 command epochs. A new
+     * DRIVE/STOP command is not an odometry reset and must not erase a
+     * valid level baseline. Actual continuity, age, direction and blocked
+     * motion remain checked above; a real input failure still rejects height. */
     out->valid=valid;
     return valid;
 }
