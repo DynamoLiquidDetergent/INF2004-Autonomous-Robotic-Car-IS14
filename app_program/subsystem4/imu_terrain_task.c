@@ -6,6 +6,9 @@
 #include "s4_odometry.h"
 #include "s4_clock_check.h"
 #include "s4_integration.h"
+#if S4_HEIGHT_WHEELBASE_MM >= S4_HEIGHT_TRACK_LEN
+#error S4_HEIGHT_WHEELBASE_MM must be below S4_HEIGHT_TRACK_LEN
+#endif
 
 static void map_sample(s4_sample_t *s)
 {
@@ -33,7 +36,7 @@ EXPORT void imu_terrain_task(INT stacd, void *exinf)
     s4_processor_t processor;
     s4_orientation_t orientation={0};
     s4_terrain_t terrain;
-    s4_height_t height;
+    static s4_height_t height; /* holds the height track: keep off the 2 KB stack */
     s4_clock_check_t timebase;
     s4_odometry_t odometry={0};
     ER fault_rc=E_OK;
@@ -50,6 +53,7 @@ EXPORT void imu_terrain_task(INT stacd, void *exinf)
     sensor_ok=(bus_rc==0)&&(init_rc==0);
     startup=s4_board_time_us();last_accel=startup;s4_terrain_init(&terrain,startup);
     s4_height_init(&height);
+    height.wheelbase_mm=S4_HEIGHT_WHEELBASE_MM;
     (void)tk_get_tim(&clock);
     s4_clock_check_init(&timebase,startup,clock.lo);
     release=clock.lo+S4_PERIOD_MS;

@@ -55,6 +55,40 @@ static bool usable(const s4_odometry_t *o,const s4_orientation_t *a,
     if(reason!=S4_HEIGHT_OK){reject(h,reason);return false;}
     return true;
 }
+static uint32_t track_wheelbase(const s4_height_t *h)
+{
+    return (h->wheelbase_mm<S4_HEIGHT_TRACK_LEN)?
+           h->wheelbase_mm:(S4_HEIGHT_TRACK_LEN-1U);
+}
+static void track_start(s4_height_t *h)
+{
+    /* The baseline sample was level, so the rear wheel is at height 0 and
+     * the front contact is L*sin(baseline pitch) above it. */
+    h->track_mm=0U;
+    h->front_mm=h->have_previous?
+        (float)track_wheelbase(h)*h->previous_sine:0.0F;
+    h->track[0]=h->front_mm;
+}
+static float track_step(s4_height_t *h,uint16_t ds,float sine)
+{
+    uint32_t l=track_wheelbase(h), d0=h->track_mm, d1=d0+ds, back, i;
+    float rear=0.0F, front;
+    if(d1>=l)
+    {
+        back=d1-l;
+        if(back>d0){back=d0;}  /* ds > wheelbase: use the newest entry */
+        rear=h->track[back%S4_HEIGHT_TRACK_LEN];
+    }
+    front=rear+(float)l*sine;
+    if(ds==0U){h->track[d0%S4_HEIGHT_TRACK_LEN]=front;}
+    for(i=1U;i<=ds;++i)
+    {
+        h->track[(d0+i)%S4_HEIGHT_TRACK_LEN]=
+            h->front_mm+(front-h->front_mm)*(float)i/(float)ds;
+    }
+    h->track_mm=d1;h->front_mm=front;
+    return front;
+}
 void s4_height_step(s4_height_t *h,const s4_odometry_t *o,
                     const s4_orientation_t *a,bool fresh,bool clock_ok,
                     uint32_t us,uint32_t ms,uint8_t state,float exit_deg,
@@ -75,7 +109,10 @@ void s4_height_step(s4_height_t *h,const s4_odometry_t *o,
         h->saw_climbing=false;h->start_ms=ms;
         h->current_mm=0.0F;h->peak_mm=0.0F;
         h->interpolated_samples=0U;h->max_interpolated_us=0U;
-        h->last_valid=false;h->last_mm=0.0F;h->reason=S4_HEIGHT_OK;
+        /* The published last/highest result is NOT cleared here: a pitch
+         * blip on flat ground must not erase the previous hump's height. */
+        h->idle_reason=h->reason;h->reason=S4_HEIGHT_OK;
+        track_start(h);
     }
     if(h->active&&(state==S4_CLIMBING)){h->saw_climbing=true;}
     good=usable(o,a,fresh,clock_ok,us,ms,h);
@@ -109,9 +146,19 @@ void s4_height_step(s4_height_t *h,const s4_odometry_t *o,
         sine=s4_sin_deg(a->pitch_deg);
         if(h->have_previous&&h->active&&h->chain_valid)
         {
-            /* ds is distance ALONG the travelled path, not horizontal range.
-             * Trapezoidal sin(pitch) integration approximates vertical rise. */
-            h->current_mm+=(float)ds*0.5F*(h->previous_sine+sine);
+            if(h->wheelbase_mm!=0U)
+            {
+                /* Chassis pitch is the slope between the wheels, not under
+                 * one wheel, so summing ds*sin(pitch) gives the height
+                 * averaged over the wheelbase and under-reads short humps. */
+                h->current_mm=track_step(h,ds,sine);
+            }
+            else
+            {
+                /* Legacy: ds is distance ALONG the travelled path.
+                 * Trapezoidal sin(pitch) integration approximates rise. */
+                h->current_mm+=(float)ds*0.5F*(h->previous_sine+sine);
+            }
             if(h->current_mm>h->peak_mm){h->peak_mm=h->current_mm;}
             if(ds!=0U){h->moved=true;}
         }
@@ -127,7 +174,10 @@ void s4_height_step(s4_height_t *h,const s4_odometry_t *o,
        (h->active&&!completed&&(state==S4_LEVEL)&&
         (h->saw_climbing||(fresh&&a->orientation_valid&&a->pitch_deg<=exit_deg))))
     {
-        if(h->active){reject(h,S4_HEIGHT_ABORTED);h->last_valid=false;}
+        if(h->active&&h->saw_climbing)
+        {reject(h,S4_HEIGHT_ABORTED);h->last_valid=false;} /* a real hump failed */
+        else if(h->active)
+        {h->reason=h->idle_reason;} /* false start: nothing to publish */
         h->active=false;
     }
     if(completed)

@@ -28,6 +28,10 @@
 #ifndef S4_POWERED_BENCH_KIND
 #define S4_POWERED_BENCH_KIND    0
 #endif
+/* Hump height: drive-axle centre to caster ground contact, in mm.
+ * PLACEHOLDER (110): measure the real car and update. 0 = legacy estimate.
+ * Must be below S4_HEIGHT_TRACK_LEN (192). */
+#define S4_HEIGHT_WHEELBASE_MM   110U
 /* Set to 1 only after hard/soft-iron calibration and motor-on validation. */
 #define S4_MAG_CALIBRATED        0
 #define S4_MAG_BIAS_X            0.0F

@@ -24,6 +24,9 @@ enum
     S4_HEIGHT_GAP, S4_HEIGHT_REVERSE, S4_HEIGHT_JUMP,
     S4_HEIGHT_FORMAT, S4_HEIGHT_ABORTED, S4_HEIGHT_NO_MOVEMENT
 };
+/* Wheelbase-aware height track: one entry per mm of travel. The track must
+ * hold at least one wheelbase of history, so wheelbase_mm < this length. */
+#define S4_HEIGHT_TRACK_LEN 192U
 typedef struct
 {
     /* Development guards; confirm against S2 resolution/rate/speed and S5. */
@@ -34,6 +37,16 @@ typedef struct
     float previous_sine, current_mm, peak_mm, last_mm, highest_mm;
     uint32_t interpolated_samples, max_interpolated_us, pending_samples;
     uint8_t reason;
+    /* Published reason saved when a candidate starts; restored if that
+     * candidate turns out to be a false start (never reached CLIMBING). */
+    uint8_t idle_reason;
+    /* 0 = legacy sum of ds*sin(pitch). Otherwise the drive-axle-to-caster
+     * distance: front height = rear height + L*sin(pitch), and the rear wheel
+     * is where the front contact was one wheelbase of travel earlier. */
+    uint16_t wheelbase_mm;
+    uint32_t track_mm;          /* travel since the candidate started */
+    float front_mm;             /* front contact height at track_mm */
+    float track[S4_HEIGHT_TRACK_LEN];
     bool have_previous, baseline_ready, active, chain_valid;
     bool saw_climbing, moved, odometry_valid, last_valid, highest_valid;
 } s4_height_t;
