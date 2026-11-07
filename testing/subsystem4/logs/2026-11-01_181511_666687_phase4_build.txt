@@ -1,0 +1,3 @@
+Firmware checkpoint: a522381353bd23f30b08a2e8be5cbfeffa4014cf
+Profile: SMP=1 USB CDC WiFi TEST=1
+mingw32-make: Nothing to be done for 'all'.

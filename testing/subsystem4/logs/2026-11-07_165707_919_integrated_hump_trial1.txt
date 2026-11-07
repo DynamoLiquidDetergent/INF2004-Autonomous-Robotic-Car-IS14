@@ -1,0 +1,191 @@
+S4 integrated subset - original console capture
+Result: UNREVIEWED
+Case: Hump; trial 1
+Expected: Full LEVEL/CLIMBING/DESCENDING/LEVEL sequence, valid estimate/highest; absolute error <=10% for every recorded trial.
+Started: 2026-11-07T16:57:07.9291288+08:00
+Source base: 2d287d78ec02a107c0f16f6a31a3b4e557c78bef
+Working build: WT-609dab8d2247
+Firmware SHA256: 6702b41d4a53073618dba3a2d9c8f92788d3261730c36c50c0818377838eb723
+Profile: line-follow; max line speed 50 mm/s
+IMU test policy: QUALIFIED_ENDPOINTS_V1; endpoint max 100 ms / 5 mm; encoder guards unchanged
+Build uses the original line-controller decisions; S4 terrain states do not override steering.
+Local positive-DRIVE steering constraint: minimum target 10 mm/s; measured motion must be checked.
+RAW S2 columns: kernel_ms,state,ramped_target_L,measured_L,duty_L,ramped_target_R,measured_R,duty_R,distance_mm
+Wi-Fi/barcode/obstacle tasks inactive. This capture is not a full-system result.
+--- CONSOLE ---
+BUDDY 4 | LIVE HUMP HEIGHT | Ctrl+C closes display | No files saved
+This monitor only reads sensor output. Start/stop behaviour belongs to the flashed firmware.
+Ctrl+C does not stop the motors. Use the car power switch if a physical stop is needed.
+Measured reference: 23 mm (2.3 cm). Used for comparison only.
+Waiting for Pico USB serial...
+Connected COM4
+[16:57:12] RAW S2,3355771057,0,0,0,0,0,0,0,0
+[16:57:12] RAW S2,3355771257,0,0,0,0,0,0,0,0
+[16:57:12] RAW S2,3355771457,0,0,0,0,0,0,0,0
+[16:57:12] RAW S2,3355771657,0,0,0,0,0,0,0,0
+[16:57:12] RAW S2,3355771857,0,0,0,0,0,0,0,0
+[16:57:13] RAW S2,3355772057,0,0,0,0,0,0,0,0
+[16:57:13] RAW S2,3355772257,0,0,0,0,0,0,0,0
+[16:57:13] RAW S2,3355772457,0,0,0,0,0,0,0,0
+[16:57:13] RAW S2,3355772657,0,0,0,0,0,0,0,0
+[16:57:13] RAW S2,3355772857,0,0,0,0,0,0,0,0
+[16:57:14] RAW S2,3355773057,0,0,0,0,0,0,0,0
+[16:57:14] RAW S2,3355773257,0,0,0,0,0,0,0,0
+[16:57:14] RAW S2,3355773457,0,0,0,0,0,0,0,0
+[16:57:14] RAW S2,3355773657,0,0,0,0,0,0,0,0
+[16:57:14] RAW S2,3355773857,0,0,0,0,0,0,0,0
+[16:57:15] RAW S2,3355774057,0,0,0,0,0,0,0,0
+[16:57:15] RAW S2,3355774257,0,0,0,0,0,0,0,0
+[16:57:15] RAW S2,3355774457,0,0,0,0,0,0,0,0
+[16:57:15] RAW S2,3355774657,0,0,0,0,0,0,0,0
+[16:57:15] RAW S2,3355774857,0,0,0,0,0,0,0,0
+[16:57:15] vc: calibration not done, default range kept
+[16:57:15] vc: put the robot on the line, centre sensor over it -- starting in 3 s
+[16:57:16] RAW S2,3355775057,0,0,0,0,0,0,0,0
+[16:57:16] RAW S2,3355775257,0,0,0,0,0,0,0,0
+[16:57:16] RAW S2,3355775457,0,0,0,0,0,0,0,0
+[16:57:16] RAW S2,3355775657,0,0,0,0,0,0,0,0
+[16:57:16] RAW S2,3355775857,0,0,0,0,0,0,0,0
+No current S4 telemetry for 5 seconds. Waiting; no new height reading is available.
+[16:57:17] RAW S2,3355776057,0,0,0,0,0,0,0,0
+[16:57:17] RAW S2,3355776257,0,0,0,0,0,0,0,0
+[16:57:17] RAW S2,3355776457,0,0,0,0,0,0,0,0
+[16:57:17] RAW S2,3355776657,0,0,0,0,0,0,0,0
+[16:57:17] RAW S2,3355776857,0,0,0,0,0,0,0,0
+[16:57:18] RAW S2,3355777057,0,0,0,0,0,0,0,0
+[16:57:18] RAW S2,3355777257,0,0,0,0,0,0,0,0
+[16:57:18] RAW S2,3355777457,0,0,0,0,0,0,0,0
+[16:57:18] RAW S2,3355777657,0,0,0,0,0,0,0,0
+[16:57:18] RAW S2,3355777857,0,0,0,0,0,0,0,0
+[16:57:18] vc: following the line at up to 50 mm/s (starts by itself; VC_AUTO_START 0 waits for RESUME)
+[16:57:18] vc: mission state RUNNING
+[16:57:19] RAW S2,3355778057,1,10,38,91,70,54,177,6
+[16:57:19] RAW S2,3355778257,1,50,54,133,50,49,155,16
+[16:57:19] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=53/54 mm/s
+[16:57:19] RAW S2,3355778457,1,50,44,140,50,48,155,27
+[16:57:19] RAW S2,3355778657,1,50,40,145,50,48,158,36
+[16:57:19] RAW S2,3355778857,1,50,47,142,50,45,161,46
+[16:57:20] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=47/45 mm/s
+[16:57:20] RAW S2,3355779057,1,50,49,144,50,51,158,55
+[16:57:20] RAW S2,3355779257,1,52,51,147,48,54,152,65
+[16:57:20] LINE | Zone=5 | Lost=NO | Junction=NO | Target=40 mm/s | Wheels L/R=50/52 mm/s
+[16:57:20] RAW S2,3355779457,1,48,40,154,52,7,194,73
+[16:57:20] RAW S2,3355779657,1,10,3,133,70,3,261,75
+[16:57:20] RAW S2,3355779857,1,10,0,141,70,0,305,75
+[16:57:21] LINE | Zone=3 | Lost=NO | Junction=NO | Target=40 mm/s | Wheels L/R=0/0 mm/s
+[16:57:21] RAW S2,3355780057,1,10,0,147,70,0,347,75
+[16:57:21] RAW S2,3355780257,1,10,0,153,70,0,389,75
+[16:57:21] LINE | Zone=3 | Lost=NO | Junction=NO | Target=40 mm/s | Wheels L/R=0/0 mm/s
+[16:57:21] RAW S2,3355780457,1,10,0,159,70,0,431,75
+[16:57:21] safety: INHIBIT set (faults 0x1, obstacle state 0)
+[16:57:21] vc: mission state FAULT
+[16:57:21] RAW S2,3355780657,5,0,0,0,0,0,0,75
+[16:57:21] RAW S2,3355780857,5,0,0,0,0,0,0,75
+[16:57:22] LINE | Zone=3 | Lost=NO | Junction=NO | Target=0 mm/s | Wheels L/R=0/0 mm/s
+[16:57:22] RAW S2,3355781057,5,0,0,0,0,0,0,75
+[16:57:22] RAW S2,3355781257,5,0,0,0,0,0,0,75
+[16:57:22] LINE | Zone=3 | Lost=NO | Junction=NO | Target=0 mm/s | Wheels L/R=0/0 mm/s
+[16:57:22] RAW S2,3355781457,5,0,0,0,0,0,0,75
+[16:57:22] RAW S2,3355781657,5,0,0,0,0,0,0,75
+[16:57:22] RAW S2,3355781857,5,0,0,0,0,0,0,75
+[16:57:23] LINE | Zone=3 | Lost=NO | Junction=NO | Target=0 mm/s | Wheels L/R=0/0 mm/s
+[16:57:23] RAW S2,3355782057,5,0,0,0,0,0,0,75
+[16:57:23] RAW S2,3355782257,5,0,0,0,0,0,0,75
+[16:57:23] LINE | Zone=3 | Lost=NO | Junction=NO | Target=0 mm/s | Wheels L/R=0/0 mm/s
+[16:57:23] RAW S2,3355782457,5,0,0,0,0,0,0,75
+[16:57:23] RAW S2,3355782657,5,0,0,0,0,0,0,75
+[16:57:23] RAW S2,3355782857,5,0,0,0,0,0,0,75
+[16:57:24] LINE | Zone=3 | Lost=NO | Junction=NO | Target=0 mm/s | Wheels L/R=0/0 mm/s
+[16:57:24] RAW S2,3355783057,5,0,0,0,0,0,0,75
+[16:57:24] RAW S2,3355783257,5,0,0,0,0,0,0,75
+[16:57:24] LINE | Zone=3 | Lost=NO | Junction=NO | Target=0 mm/s | Wheels L/R=0/0 mm/s
+[16:57:24] RAW S2,3355783457,5,0,0,0,0,0,0,75
+[16:57:24] safety: inhibit released (a newer epoch is needed to move)
+[16:57:24] vc: mission state RUNNING
+[16:57:24] RAW S2,3355783657,1,10,0,123,25,0,145,75
+[16:57:25] RAW S2,3355783857,1,50,0,188,50,48,174,76
+[16:57:25] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=38/47 mm/s
+[16:57:25] RAW S2,3355784057,1,52,52,157,48,31,187,84
+[16:57:25] RAW S2,3355784257,1,52,58,160,48,66,163,92
+[16:57:25] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=51/44 mm/s
+[16:57:25] RAW S2,3355784457,1,52,40,177,48,47,176,102
+[16:57:25] RAW S2,3355784657,1,52,44,178,48,43,183,111
+[16:57:26] RAW S2,3355784857,1,50,48,174,50,45,189,120
+[16:57:26] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=47/44 mm/s
+[16:57:26] RAW S2,3355785057,1,48,56,163,52,45,196,130
+[16:57:26] RAW S2,3355785257,1,50,38,178,50,40,204,138
+[16:57:26] LINE | Zone=3 | Lost=NO | Junction=NO | Target=40 mm/s | Wheels L/R=46/45 mm/s
+[16:57:26] RAW S2,3355785457,1,25,38,146,70,51,226,147
+[16:57:26] RAW S2,3355785657,1,52,42,182,48,45,203,156
+[16:57:27] RAW S2,3355785857,1,70,41,212,30,42,181,165
+[16:57:27] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=31/50 mm/s
+[16:57:27] RAW S2,3355786057,1,50,32,193,50,35,224,173
+[16:57:27] RAW S2,3355786257,1,52,29,210,48,32,232,180
+[16:57:27] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=34/34 mm/s
+[16:57:27] RAW S2,3355786457,1,52,33,219,48,36,238,186
+[16:57:27] RAW S2,3355786657,1,54,44,219,46,53,224,195
+[16:57:28] RAW S2,3355786857,1,58,55,218,42,68,196,207
+[16:57:28] LINE | Zone=5 | Lost=NO | Junction=NO | Target=40 mm/s | Wheels L/R=72/81 mm/s
+[16:57:28] RAW S2,3355787057,1,70,74,218,10,69,121,221
+[16:57:28] RAW S2,3355787257,1,70,69,216,10,63,104,234
+[16:57:28] LINE | Zone=5 | Lost=NO | Junction=NO | Target=40 mm/s | Wheels L/R=66/65 mm/s
+[16:57:28] RAW S2,3355787457,1,70,61,216,10,60,89,248
+[16:57:28] RAW S2,3355787657,1,70,52,223,25,67,89,260
+[16:57:29] RAW S2,3355787857,1,50,52,195,50,63,115,271
+[16:57:29] LINE | Zone=5 | Lost=NO | Junction=NO | Target=40 mm/s | Wheels L/R=58/64 mm/s
+[16:57:29] RAW S2,3355788057,1,50,54,192,50,61,104,283
+[16:57:29] RAW S2,3355788257,1,45,66,176,35,38,88,294
+[16:57:29] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=55/62 mm/s
+[16:57:29] RAW S2,3355788457,1,50,57,187,50,59,88,305
+[16:57:29] RAW S2,3355788657,1,48,46,192,52,38,113,315
+[16:57:30] RAW S2,3355788857,1,10,32,145,70,43,147,323
+[16:57:30] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=38/39 mm/s
+[16:57:30] RAW S2,3355789057,1,25,43,157,70,42,157,331
+[16:57:30] RAW S2,3355789257,1,50,43,191,50,41,139,339
+[16:57:30] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=52/50 mm/s
+[16:57:30] RAW S2,3355789457,1,50,49,189,50,45,139,348
+[16:57:30] RAW S2,3355789657,1,50,51,189,50,49,138,357
+[16:57:31] RAW S2,3355789857,1,50,50,190,50,47,142,367
+[16:57:31] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=40/51 mm/s
+[16:57:31] RAW S2,3355790057,1,50,47,191,50,49,143,377
+[16:57:31] RAW S2,3355790257,1,50,42,197,50,49,145,386
+[16:57:31] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=46/45 mm/s
+[16:57:31] RAW S2,3355790457,1,52,41,204,48,44,146,395
+[16:57:31] RAW S2,3355790657,1,52,48,201,48,46,144,405
+[16:57:32] RAW S2,3355790857,1,52,53,197,48,49,141,416
+[16:57:32] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=55/49 mm/s
+[16:57:32] RAW S2,3355791057,1,52,52,199,48,50,139,426
+[16:57:32] RAW S2,3355791257,1,70,47,232,25,50,105,435
+[16:57:32] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=44/49 mm/s
+[16:57:32] RAW S2,3355791457,1,50,45,210,50,47,138,445
+[16:57:32] RAW S2,3355791657,1,50,51,204,50,52,135,455
+[16:57:33] RAW S2,3355791857,1,48,52,199,52,49,140,465
+[16:57:33] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=47/51 mm/s
+[16:57:33] RAW S2,3355792057,1,48,51,200,52,45,145,475
+[16:57:33] RAW S2,3355792257,1,48,53,196,52,53,139,485
+[16:57:33] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=49/46 mm/s
+[16:57:33] RAW S2,3355792457,1,50,51,202,50,49,137,495
+[16:57:33] RAW S2,3355792657,1,50,54,198,50,52,134,505
+[16:57:34] RAW S2,3355792857,1,48,59,188,52,51,138,516
+[16:57:34] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=54/54 mm/s
+[16:57:34] RAW S2,3355793057,1,48,50,192,52,56,134,527
+[16:57:34] RAW S2,3355793257,1,48,40,196,52,52,138,537
+[16:57:34] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=54/33 mm/s
+[16:57:34] RAW S2,3355793457,1,45,55,190,35,36,116,546
+[16:57:34] RAW S2,3355793657,1,50,42,208,50,41,137,556
+[16:57:35] RAW S2,3355793857,1,50,49,203,50,51,130,565
+[16:57:35] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=52/47 mm/s
+[16:57:35] RAW S2,3355794057,1,50,47,204,50,51,131,575
+[16:57:35] RAW S2,3355794257,1,50,53,199,50,48,134,586
+[16:57:35] RAW S2,3355794457,1,50,51,200,50,52,131,596
+[16:57:35] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=51/52 mm/s
+[16:57:35] RAW S2,3355794657,1,48,53,192,52,49,137,606
+[16:57:36] RAW S2,3355794857,1,46,51,186,54,58,133,617
+[16:57:36] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=54/55 mm/s
+[16:57:36] RAW S2,3355795057,1,48,55,182,52,52,133,628
+[16:57:36] RAW S2,3355795257,1,48,50,183,52,52,133,639
+[16:57:36] RAW S2,3355795457,1,50,48,189,50,55,127,649
+[16:57:36] LINE | Zone=4 | Lost=NO | Junction=NO | Target=50 mm/s | Wheels L/R=48/55 mm/s
+[16:57:36] RAW S2,3355795657,1,50,48,188,50,49,132,659
+USB disconnected. Waiting for Pico...
+Display timer ended. This does NOT stop the motors; use the physical switch. No files written by the monitor.
