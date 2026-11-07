@@ -4,6 +4,7 @@
 #include "s4_processing.h"
 #include "s4_terrain.h"
 #include "s4_odometry.h"
+#include "s4_right_wheel.h"
 #include "s4_clock_check.h"
 #include "s4_integration.h"
 #if S4_HEIGHT_WHEELBASE_MM >= S4_HEIGHT_TRACK_LEN
@@ -33,9 +34,16 @@ EXPORT void imu_terrain_task(INT stacd, void *exinf)
     s4_bus_t bus;
     s4_sample_t sample={0};
     s4_processing_config_t config=s4_processing_defaults();
-    s4_processor_t processor;
+    static s4_processor_t processor; /* median storage stays off task stack */
+    /* Static diagnostic storage keeps additional state off the task stack. */
+    static s4_processor_t reference_processor;
+    static s4_orientation_t reference_orientation;
+    static s4_terrain_t reference_terrain;
+    uint32_t diagnostic_rejected=0U,diagnostic_run=0U,diagnostic_longest=0U;
+    uint8_t previous_reference_state=S4_INITIALISING;
     s4_orientation_t orientation={0};
     s4_terrain_t terrain;
+    static s4_right_wheel_t right_wheel;
     static s4_height_t height; /* holds the height track: keep off the 2 KB stack */
     s4_clock_check_t timebase;
     s4_odometry_t odometry={0};
@@ -48,12 +56,23 @@ EXPORT void imu_terrain_task(INT stacd, void *exinf)
     config.magnetic_scale[0]=S4_MAG_SCALE_X;config.magnetic_scale[1]=S4_MAG_SCALE_Y;
     config.magnetic_scale[2]=S4_MAG_SCALE_Z;
     s4_processor_init(&processor,&config);
+    s4_processor_init(&reference_processor,&config);
     bus_rc=s4_board_bus_init(&bus);
     init_rc=(bus_rc==0)?s4_sensor_init(&bus):-100; /* -100: not attempted. */
     sensor_ok=(bus_rc==0)&&(init_rc==0);
     startup=s4_board_time_us();last_accel=startup;s4_terrain_init(&terrain,startup);
+    s4_terrain_init(&reference_terrain,startup);
     s4_height_init(&height);
+    right_wheel.track_mm=S4_RIGHT_TRACK_MM;
     height.wheelbase_mm=S4_HEIGHT_WHEELBASE_MM;
+    /* At 50 mm/s the long-hump model exceeds the original 10 s traversal
+     * budget. Keep a bounded 20 s allowance; input fault guards stay active. */
+    height.max_candidate_ms=20000U;
+    terrain.config.traversal_timeout_us=20000000U;
+    reference_terrain.config.traversal_timeout_us=20000000U;
+    /* Experimental limits: at 50 mm/s this bridges at most 5 mm of travel.
+     * Qualified endpoints and uninterrupted encoder updates are required. */
+    height.max_imu_gap_us=100000U;height.max_imu_step_mm=5U;
     (void)tk_get_tim(&clock);
     s4_clock_check_init(&timebase,startup,clock.lo);
     release=clock.lo+S4_PERIOD_MS;
@@ -69,11 +88,14 @@ EXPORT void imu_terrain_task(INT stacd, void *exinf)
         {
             last_accel=work_start;map_sample(&sample);
             (void)s4_process(&processor,&sample,work_start,&orientation);
+            (void)s4_process_reference(&reference_processor,&sample,work_start,&reference_orientation);
         }
         else
         {
             orientation.orientation_valid=false;orientation.heading_valid=false;
             orientation.turn_rate_valid=false;
+            reference_orientation.orientation_valid=false;
+            reference_orientation.heading_valid=false;reference_orientation.turn_rate_valid=false;
         }
         if(result!=0){imu_quality=S4_IMU_FAULT;imu_status="IO_ERROR";}
         else if(!fresh){imu_quality=S4_IMU_WAIT;imu_status="NO_NEW_SAMPLE";}
@@ -84,34 +106,39 @@ EXPORT void imu_terrain_task(INT stacd, void *exinf)
         else if(!orientation.orientation_valid)
         {imu_quality=S4_IMU_DYNAMIC;imu_status="NOT_GRAVITY_DOMINANT";}
         else {imu_quality=S4_IMU_GOOD;imu_status="OK";}
-        s4_terrain_step(&terrain,&orientation,processor.calibrated,
-                       (result==0)&&((uint32_t)(work_start-last_accel)<=100000U),
-                       fresh,work_start);
-        if(terrain.hump_event){++humps;}
-        if(terrain.impact_event){++impacts;}
-        if(terrain.traversal_aborted){++aborts;}
-        state=s4_terrain_state(&terrain);
         {
             uint32_t input_time;
             (void)s4_read_odometry(&odometry);
             (void)tk_get_tim(&clock);input_time=s4_board_time_us();
             s4_clock_check_step(&timebase,input_time,clock.lo);
-            s4_height_step_quality(&height,&odometry,&orientation,imu_quality,
-                timebase.status==S4_CLOCK_CONSISTENT,input_time,clock.lo,
-                state,terrain.config.exit_deg,terrain.hump_event,
-                terrain.traversal_aborted);
+            s4_right_step(&right_wheel,&height,&terrain,&odometry,&orientation,
+                imu_quality,processor.calibrated,
+                (result==0)&&((uint32_t)(work_start-last_accel)<=100000U),
+                timebase.status==S4_CLOCK_CONSISTENT,input_time,clock.lo);
         }
+        /* Same mapped input, time and calibration rules, independent FSM.
+         * Reference results are logged only; existing S4/S5 outputs use terrain. */
+        s4_terrain_step(&reference_terrain,&reference_orientation,reference_processor.calibrated,
+                       (result==0)&&((uint32_t)(work_start-last_accel)<=100000U),fresh,work_start);
+        if(processor.calibrated&&(!fresh||!orientation.orientation_valid))
+        {++diagnostic_rejected;++diagnostic_run;if(diagnostic_run>diagnostic_longest){diagnostic_longest=diagnostic_run;}}
+        else {diagnostic_run=0U;}
+        if(terrain.hump_event){++humps;}
+        if(terrain.impact_event){++impacts;}
+        if(terrain.traversal_aborted){++aborts;}
+        state=s4_terrain_state(&terrain);
         fault_rc=s4_integration_publish(&height,
             (state==S4_FAULT)||(timebase.status==S4_CLOCK_BAD),humps);
         s4_drain_example();++cycles;
 #if S4_LOG_EVERY_CYCLES > 0
         /* Changes/events are logged immediately, not only at the heartbeat. */
-        if((state!=previous_state)||terrain.hump_event||terrain.impact_event||
+        if((s4_terrain_state(&reference_terrain)!=previous_reference_state)||
+           (state!=previous_state)||terrain.hump_event||terrain.impact_event||
            terrain.traversal_aborted||((previous_chain||!previous_active)&&!height.chain_valid&&height.active)||
            (height.interpolated_samples!=0U&&previous_interpolated==0U)||
            ((cycles%S4_LOG_EVERY_CYCLES)==0U))
         {
-            tm_printf((UB *)"S4 t_us=%u state=%s motion=%s calibrated=%d valid=%d fresh=%d rc=%d pitch_md=%d roll_md=%d impact=%d hump=%d aborted=%d humps=%u impacts=%u aborts=%u max_us=%u missed=%u bus_rc=%d init_rc=%d timebase=%s odom_valid=%d height_valid=%d height_mm=%d highest_valid=%d highest_mm=%d height_reason=%s odo_mm=%u odo_ms=%u odo_forward=%d fault_rc=%d build_id=%s profile=%s encoder_valid=%d imu_status=%s dynamic_mg=%d interpolated=%u max_interp_us=%u pending_imu=%u chain_valid=%d\n",
+            tm_printf((UB *)"S4 t_us=%u state=%s motion=%s calibrated=%d valid=%d fresh=%d rc=%d pitch_md=%d roll_md=%d impact=%d hump=%d aborted=%d humps=%u impacts=%u aborts=%u max_us=%u missed=%u bus_rc=%d init_rc=%d timebase=%s odom_valid=%d height_valid=%d height_mm=%d highest_valid=%d highest_mm=%d height_reason=%s odo_mm=%u odo_ms=%u odo_forward=%d fault_rc=%d build_id=%s profile=%s encoder_valid=%d imu_status=%s dynamic_mg=%d interpolated=%u max_interp_us=%u pending_imu=%u chain_valid=%d filter_compare=1 median_window=5 right_wheel_mode=1 track_um=%u old_pitch_md=%d old_roll_md=%d old_valid=%d old_cal=%d old_state=%d diag_rejected=%u diag_run=%u diag_longest=%u imu_policy=QUALIFIED_ENDPOINTS_V1 accel_x_mg=%d accel_y_mg=%d accel_z_mg=%d\n",
                 work_start,s4_terrain_state_name(state),
                 s4_motion_class_name(s4_motion_class(&terrain)),
                 (int)processor.calibrated,(int)(fresh&&orientation.orientation_valid),
@@ -129,9 +156,15 @@ EXPORT void imu_terrain_task(INT stacd, void *exinf)
                 (int)odometry.forward,(int)fault_rc,S4_BUILD_TAG,S4_BUILD_PROFILE,
                 (int)odometry.valid,imu_status,(int)(orientation.dynamic_g*1000.0F),
                 height.interpolated_samples,height.max_interpolated_us,
-                height.pending_samples,(int)height.chain_valid);
+                height.pending_samples,(int)height.chain_valid,
+                (unsigned)(S4_RIGHT_TRACK_MM*1000.0F),
+                (int)(reference_orientation.pitch_deg*1000.0F),(int)(reference_orientation.roll_deg*1000.0F),
+                (int)(fresh&&reference_orientation.orientation_valid),(int)reference_processor.calibrated,
+                (int)s4_terrain_state(&reference_terrain),diagnostic_rejected,diagnostic_run,diagnostic_longest,
+                (int)(sample.accel_g[0]*1000.0F),(int)(sample.accel_g[1]*1000.0F),(int)(sample.accel_g[2]*1000.0F));
         }
 #endif
+        previous_reference_state=s4_terrain_state(&reference_terrain);
         previous_state=state;previous_chain=height.chain_valid;previous_active=height.active;
         previous_interpolated=height.interpolated_samples;
         /* Elapsed work-section high-water mark, including console calls and

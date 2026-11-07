@@ -31,10 +31,10 @@
 
 /* ---- Measure these on the real car / hump, then update ---- */
 #ifndef S4_TEST_WHEELBASE_MM
-#define S4_TEST_WHEELBASE_MM   120.0   /* drive axle to caster contact */
+#define S4_TEST_WHEELBASE_MM   110.0   /* drive axle to caster contact */
 #endif
 #ifndef S4_TEST_SPEED_MMPS
-#define S4_TEST_SPEED_MMPS     100.0   /* VC_LF_SPEED when centred */
+#define S4_TEST_SPEED_MMPS     50.0   /* VC_LF_SPEED when centred */
 #endif
 #define TEST_STILL_NOISE_G     0.004   /* sensor noise, car at rest */
 #define TEST_DRIVE_NOISE_G     0.010   /* light vibration while driving */
@@ -111,6 +111,7 @@ static result_t run(const scenario_t *s)
     sc=s; rng=s->seed*2654435761U+12345U;
     s4_processor_init(&p,&cfg); s4_terrain_init(&t,0U); s4_height_init(&h);
     h.wheelbase_mm=(uint16_t)S4_TEST_WHEELBASE_MM; /* as imu_terrain_task.c does */
+    t.config.traversal_timeout_us=20000000U;h.max_candidate_ms=20000U; /* matches slow diagnostic image */
     s4_motion_reader_init(&reader);
     end_mm=s->hump_count?s->humps[s->hump_count-1U].start_mm+
                          s->humps[s->hump_count-1U].length_mm+300.0:s->flat_run_mm;
@@ -257,6 +258,15 @@ int main(void)
     CHECK("F 15 mm hump detected",r.events==1U&&r.event_valid[0],
           "events=%u valid=%d est=%.1f mm",r.events,(int)r.event_valid[0],(double)r.event_mm[0]);
 
+    /* Measured geometry/demo speed, synthetic 23 mm humps. Real hump
+     * length, caster shape, chassis contact and slip are not modelled. */
+    for(seed=1U;seed<=3U;++seed)
+    {
+        s=one_hump(23.0,250.0,seed);r=run(&s);
+        CHECK("23 mm model at 50 mm/s",r.events==1U&&r.event_valid[0]&&
+              fabs(err_pct(r.event_mm[0],23.0))<=10.0,
+              "events=%u valid=%d est=%.1f mm",r.events,(int)r.event_valid[0],(double)r.event_mm[0]);
+    }
     printf("S4-U15: %s (%u checks, %u failures); physical model only, not H10 evidence.\n",
            failures?"FAIL":"PASS",checks,failures);
     return failures?1:0;

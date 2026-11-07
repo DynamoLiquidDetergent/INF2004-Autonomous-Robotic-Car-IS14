@@ -21,6 +21,11 @@ typedef struct
     float pitch_zero, roll_zero;
     float previous_heading;
     uint32_t previous_heading_us;
+    /* Five qualified samples; no heap or new kernel objects. */
+    float median_history[3][5];
+    unsigned median_next;
+    uint32_t median_time_us;
+    bool median_ready;
     bool calibrated, filter_ready, have_heading;
 } s4_processor_t;
 typedef struct
@@ -33,4 +38,5 @@ s4_processing_config_t s4_processing_defaults(void);
 void s4_processor_init(s4_processor_t *p, const s4_processing_config_t *config);
 bool s4_process(s4_processor_t *p, const s4_sample_t *sample,
                  uint32_t time_us, s4_orientation_t *out);
+bool s4_process_reference(s4_processor_t *,const s4_sample_t *,uint32_t,s4_orientation_t *);
 #endif

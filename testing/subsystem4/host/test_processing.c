@@ -23,7 +23,8 @@ int main(void)
     assert(s4_process(&p,&s,60000U,&o));
     assert(o.orientation_valid&&!o.heading_valid);
     s.accel_g[0]=0.5F;s.accel_g[2]=0.8660254F;
-    assert(s4_process(&p,&s,80000U,&o));assert(test_abs(o.pitch_deg-30.0F)<0.12F);
+    for(i=0;i<5;++i){assert(s4_process(&p,&s,80000U+(uint32_t)i*20000U,&o));}
+    assert(test_abs(o.pitch_deg-30.0F)<0.12F);
     c.magnetic_calibrated=true;s4_processor_init(&p,&c);
     s.accel_g[0]=0;s.accel_g[2]=1;
     for(i=0;i<4;++i){(void)s4_process(&p,&s,(uint32_t)i*20000U,&o);}

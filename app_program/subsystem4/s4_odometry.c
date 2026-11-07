@@ -8,6 +8,7 @@ void s4_height_init(s4_height_t *h)
     s4_zero(h,sizeof(*h));
     h->max_gap_us=60000U;h->max_age_us=40000U;
     h->max_step_mm=50U;h->max_candidate_ms=10000U;
+    h->max_imu_gap_us=h->max_gap_us;h->max_imu_step_mm=h->max_step_mm;
     h->reason=S4_HEIGHT_NO_ODOMETRY;
 }
 void s4_odometry_decode_word(uint32_t word,bool forward,s4_odometry_t *o)
@@ -194,36 +195,97 @@ void s4_height_step(s4_height_t *h,const s4_odometry_t *o,
         h->active=false;
     }
 }
+/* Odometry continuity is checked on EVERY call, independently of the
+ * longer IMU endpoint interval. Fresh encoder updates cannot be replaced by
+ * one stale cumulative sample. Never use a rejected acceleration as tilt. */
+static uint8_t quality_odometry(s4_height_t *h,const s4_odometry_t *o,
+                               bool clock_ok,uint32_t us,uint32_t ms)
+{
+    uint32_t age,dt;
+    uint16_t ds;
+    uint8_t reason=S4_HEIGHT_OK;
+    if(!clock_ok){reason=S4_HEIGHT_TIMEBASE;}
+    else if(!o->valid){reason=S4_HEIGHT_NO_ODOMETRY;}
+    else if(!o->forward){reason=S4_HEIGHT_REVERSE;}
+    else if(o->clock_format!=S4_ODOM_MS16&&o->clock_format!=S4_ODOM_US32)
+    {reason=S4_HEIGHT_FORMAT;}
+    else
+    {
+        age=o->clock_format==S4_ODOM_MS16?
+            (uint32_t)(uint16_t)((uint16_t)ms-(uint16_t)o->timestamp)*1000U:
+            us-o->timestamp;
+        if(age>h->max_age_us){reason=S4_HEIGHT_STALE;}
+        else if(h->quality_have_previous)
+        {
+            if(o->clock_format!=h->quality_previous.clock_format)
+            {reason=S4_HEIGHT_FORMAT;}
+            else
+            {
+                dt=interval(o,&h->quality_previous);
+                ds=(uint16_t)(o->distance_mm-h->quality_previous.distance_mm);
+                if((dt==0U&&ds!=0U)||ds>h->max_step_mm)
+                {reason=S4_HEIGHT_JUMP;}
+                else if(dt>h->max_gap_us||
+                    (uint32_t)(ms-h->quality_receipt_ms)>h->max_gap_us/1000U)
+                {reason=S4_HEIGHT_GAP;}
+            }
+        }
+    }
+    if(reason!=S4_HEIGHT_OK){h->quality_have_previous=false;return reason;}
+    if(!h->quality_have_previous||interval(o,&h->quality_previous)!=0U)
+    {h->quality_previous=*o;h->quality_receipt_ms=ms;}
+    h->quality_have_previous=true;
+    return reason;
+}
 void s4_height_step_quality(s4_height_t *h,const s4_odometry_t *o,
                     const s4_orientation_t *a,uint8_t quality,bool clock_ok,
                     uint32_t us,uint32_t ms,uint8_t state,float exit_deg,
                     bool completed,bool aborted)
 {
-    uint32_t skipped=h->pending_samples, gap=0U, age=0U;
-    bool deferrable=(quality==S4_IMU_WAIT)||(quality==S4_IMU_DYNAMIC);
-    bool endpoint=(quality==S4_IMU_GOOD)&&a->orientation_valid;
+    uint32_t skipped=h->pending_samples,gap=0U;
+    uint32_t strict_gap=h->max_gap_us;
+    uint16_t strict_step=h->max_step_mm;
+    uint16_t endpoint_step=h->max_imu_step_mm<strict_step?
+                           h->max_imu_step_mm:strict_step;
+    bool deferrable=quality==S4_IMU_WAIT||quality==S4_IMU_DYNAMIC;
+    bool endpoint=quality==S4_IMU_GOOD&&a->orientation_valid;
     bool was_valid=h->have_previous&&(!h->active||h->chain_valid);
-    if(h->have_previous){gap=interval(o,&h->previous);}
-    if(o->clock_format==S4_ODOM_MS16)
-    {age=(uint32_t)(uint16_t)((uint16_t)ms-(uint16_t)o->timestamp)*1000U;}
-    else {age=us-o->timestamp;}
-    /* Defer only: no rejected angle is consumed and no distance is invented.
-     * A later qualified endpoint must arrive within max_gap_us. The strict
-     * estimator below still verifies that full endpoint interval and distance.
-     * An I/O error/saturation/impact is a hard failure, even for one sample. */
-    if(deferrable&&was_valid&&clock_ok&&o->valid&&o->forward&&
+    uint8_t odometry_reason=quality_odometry(h,o,clock_ok,us,ms);
+    bool bounded=false;
+    if(was_valid&&odometry_reason==S4_HEIGHT_OK&&
+       o->clock_format==h->previous.clock_format)
+    {
+        gap=interval(o,&h->previous);
+        bounded=gap<=h->max_imu_gap_us&&
+            (uint32_t)(ms-h->previous_receipt_ms)<=h->max_imu_gap_us/1000U&&
+            (uint16_t)(o->distance_mm-h->previous.distance_mm)<=endpoint_step&&
+            (gap!=0U||o->distance_mm==h->previous.distance_mm);
+    }
+    if(deferrable&&bounded&&gap<h->max_imu_gap_us&&
+       (uint32_t)(ms-h->previous_receipt_ms)<h->max_imu_gap_us/1000U&&
        state!=S4_FAULT&&!aborted&&!completed&&
-       o->clock_format==h->previous.clock_format&&age<=h->max_age_us&&
-       gap<h->max_gap_us&&
-       (uint32_t)(ms-h->previous_receipt_ms)<h->max_gap_us/1000U&&
-       (uint16_t)(o->distance_mm-h->previous.distance_mm)<=h->max_step_mm&&
-       (gap!=0U||o->distance_mm==h->previous.distance_mm)&&
        (!h->active||(uint32_t)(ms-h->start_ms)<=h->max_candidate_ms))
     {
         ++h->pending_samples;h->odometry_valid=false;return;
     }
     h->pending_samples=0U;
+    /* A broken encoder stream cannot be healed by a later IMU endpoint. */
+    if(odometry_reason!=S4_HEIGHT_OK&&was_valid)
+    {
+        reject(h,odometry_reason);endpoint=false;
+    }
+    if(skipped!=0U&&endpoint)
+    {
+        if(bounded)
+        {
+            /* Only this verified interval uses the IMU budget. The strict
+             * odometry stream above retains its original 60 ms guard. */
+            h->max_gap_us=h->max_imu_gap_us;h->max_step_mm=endpoint_step;
+        }
+        else {reject(h,S4_HEIGHT_IMU);endpoint=false;}
+    }
     s4_height_step(h,o,a,endpoint,clock_ok,us,ms,state,exit_deg,completed,aborted);
+    h->max_gap_us=strict_gap;h->max_step_mm=strict_step;
     if(endpoint&&skipped!=0U&&was_valid&&h->chain_valid&&h->odometry_valid)
     {
         if(gap!=0U&&h->previous_receipt_ms==ms)
@@ -231,7 +293,7 @@ void s4_height_step_quality(s4_height_t *h,const s4_odometry_t *o,
             h->interpolated_samples+=skipped;
             if(gap>h->max_interpolated_us){h->max_interpolated_us=gap;}
         }
-        else {h->pending_samples=skipped;} /* duplicate odometry did not close the interval */
+        else {h->pending_samples=skipped;}
     }
 }
 const char *s4_height_reason_name(uint8_t reason)
@@ -241,3 +303,6 @@ const char *s4_height_reason_name(uint8_t reason)
         "CLOCK_FORMAT","INCOMPLETE","NO_MOVEMENT"};
     return reason<=S4_HEIGHT_NO_MOVEMENT?names[reason]:"UNKNOWN";
 }
+
+#define S4_RIGHT_IMPLEMENTATION
+#include "s4_right_wheel.h"

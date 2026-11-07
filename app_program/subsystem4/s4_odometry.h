@@ -32,6 +32,11 @@ typedef struct
     /* Development guards; confirm against S2 resolution/rate/speed and S5. */
     uint32_t max_age_us, max_gap_us, max_candidate_ms;
     uint16_t max_step_mm;
+    /* Qualified IMU endpoint policy; separate from encoder continuity. */
+    uint32_t max_imu_gap_us,quality_receipt_ms;
+    uint16_t max_imu_step_mm;
+    s4_odometry_t quality_previous;
+    bool quality_have_previous;
     s4_odometry_t previous;
     uint32_t previous_receipt_ms, start_ms;
     float previous_sine, current_mm, peak_mm, last_mm, highest_mm;
@@ -62,7 +67,7 @@ void s4_height_step(s4_height_t *height,const s4_odometry_t *odometry,
                     bool completed,bool aborted);
 /* Quality is explicit: I/O errors, saturation and impacts must never be bridged.
  * WAIT/DYNAMIC may defer an interval, using only qualified endpoint angles,
- * within the existing 60 ms gap and 50 mm distance guards. Counts are local
+ * within a bounded IMU endpoint window and continuous fresh odometry. Counts are local
  * diagnostic metadata, not additions to the agreed packed wire interface. */
 enum { S4_IMU_GOOD=0, S4_IMU_WAIT, S4_IMU_DYNAMIC, S4_IMU_FAULT };
 void s4_height_step_quality(s4_height_t *height,const s4_odometry_t *odometry,

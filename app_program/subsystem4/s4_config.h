@@ -28,8 +28,11 @@
 #ifndef S4_POWERED_BENCH_KIND
 #define S4_POWERED_BENCH_KIND    0
 #endif
+/* Right-wheel-only model: measured tyre centre-to-centre spacing.
+ * Left tyre must stay on the same flat floor throughout the crossing. */
+#define S4_RIGHT_TRACK_MM        120.0F
 /* Hump height: drive-axle centre to caster ground contact, in mm.
- * PLACEHOLDER (110): measure the real car and update. 0 = legacy estimate.
+ * Measured 110 mm; used by the legacy both-supports model. 0 = legacy integral.
  * Must be below S4_HEIGHT_TRACK_LEN (192). */
 #define S4_HEIGHT_WHEELBASE_MM   110U
 /* Set to 1 only after hard/soft-iron calibration and motor-on validation. */
