@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "s4_right_wheel.h"
+#include "s4_config.h"
 #include "s4_math.h"
 #include "test_math.h"
 typedef struct {s4_right_wheel_t r;s4_height_t h;s4_terrain_t t;s4_odometry_t o;unsigned ms,events;} run_t;
@@ -32,10 +33,10 @@ int main(void)
 {
     run_t v;unsigned i,j;float tracks[3]={90,120,180};float peaks[3]={15,23,35};
     for(i=0;i<3;++i){for(j=0;j<3;++j){init(&v,tracks[i]);cross(&v,peaks[j]);
-        assert(v.events==1&&v.h.last_valid&&v.h.highest_valid);
+        assert(v.events==1&&v.h.last_valid&&v.h.highest_valid); assert(test_abs(v.h.peak_mm-v.h.last_mm-S4_HEIGHT_BIAS_MM)<0.001F);
         /* Existing atan2 approximation is bounded in test_processing; allow
          * its sub-mm projection error at the largest synthetic spacing. */
-        assert(test_abs(v.h.last_mm-peaks[j])<0.5F);assert(s4_terrain_state(&v.t)==S4_LEVEL);}}
+        assert(test_abs(v.h.last_mm-(peaks[j]-S4_HEIGHT_BIAS_MM))<0.5F);assert(s4_terrain_state(&v.t)==S4_LEVEL);}}
     init(&v,120);for(i=0;i<200;++i){tick(&v,i&1?1.0F:-1.0F,S4_IMU_GOOD,true);}
     assert(!v.events&&!v.h.highest_valid);
     init(&v,120);for(i=0;i<20;++i){tick(&v,-23,S4_IMU_GOOD,true);}assert(!v.events&&!v.h.active);
@@ -45,7 +46,7 @@ int main(void)
     tick(&v,15,S4_IMU_FAULT,true);cross(&v,23);assert(!v.h.last_valid);
     init(&v,120);for(i=0;i<8;++i){tick(&v,15,S4_IMU_GOOD,true);}
     for(i=0;i<5;++i){tick(&v,15,S4_IMU_WAIT,true);}cross(&v,23);assert(!v.h.last_valid);
-    init(&v,120);cross(&v,23);cross(&v,15);assert(v.events==2&&v.h.highest_mm>22.8F&&v.h.last_mm<15.2F);
+    init(&v,120);cross(&v,23);cross(&v,15);assert(v.events==2&&v.h.highest_mm>22.8F-S4_HEIGHT_BIAS_MM&&v.h.last_mm<15.2F-S4_HEIGHT_BIAS_MM);
     init(&v,120);for(i=0;i<8;++i){tick(&v,15,S4_IMU_GOOD,true);}
     tick(&v,15,S4_IMU_WAIT,true);cross(&v,23);assert(v.h.last_valid&&v.h.interpolated_samples==1);
     init(&v,120);for(i=0;i<8;++i){tick(&v,15,S4_IMU_GOOD,true);}

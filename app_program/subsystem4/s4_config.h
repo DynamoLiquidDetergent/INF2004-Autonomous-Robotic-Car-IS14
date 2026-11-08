@@ -31,6 +31,7 @@
 /* Right-wheel-only model: measured tyre centre-to-centre spacing.
  * Left tyre must stay on the same flat floor throughout the crossing. */
 #define S4_RIGHT_TRACK_MM        120.0F
+#define S4_HEIGHT_BIAS_MM        5.5F
 /* Hump height: drive-axle centre to caster ground contact, in mm.
  * Measured 110 mm; used by the legacy both-supports model. 0 = legacy integral.
  * Must be below S4_HEIGHT_TRACK_LEN (192). */
