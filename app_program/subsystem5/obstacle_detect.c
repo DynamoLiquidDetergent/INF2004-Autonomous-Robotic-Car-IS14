@@ -23,8 +23,8 @@
 #endif
 
 /* Creep before the second scan (phase 6 and up, needs the Vehicle Controller).
-   The first scan starts when something is within 50 cm straight ahead, which is
-   far. If the profile chooses a bypass, the car creeps up to about 17 cm from
+   The first scan starts when something is within start_cm (30 cm) straight ahead; the
+   car stops about 2 cm later. If the profile chooses a bypass, the car creeps up to about 17 cm from
    the obstacle (following the line), or backs away if it is closer than 15 cm,
    and scans again from there: a closer scan has a narrower uncertainty, and it
    is a second scan position. The one-ray watch is not used to stop at 17 cm: at
@@ -359,7 +359,7 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 				break;
 			}
 #endif
-			if (obs_dist_is_hit(&scan, OBS_IDX_AHEAD, (uint16_t)cm, &cfg)) {
+			if (cm <= cfg.start_cm && obs_dist_is_hit(&scan, OBS_IDX_AHEAD, (uint16_t)cm, &cfg)) {
 				hits++;
 			} else {
 				hits = 0;

@@ -696,8 +696,9 @@ int main(void)
 		CHECK("S5-H65", errs == 0 && moves > 0, "every move ends with a gap of 16..18 cm; no move only when already about 14..20 cm (moves under 30 mm are skipped)");
 
 		CHECK("S5-H66", cfg.approach_cm == 17 && cfg.approach_near_cm == 15 && cfg.approach_far_cm == 20 &&
-		      cfg.approach_guard_cm == 13 && cfg.approach_back_max_cm == 15 && cfg.approach_min_cm == 3,
-		      "default band: aim 17 cm, back away below 15, creep above 20, guard 13, back at most 15 cm, trust readings from 3 cm");
+		      cfg.approach_guard_cm == 13 && cfg.approach_back_max_cm == 15 && cfg.approach_min_cm == 3 &&
+		      cfg.start_cm == 30 && cfg.start_cm < cfg.detect_cm,
+		      "default band: aim 17 cm, back away below 15, creep above 20, guard 13, back at most 15 cm, trust readings from 3 cm; the first scan starts at 30 cm (scans still look to 50 cm)");
 
 		/* H74: STOP (closer than stop_cm = 8 cm) backs straight away; it never goes forward */
 		a.detected = 1;

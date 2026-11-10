@@ -52,6 +52,8 @@ typedef enum {
    real robot and track (see testing/subsystem5/TEST_LOG.md). */
 typedef struct {
 	uint16_t detect_cm;		/* a reading at or below this is an obstacle */
+	uint16_t start_cm;		/* the watch straight ahead starts the first scan only when the
+					   obstacle is at most this close (detect_cm is for the scans) */
 	uint16_t stop_cm;		/* closer than this: STOP */
 	uint16_t robot_half_width_cm;	/* half the robot's width */
 	uint16_t margin_cm;		/* extra safety gap beside the obstacle */
