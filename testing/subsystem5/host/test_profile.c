@@ -29,6 +29,8 @@ static void scan_with(OBS_SCAN *s, const int *idx, const int *cm, int n)
    measured (the servo window). The chosen bypass must keep the robot's half width
    clear of the TRUE edge; a box inside the robot's lane that is not detected counts
    as missed. Returns the number of unsafe + missed cases. */
+static int g_beam_n = 5;	/* simulated beam: +/- g_beam_n * 1.5 degrees (5 = 7.5; 9 = 13.5 as measured) */
+
 static int sim_boxes(int lo, int hi, int *cases_o, int *retry_o, int *worst_o)
 {
 	int W, X, D, a, k, cases = 0, unsafe = 0, missed = 0, retry = 0, stop = 0, worst = 1000;
@@ -43,7 +45,7 @@ static int sim_boxes(int lo, int hi, int *cases_o, int *retry_o, int *worst_o)
 		obs_scan_init(&sc);
 		for (a = lo; a <= hi; a++) {
 			double best = 1e9;
-			for (k = -5; k <= 5; k++) {		/* rays across the +/-7.5 deg beam */
+			for (k = -g_beam_n; k <= g_beam_n; k++) {		/* rays across the beam */
 				double th = ((a * 15.0) + k * 1.5) * 3.14159265358979 / 180.0;
 				double sn = sin(th), cs = cos(th), x, t;
 				if (sn <= 0.05) continue;
@@ -142,7 +144,7 @@ static uint16_t fine_reader(void *ctx, unsigned deg)
 	double best = 1e9;
 	int k;
 
-	for (k = -5; k <= 5; k++) {
+	for (k = -g_beam_n; k <= g_beam_n; k++) {
 		double th = ((double)deg + k * 1.5) * 3.14159265358979 / 180.0;
 		double sn = sin(th), cs = cos(th), x, t;
 
@@ -737,6 +739,22 @@ int main(void)
 		}
 		printf("[HOST] INFO H130d: one lost echo in the fine look: %d unsafe, worst clearance %d cm\n", bad_drop, worst_drop);
 		CHECK("S5-H130d", bad_drop == 0 && worst_drop >= 0, "fine edges: one lost echo (any of the first six readings) does not make a bypass touch the box");
+	}
+
+	/* S5-H131: the beam measured on the car (runs 1 and 4: edges seen about 14 degrees early,
+	   not 7.5) must not make any chosen bypass touch the box, with or without the fine look */
+	{
+		int cases, retry, worst, bad_c, bad_f, wider, rd, w2;
+		double mc, mf;
+
+		g_beam_n = 9;
+		bad_c = sim_boxes(2, 10, &cases, &retry, &worst);
+		printf("[HOST] S5-H131 wide beam, 15 degree scan: %d cases, %d unsafe or missed, worst clearance %d cm\n", cases, bad_c, worst);
+		bad_f = sim_fine(-1, &cases, &mc, &mf, &w2, &wider, &rd);
+		printf("[HOST] S5-H131 wide beam, fine look: %d cases, %d unsafe, mean move %.1f -> %.1f cm, worst clearance %d cm\n", cases, bad_f, mc, mf, w2);
+		g_beam_n = 5;
+		CHECK("S5-H131a", bad_c == 0, "beam +/-13.5 degrees: the 15 degree scan alone still never plans a bypass into the box");
+		CHECK("S5-H131b", bad_f == 0 && w2 >= 0, "beam +/-13.5 degrees: with the fine look every chosen bypass still clears the true edge");
 	}
 
 	printf("[HOST] subsystem5 SUMMARY %d passed, %d failed\n", pass_n, fail_n);

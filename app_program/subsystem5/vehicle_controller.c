@@ -366,10 +366,10 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 						   obstacle), so Subsystem 3 keeps reporting 'line lost' (IF-09 stays off) */
 						subsystem3_set_bypass(false);
 						tm_printf((UB*)"vc: smooth bypass round the %s, %d cm over, gap %d cm: back %d mm, "
-							  "curve %d mm at up to %d deg, straight %d mm\n",
+							  "curve %d mm at up to %d deg, straight %d mm (line zone %d at the stop, 4 = centred)\n",
 							  (v.byp_dir > 0) ? "right" : "left", (INT)(v.sw_d_mm / 10),
 							  (INT)in.prof_closest_cm, (INT)v.sw_back_mm, (INT)v.sw_lo_mm,
-							  (INT)(v.sw_psi_d10 / 10), (INT)v.sw_lp_mm);
+							  (INT)(v.sw_psi_d10 / 10), (INT)v.sw_lp_mm, (INT)in.zone);
 					} else {
 						subsystem3_set_bypass(true);		/* IF-09: leaving the line on purpose */
 						tm_printf((UB*)"vc: bypass round the %s, %d cm over, gap %d cm\n",
