@@ -33,6 +33,7 @@
    fixed distance measured by the Vehicle Controller with the odometry, and the
    watch ahead only cuts it short. */
 #define S5_APPROACH		(S5_PHASE >= 6)
+#define S5_FINE_EDGES		(S5_PHASE >= 6)	/* before a bypass: look at both edges of the box in 3 degree steps */
 #define S5_MAX_APPROACHES	2	/* moves per obstacle (forward or back), then the car just holds */
 #define S5_APPROACH_START_MS	1500	/* Safety Monitor release (500 ms) and first command */
 #define S5_APPROACH_SLOWEST	30	/* mm/s, for the time limit only (the car drives 40) */
@@ -49,7 +50,7 @@
 					   Each ping costs about 60 ms (HC-SR04 minimum cycle). */
 #define S5_USE_BACKGROUND	1	/* take an empty-track scan at start-up and subtract it.
 					   Needs the track in front of the robot to be CLEAR at power-up. */
-#define S5_BYPASS_LIMIT_MS	20000	/* the detour (turns, sideways, past the obstacle, back to the line) or
+#define S5_BYPASS_LIMIT_MS	25000	/* the detour (turns, sideways, past the obstacle, back to the line) or
 					   the back-away of a retry must finish within this; the clock restarts
 					   when it begins, so the scans before it do not count (NFR31's 5 s is
 					   detection to profile, S5-M09) */
@@ -76,6 +77,7 @@ LOCAL OBS_CFG		cfg;
 LOCAL OBS_SCAN		scan;
 LOCAL OBS_PROFILE	profile;
 LOCAL UINT		servo_deg = 90;
+LOCAL BOOL		fine_done;		/* the edges of this obstacle have been looked at closely */
 LOCAL UW		noecho_run;
 LOCAL UB		seq;
 LOCAL UW		dropped_msgs;
@@ -198,6 +200,14 @@ LOCAL UINT read_median(void)
 		}
 	}
 	return obs_median(v, n);
+}
+
+/* reader for obs_fine_edges: servo to the angle, median distance there */
+LOCAL uint16_t fine_read(void *ctx, unsigned deg)
+{
+	(void)ctx;
+	servo_goto(deg);
+	return (uint16_t)read_median();
 }
 
 LOCAL UINT measure_index(unsigned idx)
@@ -370,6 +380,7 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 		case OBS_ST_COARSE_SCANNING:
 			/* every second angle inside the servo window (FR38: 30..150 when it is allowed) */
 			scan_ms = now_ms();
+			fine_done = FALSE;
 			obs_scan_clear(&scan);		/* new readings, keep the background */
 			for (i = S5_COARSE_FIRST; i <= S5_IDX_MAX; i += 2) {
 				measure_index((unsigned)i);
@@ -411,7 +422,6 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 			break;
 
 		case OBS_ST_PROFILING_AND_PLANNING:
-			servo_goto(90);			/* face forward again */
 #if S5_APPROACH
 			if (bg_shift_pending) {
 				/* the car has moved since the background was taken (the signed
@@ -425,6 +435,32 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 			}
 #endif
 			obs_profile(&scan, &cfg, &profile);
+#if S5_FINE_EDGES
+			/* About to bypass (no creep first): look at both edges of the box in 3 degree
+			   steps, so the swing is planned for the real edges and not for the outer end of
+			   a 15 degree step. */
+			if (profile.detected && !fine_done &&
+			    (profile.action == OBS_ACT_TURN_RIGHT || profile.action == OBS_ACT_TURN_LEFT ||
+			     profile.action == OBS_ACT_REVERSE_RETRY) &&
+			    !(approaches < S5_MAX_APPROACHES && obs_approach_mm(&profile, &cfg) != 0)) {
+				UW t0 = now_ms();
+
+				n = (int)obs_fine_edges(&scan, &cfg, S5_IDX_MIN * OBS_STEP_DEG,
+							S5_IDX_MAX * OBS_STEP_DEG, fine_read, (void*)0);
+				fine_done = TRUE;
+				if (s5_obs_state == OBS_ST_FAULT) {
+					break;
+				}
+				tm_printf((UB*)"obstacle: fine edges: %d readings in %d ms, right edge %d deg (%d cm), "
+					  "left edge %d deg (%d cm) (0 = not refined)\n", n, (INT)(now_ms() - t0),
+					  (INT)scan.fine_deg[0], (INT)scan.fine_cm[0],
+					  (INT)scan.fine_deg[1], (INT)scan.fine_cm[1]);
+				if (n != 0) {
+					obs_profile(&scan, &cfg, &profile);
+				}
+			}
+#endif
+			servo_goto(90);			/* face forward again */
 			s5_obs_summary = obs_summary_pack(&profile);
 			seq = (UB)((seq + 1) & 0xF);
 			obs_pack(&profile, seq, w);

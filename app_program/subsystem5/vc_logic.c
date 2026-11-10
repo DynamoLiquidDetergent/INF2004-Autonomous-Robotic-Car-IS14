@@ -80,6 +80,8 @@ void vc_init(VC_STATE *v, unsigned epoch)
 	v->sw_d_mm      = 0;
 	v->sw_psi_d10   = 450;
 	v->sw_psi0      = 0;
+	v->post_dir     = 0;
+	v->post_ms      = 0;
 	v->byp_wait     = 0;
 	v->sw_lo_mm     = 0;
 	v->sw_lp_mm     = 0;
@@ -95,6 +97,9 @@ static int follow_line(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 	if (in->zone == 0) {
 		err = 0;
 	}
+	if (v->post_ms > 0) {
+		v->post_ms = (v->post_ms > (int)in->dt_ms) ? v->post_ms - (int)in->dt_ms : 0;
+	}
 	if (in->lost) {
 		v->lost_ms += in->dt_ms;
 		if (v->lost_ms >= VC_LF_LOST_STOP_MS) {
@@ -104,6 +109,11 @@ static int follow_line(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 		turn        = (err > 0) ? VC_LF_SEARCH_STEER : ((err < 0) ? -VC_LF_SEARCH_STEER : 0);
 		o->speed    = VC_LF_SEARCH_SPEED;
 		o->steer    = -VC_LF_STEER_SIGN * turn;
+		if (v->post_ms > 0 && v->post_dir != 0) {
+			/* just after a bypass take-over the zone guess can be wrong (the car crossed the line):
+			   look the way the line leads: away from the obstacle, or back towards the old line */
+			o->steer = v->post_dir * VC_LF_SEARCH_STEER;
+		}
 		v->have_prev = 0;		/* no D kick when the line comes back */
 		return 0;
 	}
@@ -363,7 +373,9 @@ static int sw_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 	if (in->lost) {
 		v->saw_lost = 1;		/* the 'seen' flag is stale until subsystem 3 has noticed */
 	}
-	if (v->sw_kind != VC_SW_BACK && v->sw_kind != VC_SW_SETTLE) {
+	/* not while backing, not while still curving out beside the obstacle (straightening up there would
+	   cut the corner of the box), not in the settle leg itself */
+	if (v->sw_kind != VC_SW_BACK && v->sw_kind != VC_SW_OUT && v->sw_kind != VC_SW_SETTLE) {
 		if (in->dt_ms > 0) {
 			if (v->saw_lost && in->line_fresh && !in->lost && in->zone != 0 &&
 			    (v->sw_kind == VC_SW_FIND || (in->zone >= VC_SW_ZONE_LO && in->zone <= VC_SW_ZONE_HI))) {
@@ -373,10 +385,14 @@ static int sw_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 			}
 		}
 		if (v->found_cnt >= VC_SEARCH_FOUND_MSGS &&
-		    (v->sw_kind != VC_SW_OUT || s * 100 >= v->sw_lo_mm * VC_SW_OUT_DETECT_PCT)) {
+		    1) {
 			int hd = heading_d10(v);
 
-			if (v->sw_kind == VC_SW_OUT || v->sw_kind == VC_SW_PASS) {
+			/* on the far side of the obstacle the line leads on away from it (a corner towards the
+			   side we swerved to); on the way back it leads back towards the old line */
+			v->post_dir = (v->sw_kind == VC_SW_PASS) ? v->byp_dir : -v->byp_dir;
+			v->post_ms  = VC_SW_BIAS_MS;
+			if (v->sw_kind == VC_SW_PASS) {
 				o->event |= VC_EV_BYP_PASSED | VC_EV_BYP_RETURN;	/* the line came back early */
 				v->byp_wait = 1;
 			}

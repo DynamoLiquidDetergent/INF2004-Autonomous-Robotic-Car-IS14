@@ -14,6 +14,34 @@ static const int16_t cos_tab[25] = {
 	-131, -259, -383, -500, -609, -707, -793, -866, -924, -966, -991, -1000
 };
 
+/* cos(k degrees) * 1000, k = 0..90 */
+static const int16_t cos_deg_tab[91] = {
+	1000, 1000, 999, 999, 998, 996, 995, 993, 990, 988, 985, 982, 978,
+	974, 970, 966, 961, 956, 951, 946, 940, 934, 927, 921, 914, 906,
+	899, 891, 883, 875, 866, 857, 848, 839, 829, 819, 809, 799, 788,
+	777, 766, 755, 743, 731, 719, 707, 695, 682, 669, 656, 643, 629,
+	616, 602, 588, 574, 559, 545, 530, 515, 500, 485, 469, 454, 438,
+	423, 407, 391, 375, 358, 342, 326, 309, 292, 276, 259, 242, 225,
+	208, 191, 174, 156, 139, 122, 105, 87, 70, 52, 35, 17, 0
+};
+
+/* cos and sin of a whole number of degrees, 0..180, times 1000 */
+static int32_t cosd(int d)
+{
+	if (d < 0) {
+		d = 0;
+	}
+	if (d > 180) {
+		d = 180;
+	}
+	return (d <= 90) ? cos_deg_tab[d] : -cos_deg_tab[180 - d];
+}
+
+static int32_t sind(int d)
+{
+	return cosd((d > 90) ? d - 90 : 90 - d);
+}
+
 void obs_cfg_default(OBS_CFG *cfg)
 {
 	/* PLACEHOLDERS: measure on the real robot before trusting these */
@@ -44,6 +72,10 @@ void obs_scan_clear(OBS_SCAN *s)
 		s->dist_cm[i] = OBS_DIST_NONE;
 	}
 	s->measured = 0;
+	s->fine_deg[0] = 0;
+	s->fine_deg[1] = 0;
+	s->fine_cm[0] = 0;
+	s->fine_cm[1] = 0;
 }
 
 void obs_scan_init(OBS_SCAN *s)
@@ -275,9 +307,35 @@ static int32_t sin_k(int k)
 	return (k <= 12) ? cos_tab[12 - k] : cos_tab[k - 12];
 }
 
+/* Outer bound of the RIGHT edge from a fine reading: the beam at 'deg' (degrees from the
+   right) still saw the obstacle at r cm, the beam one fine step further out did not. A
+   beam sees an edge up to half its width away, so the edge is at least a fine step
+   plus half a beam further in than the miss, i.e. at an angle of at least
+   deg - step + half. The face keeps its depth, not its range, so the edge is also
+   at x = depth / tan(angle); take the larger of the two (the same rule as for the
+   coarse bound). Whole centimetres, + = right of the centre line (a left edge uses
+   180 - deg and negates the result). */
+static int32_t fine_edge_cm(const OBS_CFG *cfg, int deg, int32_t r)
+{
+	int half = (int)cfg->beam_comp_deg / 2;
+	int a_e = deg - OBS_FINE_STEP_DEG + half;
+	int a_d = deg + half;
+	int32_t xc, xd;
+
+	if (a_e < 1) {
+		a_e = 1;
+	}
+	if (a_d > 90) {
+		a_d = 90;
+	}
+	xc = r * cosd(a_e) / 1000;
+	xd = r * sind(a_d) * cosd(a_e) / (sind(a_e) * 1000);
+	return (xd > xc) ? xd : xc;
+}
+
 static void cluster_geom(const OBS_SCAN *s, const OBS_CFG *cfg, int lo, int hi, int closest,
 			 int32_t *x_r, int32_t *x_l, int32_t *w, int *unresolved,
-			 int32_t *x_ro, int32_t *x_lo)
+			 int32_t *x_ro, int32_t *x_lo, int fine)
 {
 	int32_t r_r = s->dist_cm[lo], r_l = s->dist_cm[hi], chord2;
 	int th_r, th_l, h;
@@ -355,6 +413,24 @@ static void cluster_geom(const OBS_SCAN *s, const OBS_CFG *cfg, int lo, int hi, 
 			*x_lo = *x_l;
 		}
 	}
+
+	/* A finer look at an edge (obs_fine_edges) replaces the outer bound of that edge,
+	   but never goes inside the middle estimate. */
+	if (fine) {
+		if (s->fine_deg[0] != 0) {
+			int32_t x = fine_edge_cm(cfg, s->fine_deg[0], s->fine_cm[0]);
+
+			*x_ro = (hi > lo && x < *x_r) ? *x_r : x;
+		}
+		if (s->fine_deg[1] != 0) {
+			int32_t x = -fine_edge_cm(cfg, 180 - s->fine_deg[1], s->fine_cm[1]);
+
+			*x_lo = (hi > lo && x > *x_l) ? *x_l : x;
+		}
+		if (*x_ro < *x_lo) {
+			*x_ro = *x_lo = (*x_ro + *x_lo) / 2;
+		}
+	}
 }
 
 /* Plan for at least the widest obstacle the spec allows, centred where we
@@ -425,6 +501,76 @@ int obs_next_fine_idx(const OBS_SCAN *s, const OBS_CFG *cfg, int lo, int hi, int
 	return best;
 }
 
+static int fine_is_hit(const OBS_SCAN *s, const OBS_CFG *cfg, unsigned deg, uint16_t cm, uint16_t ref)
+{
+	unsigned idx = (deg + OBS_STEP_DEG / 2) / OBS_STEP_DEG;
+	int d = (int)cm - (int)ref;
+
+	if (cm == OBS_DIST_NONE || !obs_dist_is_hit(s, idx, cm, cfg)) {
+		return 0;
+	}
+	return (d < 0 ? -d : d) <= (int)cfg->cluster_jump_cm;	/* the same surface, not a wall behind */
+}
+
+/* One edge. dir = -1: the right edge (angles fall), +1: the left edge (angles rise). */
+static unsigned fine_one_edge(OBS_SCAN *s, const OBS_CFG *cfg, int edge_idx, int dir,
+			      unsigned min_deg, unsigned max_deg, OBS_READ_FN rd, void *ctx)
+{
+	int k, misses = 0, hit_deg = 0;
+	unsigned n = 0;
+	uint16_t ref = s->dist_cm[edge_idx], hit_cm = ref;
+	int next = edge_idx + dir;
+
+	/* the coarse neighbour must be measured and a miss (otherwise the edge is not
+	   resolved, or lies outside the servo window): nothing to refine */
+	if (next < 0 || next >= OBS_NUM_ANGLES || !obs_scan_measured(s, (unsigned)next)) {
+		return 0;
+	}
+	for (k = 1; k < OBS_STEP_DEG / OBS_FINE_STEP_DEG; k++) {
+		int deg = edge_idx * OBS_STEP_DEG + dir * k * OBS_FINE_STEP_DEG;
+		uint16_t cm;
+
+		if (deg < (int)min_deg || deg > (int)max_deg) {
+			break;
+		}
+		cm = rd(ctx, (unsigned)deg);
+		n++;
+		if (fine_is_hit(s, cfg, (unsigned)deg, cm, hit_cm)) {
+			hit_deg = deg;
+			hit_cm = cm;
+			misses = 0;
+		} else {
+			misses++;
+			if (misses >= 2) {
+				break;	/* a single dropped echo is forgiven, two in a row end the edge */
+			}
+		}
+	}
+	if (hit_deg != 0) {
+		unsigned e = (dir < 0) ? 0u : 1u;
+
+		s->fine_deg[e] = (uint8_t)hit_deg;
+		s->fine_cm[e] = hit_cm;
+	}
+	return n;
+}
+
+unsigned obs_fine_edges(OBS_SCAN *s, const OBS_CFG *cfg, unsigned min_deg, unsigned max_deg,
+			OBS_READ_FN rd, void *ctx)
+{
+	int lo, hi, closest;
+	unsigned n = 0;
+
+	s->fine_deg[0] = 0;
+	s->fine_deg[1] = 0;
+	if (!find_cluster(s, cfg, &lo, &hi, &closest)) {
+		return 0;
+	}
+	n += fine_one_edge(s, cfg, lo, -1, min_deg, max_deg, rd, ctx);
+	n += fine_one_edge(s, cfg, hi, +1, min_deg, max_deg, rd, ctx);
+	return n;
+}
+
 void obs_profile(const OBS_SCAN *s, const OBS_CFG *cfg, OBS_PROFILE *out)
 {
 	int lo, hi, closest, i, last, unres;
@@ -457,7 +603,7 @@ void obs_profile(const OBS_SCAN *s, const OBS_CFG *cfg, OBS_PROFILE *out)
 	out->idx_right = (uint8_t)lo;
 	out->idx_left = (uint8_t)hi;
 
-	cluster_geom(s, cfg, lo, hi, closest, &x_r, &x_l, &w, &unres, &x_ro, &x_lo);
+	cluster_geom(s, cfg, lo, hi, closest, &x_r, &x_l, &w, &unres, &x_ro, &x_lo, 1);
 	out->partial = (uint8_t)unres;
 	out->width_cm = cap_cm(w);
 	out->clusters = 1;
@@ -469,7 +615,9 @@ void obs_profile(const OBS_SCAN *s, const OBS_CFG *cfg, OBS_PROFILE *out)
 
 	x_r = x_ro;
 	x_l = x_lo;
-	plan_span(cfg, &x_r, &x_l);
+	if (s->fine_deg[0] == 0 || s->fine_deg[1] == 0) {
+		plan_span(cfg, &x_r, &x_l);	/* both edges known to a few degrees: no padding up to the widest spec box */
+	}
 	out->plan_width_cm = cap_cm(x_r - x_l);
 
 	/* every OTHER obstacle in the scan (a second box beside the first) */
@@ -488,7 +636,7 @@ void obs_profile(const OBS_SCAN *s, const OBS_CFG *cfg, OBS_PROFILE *out)
 						cl = kk;
 					}
 				}
-				cluster_geom(s, cfg, i, last, cl, &a, &b, &ww, &u, &ao, &bo);
+				cluster_geom(s, cfg, i, last, cl, &a, &b, &ww, &u, &ao, &bo, 0);
 				a = ao;
 				b = bo;
 				plan_span(cfg, &a, &b);

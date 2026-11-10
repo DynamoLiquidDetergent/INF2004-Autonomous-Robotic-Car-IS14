@@ -86,6 +86,10 @@ typedef struct {
 	uint16_t measured;			/* bit i set = index i was measured */
 	uint16_t bg_cm[OBS_NUM_ANGLES];		/* background distance per angle (empty track) */
 	uint16_t bg_known;			/* bit i set = background for index i was taken */
+	uint8_t  fine_deg[2];			/* finer edge: servo angle (degrees) of the OUTERMOST reading
+						   that still hit the obstacle, [0] right edge, [1] left edge;
+						   0 = this edge was not refined (obs_fine_edges) */
+	uint16_t fine_cm[2];			/* ...and the distance it read */
 } OBS_SCAN;
 
 /* Result of profiling (FR40) */
@@ -138,6 +142,21 @@ int  obs_next_edge_idx(const OBS_SCAN *s, const OBS_CFG *cfg, int dir);
    (an unmeasured neighbour of any obstacle, inside the servo window lo..hi),
    the one closest to the servo's current index 'from'; -1 when nothing is left. */
 int  obs_next_fine_idx(const OBS_SCAN *s, const OBS_CFG *cfg, int lo, int hi, int from);
+
+/* Finer look at the two edges of the obstacle (the closest one), to plan a narrower
+   swing. The 15 degree scan only says that an edge lies somewhere in a 15 degree
+   step, so the profile has to plan with the outer end of it. Here the servo is moved
+   outwards from the outermost hit in OBS_FINE_STEP_DEG steps until the obstacle is no
+   longer seen (two misses in a row, or the next coarse index, which was a miss), and
+   obs_profile then knows the edge to within one fine step.
+   rd(ctx, deg) must turn the servo to 'deg' and return the median distance in cm
+   (OBS_DIST_NONE = no echo). Only angles between min_deg and max_deg (the servo's safe
+   window) are used. Call it after the coarse and the fine index scan, before
+   obs_profile. Returns how many readings were taken (0 = nothing to refine). */
+#define OBS_FINE_STEP_DEG	3
+typedef uint16_t (*OBS_READ_FN)(void *ctx, unsigned deg);
+unsigned obs_fine_edges(OBS_SCAN *s, const OBS_CFG *cfg, unsigned min_deg, unsigned max_deg,
+			OBS_READ_FN rd, void *ctx);
 
 /* Profile of the whole scan. Width, closest and idx_* describe the CLOSEST
    obstacle. The bypass side and shifts take EVERY obstacle into account: a side
