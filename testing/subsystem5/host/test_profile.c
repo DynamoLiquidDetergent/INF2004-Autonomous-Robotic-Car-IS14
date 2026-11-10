@@ -132,6 +132,72 @@ static int sim_two_boxes(int lo, int hi, int *cases_o, int *retry_o, int *go_o)
 	return unsafe + missed;
 }
 
+
+/* ---- S5-H130: finer look at the edges (obs_fine_edges) ---- */
+typedef struct { double D, true_l, true_r; int drop_at, calls; } FINE_CTX;
+
+static uint16_t fine_reader(void *ctx, unsigned deg)
+{
+	FINE_CTX *c = (FINE_CTX *)ctx;
+	double best = 1e9;
+	int k;
+
+	for (k = -5; k <= 5; k++) {
+		double th = ((double)deg + k * 1.5) * 3.14159265358979 / 180.0;
+		double sn = sin(th), cs = cos(th), x, t;
+
+		if (sn <= 0.05) continue;
+		t = c->D / sn;
+		x = c->D * cs / sn;
+		if (x >= c->true_l && x <= c->true_r && t < best) best = t;
+	}
+	if (c->calls++ == c->drop_at) {
+		return OBS_DIST_NONE;		/* one echo lost */
+	}
+	return best > 1e8 ? OBS_DIST_NONE : (uint16_t)(best + 0.5);
+}
+
+/* Boxes 10..25 cm wide, off-centre, 13..25 cm ahead (the second scan), full window 30..150.
+   Compares the plan from the 15 degree scan with the plan after the fine look. drop_at = -1:
+   clean readings; otherwise that fine reading is lost. Returns the number of unsafe cases. */
+static int sim_fine(int drop_at, int *cases_o, double *mean_coarse, double *mean_fine, int *worst_o, int *wider_o, int *readings_o)
+{
+	int W, X, D, a, cases = 0, unsafe = 0, worst = 1000, wider = 0, readings = 0, n_go = 0;
+	double sum_c = 0, sum_f = 0;
+	int hw = (int)cfg.robot_half_width_cm;
+
+	for (W = 10; W <= 25; W += 3) {
+	for (X = -25; X <= 25; X += 5) {
+	for (D = 13; D <= 25; D += 3) {
+		FINE_CTX fc;
+		OBS_SCAN sc;
+		OBS_PROFILE p0, p1;
+		int true_r, true_l, shift0, shift1, clr;
+
+		fc.D = D; fc.true_r = X + W / 2.0; fc.true_l = X - W / 2.0; fc.drop_at = drop_at; fc.calls = 1000;
+		true_r = (int)ceil(fc.true_r); true_l = (int)floor(fc.true_l);
+		obs_scan_init(&sc);
+		for (a = 2; a <= 10; a++) obs_scan_set(&sc, (unsigned)a, fine_reader(&fc, (unsigned)(a * 15)));
+		obs_profile(&sc, &cfg, &p0);
+		if (!p0.detected || (p0.action != OBS_ACT_TURN_RIGHT && p0.action != OBS_ACT_TURN_LEFT)) continue;
+		fc.calls = 0;
+		readings += (int)obs_fine_edges(&sc, &cfg, 30, 150, fine_reader, &fc);
+		obs_profile(&sc, &cfg, &p1);
+		cases++;
+		if (p1.action != OBS_ACT_TURN_RIGHT && p1.action != OBS_ACT_TURN_LEFT) { unsafe++; continue; }
+		shift0 = (p0.action == OBS_ACT_TURN_RIGHT) ? p0.right_cm : p0.left_cm;
+		shift1 = (p1.action == OBS_ACT_TURN_RIGHT) ? p1.right_cm : p1.left_cm;
+		sum_c += shift0; sum_f += shift1; n_go++;
+		if (shift1 > shift0) wider++;
+		clr = (p1.action == OBS_ACT_TURN_RIGHT) ? shift1 - (true_r + hw) : shift1 - (-true_l + hw);
+		if (clr < worst) worst = clr;
+		if (clr < 0) unsafe++;
+	}}}
+	*cases_o = cases; *worst_o = worst; *wider_o = wider; *readings_o = readings;
+	*mean_coarse = n_go ? sum_c / n_go : 0; *mean_fine = n_go ? sum_f / n_go : 0;
+	return unsafe;
+}
+
 int main(void)
 {
 	OBS_SCAN s;
@@ -648,6 +714,28 @@ int main(void)
 		a.action = OBS_ACT_TURN_RIGHT;
 		a.closest_cm = 2;
 		CHECK("S5-H74e", obs_approach_mm(&a, &cfg) == 0, "bypass at 2 cm: reading not trusted, no move");
+	}
+
+	/* S5-H130: finer look at the edges */
+	{
+		int cases, worst, wider, rd, bad, dr;
+		int bad_drop = 0, worst_drop = 1000;
+		double mc, mf;
+
+		bad = sim_fine(-1, &cases, &mc, &mf, &worst, &wider, &rd);
+		printf("[HOST] S5-H130 fine edges: %d cases, %d unsafe, mean sideways move %.1f cm coarse -> %.1f cm fine, worst clearance %d cm, %d wider, %.1f readings per case\n",
+		       cases, bad, mc, mf, worst, wider, (double)rd / (cases ? cases : 1));
+		CHECK("S5-H130a", bad == 0 && worst >= 0, "fine edges: every chosen bypass still clears the true edge by the robot half width");
+		CHECK("S5-H130b", mf < mc - 1.5, "fine edges: the mean sideways move is at least 1.5 cm smaller than with the 15 degree scan");
+		CHECK("S5-H130c", wider * 20 <= cases, "fine edges: the move grows in at most 5 percent of the cases");
+		for (dr = 0; dr < 6; dr++) {
+			int w2;
+
+			bad_drop += sim_fine(dr, &cases, &mc, &mf, &w2, &wider, &rd);
+			if (w2 < worst_drop) worst_drop = w2;
+		}
+		printf("[HOST] INFO H130d: one lost echo in the fine look: %d unsafe, worst clearance %d cm\n", bad_drop, worst_drop);
+		CHECK("S5-H130d", bad_drop == 0 && worst_drop >= 0, "fine edges: one lost echo (any of the first six readings) does not make a bypass touch the box");
 	}
 
 	printf("[HOST] subsystem5 SUMMARY %d passed, %d failed\n", pass_n, fail_n);

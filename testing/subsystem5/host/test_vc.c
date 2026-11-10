@@ -124,6 +124,8 @@ static VC_OUT world_step(WORLD *w, int action, int shift, int closest, unsigned 
    a box of any width and depth on the line, the line sensor row 50 mm in front of the axle ---- */
 #include <math.h>
 
+static int sim_pad_mm = -10;	/* worst case: with the fine edge look the profile edge can lie up to 10 mm INSIDE the true edge (rounding to whole cm) */
+static int sim_force_lost;	/* 1: report 'line lost, last zone 1' (a wrong guess) 3 cycles after the hand-over */
 static int sim_corner_x;	/* > 0: the line turns toward the bypass side at this x (mm), the old line ends there */
 static int sim_obs_lag;		/* cycles the obstacle task stays in BYPASSING after BYP_PASSED */
 static int sim_never_find;	/* 1 = the line is never seen again after the start */
@@ -138,6 +140,7 @@ typedef struct {
 	int   lost_after;	/* line lost during those 3 s */
 	double max_head_deg;	/* heading at the hand-over (absolute) */
 	int   back_mm, lo_mm, lp_mm, d_mm;
+	int   post_steer;	/* steering the controller gave in the forced-lost cycle */
 	int   starts, early;	/* BYP_START events, BYP_DONE without the return curve (line met early) */
 	int   turns, zero_steer, max_steer;	/* turns on the spot, steer 0 commands, largest |steer| during the detour */
 } SIMRES;
@@ -169,7 +172,7 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 	r.clear_mm = 1e9;
 	edge = (side > 0) ? box_y1 : -box_y0;		/* edge of the box on the bypass side, from the line */
 	if (edge < 0) { edge = 0; }
-	shift_cm = (int)ceil((edge + 80 + 30) / 10.0);
+	shift_cm = (int)ceil((edge + sim_pad_mm + 80 + 30) / 10.0);
 	if (shift_cm_override > 0) { shift_cm = shift_cm_override; }
 
 	vc_init(&v, 0);
@@ -204,7 +207,11 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 		if (zone > 7) { zone = 7; }
 		b.lost = lost;
 		b.zone = lost ? 0 : zone;
+		if (sim_force_lost && done_t >= 0 && t == done_t + 3) {
+			b.lost = 1; b.zone = 1;
+		}
 		o = vc_step(&v, &b);
+		if (sim_force_lost && done_t >= 0 && t == done_t + 3) { r.post_steer = o.steer; }
 		if (started && done_t < 0) {
 			if (o.mode == VC_MODE_TURN) { r.turns++; }
 			if (o.mode == VC_MODE_DRIVE && o.busy && o.steer == 0) { r.zero_steer++; }
@@ -1295,7 +1302,7 @@ int main(void)
 				if (r.fail_ev) { n_fail++; }
 				if (r.hit) { n_hit++; }
 				if (r.lost_after) { n_lost++; }
-				if (r.ms > 15000) { n_slow++; }
+				if (r.ms > 20000) { n_slow++; }
 				if (fabs(r.end_y_mm) > 20.0) { n_off++; }
 				if (r.clear_mm < worst_clear) { worst_clear = r.clear_mm; }
 				if (r.ms > worst_ms) { worst_ms = r.ms; }
@@ -1311,8 +1318,8 @@ int main(void)
 		printf("[HOST] INFO H122: %d cases, worst clearance %.0f mm, longest %.1f s, worst lateral error %.0f mm, worst heading at hand-over %.0f deg\n",
 		       n, worst_clear, worst_ms / 1000.0, worst_y, worst_head);
 		CHECK("S5-H122a", n_ok == n && n_fail == 0, "every case: detour finishes with BYP_DONE (no failure)");
-		CHECK("S5-H122b", n_hit == 0 && worst_clear >= 10.0, "no case touches the box; at least 10 mm between the car and the box (the profile's own padding is not in this model)");
-		CHECK("S5-H122c", n_slow == 0, "every detour is shorter than the 15 s limit");
+		CHECK("S5-H122b", n_hit == 0 && worst_clear >= 5.0, "no case touches the box; at least 5 mm between the car and the box even when the profile edge lies 10 mm inside the true edge (the worst the fine look can give)");
+		CHECK("S5-H122c", n_slow == 0, "every detour is shorter than 20 s (the obstacle task gives up at 25 s)");
 		CHECK("S5-H122e", worst_head <= 12.0, "the car faces along the travel (within 12 degrees) when the line controller takes over");
 		CHECK("S5-H122d", n_lost == 0 && n_off == 0, "line following takes over and holds the line (no loss, under 20 mm off after 3 s)");
 	}
@@ -1363,8 +1370,8 @@ int main(void)
 		CHECK("S5-H123i", c.fail_ev && !c.ok && c.turns == 0 && !c.hit,
 		      "line never found again: the 150 mm look ends in BYP_FAIL (car stops, no turn, no hit)");
 		c = sim_bypass(1, 200, 200, 0, 17, 0, 0);
-		CHECK("S5-H123f", c.ok && !c.hit && c.clear_mm >= 10.0 && c.ms < 15000,
-		      "20 cm box, 17 cm away (the M33 set-up): done, clear of the box, under 15 s");
+		CHECK("S5-H123f", c.ok && !c.hit && c.clear_mm >= 5.0 && c.ms < 20000,
+		      "20 cm box, 17 cm away (the M33 set-up): done, at least 5 mm clear of the box, under 20 s");
 
 		/* pause in the middle of the curve (stop latch), then go on */
 		vc_init(&v, 0); v.smooth = 1;
@@ -1392,29 +1399,48 @@ int main(void)
 		int side;
 		int n_ok = 0, n_early = 0, n_one = 0, n_hit = 0;
 		double worst = 1e9, wh = 0;
-		static const int corners[] = { 250, 350, 450, 550, 650 };
+		static const int corners[] = { 530, 600, 700, 800 };	/* box ends at 430 mm: the corner is past the box, as in M37 */
 		int ic;
 
 		sim_obs_lag = 3;			/* the obstacle task needs a few cycles to leave BYPASSING */
 		for (side = -1; side <= 1; side += 2) {
-			for (ic = 0; ic < 5; ic++) {
+			for (ic = 0; ic < 4; ic++) {
 				sim_corner_x = corners[ic];
 				c = sim_bypass(side, 150, 200, 0, 17, 0, 0);
 				if (c.ok) { n_ok++; }
 				if (c.early) { n_early++; }
 				if (c.starts == 1) { n_one++; }
 				if (c.hit) { n_hit++; }
+				if (getenv("S5_SIM_VERBOSE") != NULL) { printf("[H124] side %d corner %d ok%d early%d starts%d clear %.0f head %.0f ms %d\n", side, corners[ic], c.ok, c.early, c.starts, c.clear_mm, c.max_head_deg, c.ms); }
 				if (c.clear_mm < worst) { worst = c.clear_mm; }
 				if (c.max_head_deg > wh) { wh = c.max_head_deg; }
 			}
 		}
 		sim_corner_x = 0;
 		sim_obs_lag = 0;
-		printf("[HOST] INFO H124: 10 cases, ended early %d times, worst clearance %.0f mm\n", n_early, worst);
-		CHECK("S5-H124a", n_ok == 10 && n_early >= 5, "a corner next to the box: the bypass ends the moment the line is seen again (after the pass or on the way back)");
-		CHECK("S5-H124b", n_one == 10, "the bypass is not started a second time while the obstacle task is still in BYPASSING");
+		printf("[HOST] INFO H124: 8 cases, ended early %d times, worst clearance %.0f mm\n", n_early, worst);
+		CHECK("S5-H124a", n_ok == 8 && n_early >= 2, "a corner just past the box: the bypass ends the moment the line is seen (both sides); further corners are met at the normal end of the detour");
+		CHECK("S5-H124b", n_one == 8, "the bypass is not started a second time while the obstacle task is still in BYPASSING");
 		CHECK("S5-H124d", wh <= 12.0, "the car is facing along the travel (within 12 degrees) when it takes the line: it does not rejoin turned back towards the old line");
-		CHECK("S5-H124c", n_hit == 0 && worst >= 15.0, "no touch of the box when the line is taken over early (at least 15 mm)");
+		CHECK("S5-H124c", n_hit == 0 && worst >= 5.0, "no touch of the box when the line is taken over early (at least 5 mm, worst-case edge)");
+	}
+
+	/* H125: just after the line is taken over during a bypass, a lost line is searched for the way the line leads */
+	{
+		SIMRES r1, r2, r3, r4;
+
+		sim_force_lost = 1;
+		sim_corner_x = 350;
+		r1 = sim_bypass(1, 150, 200, 0, 17, 0, 0);		/* right bypass, line met on the far side: looks right */
+		r2 = sim_bypass(-1, 150, 200, 0, 17, 0, 0);		/* left bypass: looks left */
+		sim_corner_x = 0;
+		r3 = sim_bypass(1, 150, 200, 0, 17, 0, 0);		/* straight line, met on the way back: looks back, left */
+		r4 = sim_bypass(-1, 150, 200, 0, 17, 0, 0);
+		sim_force_lost = 0;
+		CHECK("S5-H125a", r1.early && r1.post_steer > 0 && r2.early && r2.post_steer < 0,
+		      "line met beside the obstacle (corner towards the bypass side), then lost: the car turns towards the bypass side, not back");
+		CHECK("S5-H125b", r3.post_steer < 0 && r4.post_steer > 0,
+		      "line met on the way back, then lost: the car looks back towards the old line");
 	}
 
 	printf("[HOST] vehicle controller SUMMARY %d passed, %d failed\n", pass_n, fail_n);

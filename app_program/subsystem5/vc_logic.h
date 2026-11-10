@@ -205,8 +205,7 @@
    Legs: back (if needed), curve out, straight past the obstacle (depth + car body), curve back,
    a short straight look for the line. The curve follows the heading above with a feed-forward
    steering from its curvature plus a correction from the heading error (the wheel speeds give the
-   heading). The moment the line is seen again (after it was lost) in the pass or return curve, or
-   in the second part of the curve out (the line may bend into the car's way near a corner), the
+   heading). The moment the line is seen again (after it was lost) in the pass or return curve, (the line may bend into the car's way near a corner), the
    bypass ends and the line controller takes over; there is no turn on the spot at all. */
 #ifndef VC_BYP_SMOOTH
 #define VC_BYP_SMOOTH		1
@@ -214,7 +213,8 @@
 #define VC_SW_NPSI		4	/* peak headings tried, gentlest first: see vc_sw_psi_d10[] / vc_sw_k_pm[] in vc_logic.c */
 #ifndef VC_SW_TRIM_MM
 #define VC_SW_TRIM_MM		10	/* mm taken off the sideways reach the profile asks for (it already holds the
-					   measurement uncertainty, the car's half width and a margin) */
+					   car's half width, a 3 cm margin and the edge uncertainty, which after the
+					   fine edge look is at most 10 mm on the wrong side) */
 #endif
 #define VC_SW_D_MIN_MM		80	/* never swerve less than this (the car's own half width) */
 #define VC_SW_LO_MIN_MM		150
@@ -224,17 +224,17 @@
 #endif
 #define VC_SW_FRONT_MM		60	/* front of the car (sensor) to the wheel axle */
 #define VC_SW_BACK_MAX_MM	150
-#define VC_SW_BACK_SPEED	60	/* mm/s while backing for runway */
-#define VC_SW_SPEED		110	/* mm/s on the two curves */
-#define VC_SW_PASS_SPEED	150	/* mm/s on the straight past the obstacle */
+#define VC_SW_BACK_SPEED	50	/* mm/s while backing for runway */
+#define VC_SW_SPEED		75	/* mm/s on the two curves */
+#define VC_SW_PASS_SPEED	90	/* mm/s on the straight past the obstacle */
 #define VC_SW_FIND_SPEED	60	/* mm/s while looking for the line at the end */
 #define VC_SW_FIND_MM		150	/* straight look for the line after the curve */
 #define VC_SW_ZONE_LO		3	/* the line is only taken over when it is this close to the middle ... */
 #define VC_SW_ZONE_HI		5	/* ... of the sensor (zones 3..5), not just at its edge; the last look takes any zone */
+#define VC_SW_BIAS_MS		2500	/* after an early take-over a lost line is searched for towards the way the line leads */
 #define VC_SW_SETTLE_D10	100	/* heading (tenths of a degree) up to which the line is taken over at once */
 #define VC_SW_SETTLE_MM		60	/* the car straightens up over this distance ... */
 #define VC_SW_SETTLE_SPEED	60	/* ... at this speed, then the line controller takes over */
-#define VC_SW_OUT_DETECT_PCT	40	/* on the curve out the line is only taken after this share of it (the line just left is still close) */
 #define VC_SW_KH		2	/* mm/s of steering per degree of heading error */
 #define VC_SW_STEER_MAX		90	/* mm/s */
 #define VC_SW_SLOPE_D		15	/* mm either side of s for the curvature */
@@ -291,6 +291,8 @@ typedef struct {
 	int		smooth;		/* 1 = smooth S-curve bypass, 0 = the rectangle of turns (tests) */
 	unsigned	sw_kind;	/* leg of the smooth bypass: VC_SW_BACK .. VC_SW_FIND */
 	int		byp_wait;	/* bypass over early: do not start another until the obstacle task has left BYPASSING */
+	int		post_dir;	/* +1 right, -1 left: where to look if the line is lost just after a bypass take-over, 0 = none */
+	int		post_ms;	/* time left for that */
 	int		sw_psi0;	/* heading when the settle leg began, tenths of a degree */
 	int		sw_psi_d10;	/* peak heading of this bypass, tenths of a degree */
 	int		sw_d_mm;	/* the sideways reach D */
