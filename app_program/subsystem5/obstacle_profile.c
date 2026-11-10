@@ -517,7 +517,9 @@ static int fine_is_hit(const OBS_SCAN *s, const OBS_CFG *cfg, unsigned deg, uint
 static unsigned fine_one_edge(OBS_SCAN *s, const OBS_CFG *cfg, int edge_idx, int dir,
 			      unsigned min_deg, unsigned max_deg, OBS_READ_FN rd, void *ctx)
 {
-	int k, misses = 0, hit_deg = 0;
+	/* the coarse hit itself is the first known 'seen' angle: if the first fine step
+	   already misses, the edge is still known to one fine step */
+	int k, misses = 0, hit_deg = edge_idx * OBS_STEP_DEG;
 	unsigned n = 0;
 	uint16_t ref = s->dist_cm[edge_idx], hit_cm = ref;
 	int next = edge_idx + dir;
@@ -547,7 +549,7 @@ static unsigned fine_one_edge(OBS_SCAN *s, const OBS_CFG *cfg, int edge_idx, int
 			}
 		}
 	}
-	if (hit_deg != 0) {
+	{
 		unsigned e = (dir < 0) ? 0u : 1u;
 
 		s->fine_deg[e] = (uint8_t)hit_deg;
