@@ -862,6 +862,58 @@ int main(void)
 		cfg.right_pad_pm = 0;
 		cfg.margin_cm = 3;
 	}
+	/* S5-H134: from close up an edge far off to the side is out of view: keep the first scan's plan
+	   for that side. Runs 13, 14, 16, 17 replayed from their logged readings (image v13/v14 settings). */
+	{
+		int i13[] = {2, 4, 6, 8, 10, 9, 7, 5}, c13[] = {127, 195, 19, 20, 75, 77, 19, 25};
+		int i14[] = {2, 4, 6, 8, 10, 9, 7, 5}, c14[] = {126, 195, 18, 19, 75, 75, 18, 22};
+		int i16[] = {2, 4, 6, 8, 10, 9, 7, 5}, c16[] = {127, 195, 18, 20, 74, 76, 18, 19};
+		int i17[] = {2, 4, 6, 8, 10, 9, 7, 5}, c17[] = {126, 194, 16, 17, 75, 76, 17, 17};
+		LOGFINE f13 = { {72, 69, 123, 126, 129}, {196, 197, 19, 146, 79}, 5 };
+		LOGFINE f14 = { {72, 69, 66, 63, 123, 126, 129, 132}, {23, 25, 195, 195, 19, 20, 78, 77}, 8 };
+		LOGFINE f16 = { {72, 69, 66, 63, 123, 126}, {20, 20, 23, 24, 143, 143}, 6 };
+		LOGFINE f17 = { {72, 69, 66, 63, 123, 126}, {18, 19, 19, 195, 43, 99}, 6 };
+		OBS_PROFILE r13, r14, r16, r17, first;
+		int ok_log, cl14, cl17;
+
+		cfg.right_pad_pm = 250;
+		cfg.margin_cm = 4;
+		replay(i13, c13, 8, &f13, &r13);
+		replay(i14, c14, 8, &f14, &r14);
+		replay(i16, c16, 8, &f16, &r16);
+		replay(i17, c17, 8, &f17, &r17);
+		ok_log = r13.left_cm == 21 && r13.right_cm == 20 && r14.left_cm == 22 && r14.right_cm == 23 &&
+			 r16.left_cm == 20 && r16.right_cm == 25 && r17.left_cm == 19 && r17.right_cm == 22 &&
+			 r17.action == OBS_ACT_TURN_LEFT;
+		CHECK("S5-H134a", ok_log, "replays of runs 13, 14, 16, 17 give exactly the logged profiles (run 17: LEFT, into the box)");
+		CHECK("S5-H134b", (r17.view_lim & 2u) && !(r17.view_lim & 1u) && (r14.view_lim & 2u),
+		      "the left edges seen 30 degrees or more out are flagged as at the limit of the view");
+
+		memset(&first, 0, sizeof first);
+		first.detected = 1;
+		first.left_cm = 32; first.right_cm = 31;		/* run 17's first scan */
+		obs_merge_first(&r17, &first, &cfg);
+		cl17 = replay_clear(&r17, -15, 3);
+		first.left_cm = 42; first.right_cm = 40;		/* run 14's first scan */
+		obs_merge_first(&r14, &first, &cfg);
+		cl14 = replay_clear(&r14, -9.25, 1.25);
+		printf("[HOST] INFO H134: run 17 now %s (left %d right %d), %d cm from the real box; run 14 now %s, %d cm\n",
+		       r17.action == OBS_ACT_TURN_RIGHT ? "RIGHT" : "LEFT", r17.left_cm, r17.right_cm, cl17,
+		       r14.action == OBS_ACT_TURN_RIGHT ? "RIGHT" : "LEFT", cl14);
+		CHECK("S5-H134c", r17.action == OBS_ACT_TURN_RIGHT && cl17 >= 3,
+		      "run 17 (18 cm box, 15 cm of it left of the line): now RIGHT, the open side, at least 3 cm clear");
+		CHECK("S5-H134d", r14.action == OBS_ACT_TURN_RIGHT && cl14 >= 3,
+		      "run 14 (box 4 cm left): now RIGHT, the roomier side");
+		first.left_cm = 41; first.right_cm = 40;		/* run 13 */
+		obs_merge_first(&r13, &first, &cfg);
+		first.left_cm = 32; first.right_cm = 39;		/* run 16 */
+		obs_merge_first(&r16, &first, &cfg);
+		CHECK("S5-H134e", r13.action == OBS_ACT_TURN_RIGHT && r16.action == OBS_ACT_TURN_LEFT,
+		      "runs 13 (box left) and 16 (box right) keep their correct sides");
+		first.detected = 0;
+		cfg.right_pad_pm = 0;
+		cfg.margin_cm = 3;
+	}
 	printf("[HOST] subsystem5 SUMMARY %d passed, %d failed\n", pass_n, fail_n);
 	return fail_n ? 1 : 0;
 }

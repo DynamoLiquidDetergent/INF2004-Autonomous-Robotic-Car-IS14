@@ -129,6 +129,7 @@ static int sim_force_lost;	/* 1: report 'line lost, last zone 1' (a wrong guess)
 static int sim_corner_x;	/* > 0: the line turns toward the bypass side at this x (mm), the old line ends there */
 static int sim_obs_lag;		/* cycles the obstacle task stays in BYPASSING after BYP_PASSED */
 static int sim_never_find;	/* 1 = the line is never seen again after the start */
+static int sim_find_on_spin;	/* 1 = the line is only seen once the car turns on the spot (lost in the straight look) */
 
 typedef struct {
 	int   ok;		/* finished with VC_EV_BYP_DONE */
@@ -142,6 +143,7 @@ typedef struct {
 	int   back_mm, lo_mm, lp_mm, d_mm;
 	int   post_steer;	/* steering the controller gave in the forced-lost cycle */
 	int   starts, early;	/* BYP_START events, BYP_DONE without the return curve (line met early) */
+	int   spin_ev;
 	int   turns, zero_steer, max_steer;	/* turns on the spot, steer 0 commands, largest |steer| during the detour */
 } SIMRES;
 
@@ -194,6 +196,10 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 		sy = y + 50.0 * sn;
 		rel = -sy / (cs > 0.2 ? cs : 0.2);		/* line position across the sensor row, + = to the right */
 		lost = (fabs(rel) > 32.0 || (sim_never_find && started)) ? 1 : 0;
+		if (sim_find_on_spin && started) {
+			lost = (r.turns > 10) ? 0 : 1;	/* seen once the spin has been going a while */
+			rel = 0.0;
+		}
 		if (sim_corner_x > 0) {			/* main line ends at the corner, a side line goes off to the bypass side */
 			double sxx = x + 50.0 * cs, syy = y + 50.0 * sn;
 			double d_main = (sxx <= sim_corner_x) ? fabs(syy) : 1e9;
@@ -213,7 +219,7 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 		o = vc_step(&v, &b);
 		if (sim_force_lost && done_t >= 0 && t == done_t + 3) { r.post_steer = o.steer; }
 		if (started && done_t < 0) {
-			if (o.mode == VC_MODE_TURN) { r.turns++; }
+			if (o.mode == VC_MODE_TURN) { r.turns++; r.spin_ev |= 1; }
 			if (o.mode == VC_MODE_DRIVE && o.busy && o.steer == 0) { r.zero_steer++; }
 			if (o.busy && (o.steer > r.max_steer || -o.steer > r.max_steer)) { r.max_steer = o.steer < 0 ? -o.steer : o.steer; }
 		}
@@ -237,7 +243,9 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 		{
 			double tl = 0, tr = 0;
 
-			if (o.mode == VC_MODE_DRIVE && o.busy) {
+			if (o.mode == VC_MODE_TURN) {		/* on the spot, as Motion Control does */
+				tl = (o.turn_deg > 0) ? o.speed : -o.speed; tr = -tl;
+			} else if (o.mode == VC_MODE_DRIVE && o.busy) {
 				tl = o.speed + o.steer; tr = o.speed - o.steer;
 			} else if (o.mode == VC_MODE_DRIVE) {
 				/* line following: steering from the zone, 30 mm/s a zone (as the controller does) */
@@ -1367,8 +1375,13 @@ int main(void)
 		sim_never_find = 1;
 		c = sim_bypass(-1, 150, 200, 0, 20, 0, 0);
 		sim_never_find = 0;
-		CHECK("S5-H123i", c.fail_ev && !c.ok && c.turns == 0 && !c.hit,
-		      "line never found again: the 150 mm look ends in BYP_FAIL (car stops, no turn, no hit)");
+		CHECK("S5-H123i", c.fail_ev && !c.ok && c.turns > 0 && !c.hit,
+		      "line never found again: after the 150 mm look the car spins on the spot to look (no hit), then BYP_FAIL and stops");
+		sim_find_on_spin = 1;
+		c = sim_bypass(-1, 150, 200, 0, 20, 0, 0);
+		sim_find_on_spin = 0;
+		CHECK("S5-H123j", c.ok && !c.fail_ev && c.turns > 0 && !c.hit,
+		      "line missed by the straight look but found by the spin: back on the line (BYP_DONE), no hit");
 		c = sim_bypass(1, 200, 200, 0, 17, 0, 0);
 		CHECK("S5-H123f", c.ok && !c.hit && c.clear_mm >= 5.0 && c.ms < 20000,
 		      "20 cm box, 17 cm away (the M33 set-up): done, at least 5 mm clear of the box, under 20 s");
