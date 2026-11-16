@@ -63,6 +63,7 @@ void obs_cfg_default(OBS_CFG *cfg)
 	cfg->approach_guard_cm = 13;	/* never closer than this while creeping */
 	cfg->approach_back_max_cm = 15;	/* back away at most 15 cm if stopped too close */
 	cfg->approach_min_cm = 3;	/* HC-SR04 minimum range is 2 cm: closer than 3 is not trusted */
+	cfg->right_pad_pm = 0;		/* the ideal sensor; the car sets its measured value (obstacle_detect.c) */
 }
 
 void obs_scan_clear(OBS_SCAN *s)
@@ -432,6 +433,9 @@ static void cluster_geom(const OBS_SCAN *s, const OBS_CFG *cfg, int lo, int hi, 
 			*x_ro = *x_lo = (*x_ro + *x_lo) / 2;
 		}
 	}
+
+	/* the sensor reads the right edge short (measured): plan it further out. Only ever outwards. */
+	*x_ro += (int32_t)s->dist_cm[closest] * cfg->right_pad_pm / 1000;
 }
 
 /* Plan for at least the widest obstacle the spec allows, centred where we

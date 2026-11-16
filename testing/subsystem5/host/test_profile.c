@@ -29,7 +29,8 @@ static void scan_with(OBS_SCAN *s, const int *idx, const int *cm, int n)
    measured (the servo window). The chosen bypass must keep the robot's half width
    clear of the TRUE edge; a box inside the robot's lane that is not detected counts
    as missed. Returns the number of unsafe + missed cases. */
-static int g_beam_n = 5;	/* simulated beam: +/- g_beam_n * 1.5 degrees (5 = 7.5; 9 = 13.5 as measured) */
+static int g_beam_n = 5;
+static double g_rot = 0;	/* simulated sensor aim error, degrees (+ = the beam points further left than commanded) */	/* simulated beam: +/- g_beam_n * 1.5 degrees (5 = 7.5; 9 = 13.5 as measured) */
 
 static int sim_boxes(int lo, int hi, int *cases_o, int *retry_o, int *worst_o)
 {
@@ -145,7 +146,7 @@ static uint16_t fine_reader(void *ctx, unsigned deg)
 	int k;
 
 	for (k = -g_beam_n; k <= g_beam_n; k++) {
-		double th = ((double)deg + k * 1.5) * 3.14159265358979 / 180.0;
+		double th = ((double)deg + g_rot + k * 1.5) * 3.14159265358979 / 180.0;
 		double sn = sin(th), cs = cos(th), x, t;
 
 		if (sn <= 0.05) continue;
@@ -198,6 +199,50 @@ static int sim_fine(int drop_at, int *cases_o, double *mean_coarse, double *mean
 	*cases_o = cases; *worst_o = worst; *wider_o = wider; *readings_o = readings;
 	*mean_coarse = n_go ? sum_c / n_go : 0; *mean_fine = n_go ? sum_f / n_go : 0;
 	return unsafe;
+}
+
+/* ---- S5-H133: replay of logged car scans (readings as printed, median of 3) ---- */
+typedef struct { int deg[8]; int cm[8]; int n; } LOGFINE;
+
+static uint16_t log_reader(void *ctx, unsigned deg)
+{
+	LOGFINE *l = (LOGFINE *)ctx;
+	int i;
+
+	for (i = 0; i < l->n; i++) {
+		if (l->deg[i] == (int)deg) {
+			return (uint16_t)l->cm[i];
+		}
+	}
+	return OBS_DIST_NONE;
+}
+
+static void replay(const int *idx, const int *cm, int n, LOGFINE *lf, OBS_PROFILE *p)
+{
+	OBS_SCAN sc;
+	int i;
+
+	obs_scan_init(&sc);		/* background forgotten after the creep, as in the logs */
+	for (i = 0; i < n; i++) {
+		obs_scan_set(&sc, (unsigned)idx[i], (uint16_t)cm[i]);
+	}
+	obs_profile(&sc, &cfg, p);
+	(void)obs_fine_edges(&sc, &cfg, 30, 150, log_reader, lf);
+	obs_profile(&sc, &cfg, p);
+}
+
+/* side and clearance for a true box [tl, tr] (cm, + = right) */
+static int replay_clear(const OBS_PROFILE *p, double tl, double tr)
+{
+	int hw = (int)cfg.robot_half_width_cm;
+
+	if (p->action == OBS_ACT_TURN_RIGHT) {
+		return (int)floor((int)p->right_cm - (tr + hw));
+	}
+	if (p->action == OBS_ACT_TURN_LEFT) {
+		return (int)floor((int)p->left_cm - (-tl + hw));
+	}
+	return -99;
 }
 
 int main(void)
@@ -757,6 +802,66 @@ int main(void)
 		CHECK("S5-H131b", bad_f == 0 && w2 >= 0, "beam +/-13.5 degrees: with the fine look every chosen bypass still clears the true edge");
 	}
 
+
+	/* S5-H133: the sensor's uneven view, measured on the car. Runs 5..8 replayed from their logged readings
+	   (second scan, background forgotten) and checked against the boxes measured with a ruler. */
+	{
+		int i5[] = {2, 4, 6, 8, 10, 7, 5}, c5[] = {126, 194, 16, 144, 74, 16, 18};
+		int i6[] = {2, 4, 6, 8, 10, 9, 7, 5}, c6[] = {127, 195, 19, 21, 76, 76, 19, 21};
+		int i7[] = {2, 4, 6, 8, 10, 9, 7, 5}, c7[] = {125, 195, 17, 18, 74, 75, 17, 19};
+		int i8[] = {2, 4, 6, 8, 10, 9, 7, 5}, c8[] = {126, 195, 19, 20, 74, 78, 20, 197};
+		LOGFINE f5 = { {72, 69, 108, 111, 114, 117}, {194, 195, 17, 17, 142, 18}, 6 };
+		LOGFINE f6 = { {72, 69, 66, 63, 123, 126}, {25, 23, 195, 195, 144, 82}, 6 };
+		LOGFINE f7 = { {72, 69, 66, 63, 123, 126, 129, 132}, {20, 19, 195, 194, 19, 22, 74, 76}, 8 };
+		LOGFINE f8 = { {87, 84, 81, 78, 123, 126}, {19, 19, 20, 20, 146, 84}, 6 };
+		/* true boxes, cm, + = right of the line: 5: 4 cm centred; 6, 7: 10.5 cm, 4 cm right; 8: 10.5 cm, 4 cm left */
+		double tl[4] = {-2, -1.25, -1.25, -9.25}, tr[4] = {2, 9.25, 9.25, 1.25};
+		const int *ii[4] = {i5, i6, i7, i8}, *cc[4] = {c5, c6, c7, c8};
+		int nn[4] = {7, 8, 8, 8};
+		LOGFINE *ff[4] = {&f5, &f6, &f7, &f8};
+		OBS_PROFILE r;
+		int k, cl, worst = 99, roomier = 0, unsafe0, unsafe1, cases, wst, wider, rd;
+		double mc, mf;
+
+		cfg.right_pad_pm = 0;
+		replay(i5, c5, 7, &f5, &r);
+		k = (r.width_cm == 4 && r.left_cm == 18 && r.right_cm == 14 && r.action == OBS_ACT_TURN_RIGHT);
+		replay(i6, c6, 8, &f6, &r);
+		k = k && (r.width_cm == 10 && r.left_cm == 20 && r.right_cm == 17 && r.action == OBS_ACT_TURN_RIGHT);
+		CHECK("S5-H133a", k, "replay of runs 5 and 6 with the settings of their image gives exactly the logged profiles");
+
+		cfg.right_pad_pm = 250;		/* the car's values (obstacle_detect.c) */
+		cfg.margin_cm = 4;
+		for (k = 0; k < 4; k++) {
+			replay(ii[k], cc[k], nn[k], ff[k], &r);
+			cl = replay_clear(&r, tl[k], tr[k]);
+			if (cl < worst) worst = cl;
+			if ((k == 1 || k == 2) && r.action == OBS_ACT_TURN_LEFT) roomier++;
+			if (k == 3 && r.action == OBS_ACT_TURN_RIGHT) roomier++;
+			printf("[HOST] INFO H133: run %d: %s, left %d right %d, clearance to the real box %d cm\n", k + 5,
+			       r.action == OBS_ACT_TURN_RIGHT ? "RIGHT" : (r.action == OBS_ACT_TURN_LEFT ? "LEFT" : "other"),
+			       r.left_cm, r.right_cm, cl);
+		}
+		CHECK("S5-H133b", worst >= 3, "runs 5..8 with the right-edge pad: every bypass at least 3 cm from the real box (measured: 1.5 cm in runs 6 and 8 before)");
+		CHECK("S5-H133c", roomier >= 2, "the box 4 cm off the line (runs 6, 7, 8): the roomier side in at least 2 of the 3");
+		printf("[HOST] INFO H133: roomier side chosen in %d of 3 off-centre runs\n", roomier);
+
+		/* simulated sensor that sees the right edge short (beam turned 14 deg right of the command, as the earlier
+		   fit), and the opposite turn: the pad only ever moves an edge outwards */
+		g_rot = -14; cfg.right_pad_pm = 0;
+		unsafe0 = sim_fine(-1, &cases, &mc, &mf, &wst, &wider, &rd);
+		cfg.right_pad_pm = 250;
+		unsafe1 = sim_fine(-1, &cases, &mc, &mf, &wst, &wider, &rd);
+		printf("[HOST] INFO H133: beam 14 deg right: %d unsafe without the pad, %d of %d with it (worst %d cm)\n", unsafe0, unsafe1, cases, wst);
+		CHECK("S5-H133d", unsafe0 > 0 && unsafe1 == 0, "simulated sensor that reads right edges short: unsafe without the pad, safe with it");
+		g_rot = 0;
+		unsafe1 = sim_fine(-1, &cases, &mc, &mf, &wst, &wider, &rd);
+		printf("[HOST] INFO H133: ideal sensor with the pad: %d of %d unsafe (worst %d cm)\n", unsafe1, cases, wst);
+		CHECK("S5-H133e", unsafe1 == 0, "ideal sensor with the pad: still safe (the pad only moves an edge outwards)");
+		g_rot = 0;
+		cfg.right_pad_pm = 0;
+		cfg.margin_cm = 3;
+	}
 	printf("[HOST] subsystem5 SUMMARY %d passed, %d failed\n", pass_n, fail_n);
 	return fail_n ? 1 : 0;
 }

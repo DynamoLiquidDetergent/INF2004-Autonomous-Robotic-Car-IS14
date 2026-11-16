@@ -66,6 +66,13 @@
 					   Keep MIN <= 5 and MAX >= 7 (the lane ahead is 5..7). */
 /* coarse scan: every second index, starting so that index 6 (straight ahead) is included */
 #define S5_COARSE_FIRST		(OBS_IDX_AHEAD - 2 * ((OBS_IDX_AHEAD - S5_IDX_MIN) / 2))
+#define S5_RIGHT_PAD_PM		250	/* obs cfg right_pad_pm: in M33 runs 4..8 (boxes measured with a ruler) the
+					   scan put the right edge up to 4.25 cm too far in at 17..23 cm; the left edge
+					   was never too far in (only too far out). Planned 0.25 x range further out
+					   (S5-H133). A shift of the whole picture was tried first (image v12) and
+					   failed run 8: a box on the LEFT was then placed 5 cm too far right */
+#define S5_MARGIN_CM		4	/* clearance kept from the planned edge: 3 cm plus 1 cm for the spread
+					   between runs (S5-H133) */
 #define S5_SERVO_STEP_DEG	15	/* the servo is moved at most this far per command, so it
 					   never snaps across the whole range */
 
@@ -311,6 +318,8 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 	ER	er;
 
 	obs_cfg_default(&cfg);
+	cfg.right_pad_pm = S5_RIGHT_PAD_PM;
+	cfg.margin_cm = S5_MARGIN_CM;
 	obs_scan_init(&scan);		/* before anything can fail: the scan data is always valid */
 
 	er = drv_s5_init(DRV_PART_ALL);

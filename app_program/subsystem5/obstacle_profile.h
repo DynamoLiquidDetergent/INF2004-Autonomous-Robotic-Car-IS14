@@ -80,6 +80,10 @@ typedef struct {
 					   (nothing watches behind it, so keep this short) */
 	uint16_t approach_min_cm;	/* closer than this the sensor reading is not trusted
 					   (HC-SR04 minimum range): no back-away, a fault instead */
+	uint16_t right_pad_pm;		/* the RIGHT edge is planned this many permille of the range further
+					   out. Measured on the car (M33 runs 4..8, boxes measured with a
+					   ruler): the scan put right edges up to 0.23 x range too far in,
+					   left edges were never too far in */
 } OBS_CFG;
 
 /* One scan: a distance per angle index, plus which indices were measured */
