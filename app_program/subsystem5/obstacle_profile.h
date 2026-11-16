@@ -48,8 +48,8 @@ typedef enum {
 	OBS_ST_FAULT			= 7
 } OBS_STATE;
 
-/* Tunable values.  ALL DEFAULTS ARE PLACEHOLDERS until measured on the
-   real robot and track (see testing/subsystem5/TEST_LOG.md). */
+/* Tunable values. The defaults (obs_cfg_default) are the ones used in the car
+   tests (see testing/subsystem5/TEST_LOG.md). */
 typedef struct {
 	uint16_t detect_cm;		/* a reading at or below this is an obstacle */
 	uint16_t start_cm;		/* the watch straight ahead starts the first scan only when the

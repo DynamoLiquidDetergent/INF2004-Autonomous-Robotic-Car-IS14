@@ -44,7 +44,7 @@ static int32_t sind(int d)
 
 void obs_cfg_default(OBS_CFG *cfg)
 {
-	/* PLACEHOLDERS: measure on the real robot before trusting these */
+	/* values used in the car tests (testing/subsystem5/TEST_LOG.md) */
 	cfg->detect_cm = 50;
 	cfg->start_cm = 30;		/* the car stops about 28 cm from the box (it was 50 cm: too far out) */
 	cfg->stop_cm = 8;

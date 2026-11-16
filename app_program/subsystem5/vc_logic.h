@@ -7,9 +7,9 @@
  *	state and the Motion Control state every cycle and sends what it answers
  *	to Motion Control (IF-10).
  *
- *	Version 1 (S5_PHASE 6): follow the line; stand still while Obstacle
+ *	Base (S5_PHASE 6): follow the line; stand still while Obstacle
  *	Detection is not idle or the Safety Monitor's stop latch is set; then
- *	drive on. No bypass yet.
+ *	drive on. Phase 7 adds the bypass (below).
  *
  *	Creep: after the first scan Obstacle Detection may order the car to
  *	move a short way (approach_mm, signed) so the second scan is made from
