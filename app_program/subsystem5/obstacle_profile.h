@@ -48,10 +48,12 @@ typedef enum {
 	OBS_ST_FAULT			= 7
 } OBS_STATE;
 
-/* Tunable values.  ALL DEFAULTS ARE PLACEHOLDERS until measured on the
-   real robot and track (see testing/subsystem5/TEST_LOG.md). */
+/* Tunable values. The defaults (obs_cfg_default) are the ones used in the car
+   tests (see testing/subsystem5/TEST_LOG.md). */
 typedef struct {
 	uint16_t detect_cm;		/* a reading at or below this is an obstacle */
+	uint16_t start_cm;		/* the watch straight ahead starts the first scan only when the
+					   obstacle is at most this close (detect_cm is for the scans) */
 	uint16_t stop_cm;		/* closer than this: STOP */
 	uint16_t robot_half_width_cm;	/* half the robot's width */
 	uint16_t margin_cm;		/* extra safety gap beside the obstacle */
@@ -78,6 +80,10 @@ typedef struct {
 					   (nothing watches behind it, so keep this short) */
 	uint16_t approach_min_cm;	/* closer than this the sensor reading is not trusted
 					   (HC-SR04 minimum range): no back-away, a fault instead */
+	uint16_t right_pad_pm;		/* the RIGHT edge is planned this many permille of the range further
+					   out. Measured on the car (M33 runs 4..8, boxes measured with a
+					   ruler): the scan put right edges up to 0.23 x range too far in,
+					   left edges were never too far in */
 } OBS_CFG;
 
 /* One scan: a distance per angle index, plus which indices were measured */

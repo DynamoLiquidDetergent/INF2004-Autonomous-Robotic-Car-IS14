@@ -1443,6 +1443,34 @@ int main(void)
 		      "line met on the way back, then lost: the car looks back towards the old line");
 	}
 
+	/* S5-H132: a creep that was paused part-way, then finished, must not shorten the NEXT move.
+	   (Obstacle Detection orders the second move straight from the scan, so the controller never
+	   sees a cycle without an order in between.) */
+	{
+		VC_IN b;
+		VC_OUT o;
+		int k, drove = 0;
+
+		vc_init(&v, 0);
+		b = line_in(4, 0); b.approach_mm = 120; b.odo_mm = 1000; o = vc_step(&v, &b);
+		b = line_in(4, 0); b.approach_mm = 120; b.odo_mm = 1060; o = vc_step(&v, &b);
+		b = line_in(4, 0); b.approach_mm = 120; b.odo_mm = 1060; b.sup_cmd = VC_SUP_PAUSE; o = vc_step(&v, &b);
+		b = line_in(4, 0); b.approach_mm = 120; b.odo_mm = 1060; b.sup_cmd = VC_SUP_RESUME; o = vc_step(&v, &b);
+		b = line_in(4, 0); b.approach_mm = 120; b.odo_mm = 1100; o = vc_step(&v, &b);
+		CHECK("S5-H132a", o.mode == VC_MODE_DRIVE && !o.creep_done, "paused at 60 of 120 mm, resumed: still creeping at 100 mm");
+		b = line_in(4, 0); b.approach_mm = 120; b.odo_mm = 1120; o = vc_step(&v, &b);
+		CHECK("S5-H132b", o.creep_done, "done at 120 mm in all");
+		for (k = 0; k < 5; k++) {		/* the second scan: the car is held, the order is taken back */
+			b = line_in(4, 0); b.obs_state = 1; b.approach_mm = 0; b.odo_mm = 1120; o = vc_step(&v, &b);
+		}
+		b = line_in(4, 0); b.approach_mm = -50; b.odo_mm = 1120; o = vc_step(&v, &b);
+		drove = (o.mode == VC_MODE_DRIVE && o.speed < 0 && !o.creep_done);
+		b = line_in(4, 0); b.approach_mm = -50; b.odo_mm = 1090; o = vc_step(&v, &b);
+		drove = drove && !o.creep_done;
+		b = line_in(4, 0); b.approach_mm = -50; b.odo_mm = 1070; o = vc_step(&v, &b);
+		CHECK("S5-H132c", drove && o.creep_done, "the next order (back 50 mm) is driven in full: not done at 0 or 30 mm, done at 50 mm");
+	}
+
 	printf("[HOST] vehicle controller SUMMARY %d passed, %d failed\n", pass_n, fail_n);
 	return fail_n ? 1 : 0;
 }

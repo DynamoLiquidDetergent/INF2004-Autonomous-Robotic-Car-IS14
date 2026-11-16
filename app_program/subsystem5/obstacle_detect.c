@@ -23,8 +23,8 @@
 #endif
 
 /* Creep before the second scan (phase 6 and up, needs the Vehicle Controller).
-   The first scan starts when something is within 50 cm straight ahead, which is
-   far. If the profile chooses a bypass, the car creeps up to about 17 cm from
+   The first scan starts when something is within start_cm (30 cm) straight ahead; the
+   car stops about 2 cm later. If the profile chooses a bypass, the car creeps up to about 17 cm from
    the obstacle (following the line), or backs away if it is closer than 15 cm,
    and scans again from there: a closer scan has a narrower uncertainty, and it
    is a second scan position. The one-ray watch is not used to stop at 17 cm: at
@@ -39,7 +39,7 @@
 #define S5_APPROACH_SLOWEST	30	/* mm/s, for the time limit only (the car drives 40) */
 #define S5_APPROACH_EXTRA_MS	1500
 
-/* ---- Tunables. PLACEHOLDERS until measured on the robot. ---- */
+/* ---- Tunables (values used in the car tests, testing/subsystem5/TEST_LOG.md) ---- */
 #define S5_DETECT_CONFIRM	2	/* consecutive close readings before a scan starts */
 #define S5_NOECHO_FAULT_N	10	/* consecutive "no pulse at all" readings = sensor fault.
 					   0 = never fault (use if the kit's sensor stays silent
@@ -66,6 +66,13 @@
 					   Keep MIN <= 5 and MAX >= 7 (the lane ahead is 5..7). */
 /* coarse scan: every second index, starting so that index 6 (straight ahead) is included */
 #define S5_COARSE_FIRST		(OBS_IDX_AHEAD - 2 * ((OBS_IDX_AHEAD - S5_IDX_MIN) / 2))
+#define S5_RIGHT_PAD_PM		250	/* obs cfg right_pad_pm: in M33 runs 4..8 (boxes measured with a ruler) the
+					   scan put the right edge up to 4.25 cm too far in at 17..23 cm; the left edge
+					   was never too far in (only too far out). Planned 0.25 x range further out
+					   (S5-H133). A shift of the whole picture was tried first (image v12) and
+					   failed run 8: a box on the LEFT was then placed 5 cm too far right */
+#define S5_MARGIN_CM		4	/* clearance kept from the planned edge: 3 cm plus 1 cm for the spread
+					   between runs (S5-H133) */
 #define S5_SERVO_STEP_DEG	15	/* the servo is moved at most this far per command, so it
 					   never snaps across the whole range */
 
@@ -311,6 +318,9 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 	ER	er;
 
 	obs_cfg_default(&cfg);
+	cfg.right_pad_pm = S5_RIGHT_PAD_PM;
+	cfg.margin_cm = S5_MARGIN_CM;
+	obs_scan_init(&scan);		/* before anything can fail: the scan data is always valid */
 
 	er = drv_s5_init(DRV_PART_ALL);
 	if (er != E_OK) {
@@ -323,7 +333,6 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 		set_state(OBS_ST_IDLE_MONITORING);
 		tm_printf((UB*)"obstacle: ready (servo GP%d, trig GP%d, echo GP%d)\n",
 			  S5_PIN_SERVO, S5_PIN_TRIG, S5_PIN_ECHO);
-		obs_scan_init(&scan);
 #if S5_USE_BACKGROUND
 		take_background();
 #endif
@@ -359,7 +368,7 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 				break;
 			}
 #endif
-			if (obs_dist_is_hit(&scan, OBS_IDX_AHEAD, (uint16_t)cm, &cfg)) {
+			if (cm <= cfg.start_cm && obs_dist_is_hit(&scan, OBS_IDX_AHEAD, (uint16_t)cm, &cfg)) {
 				hits++;
 			} else {
 				hits = 0;
@@ -507,6 +516,9 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 			} else if (S5_STANDALONE) {
 				tk_dly_tsk(S5_STANDALONE_REST_MS);
 				set_state(OBS_ST_IDLE_MONITORING);
+			} else if (er != E_OK) {
+				/* the Vehicle Controller never got this profile: it must not bypass on an older one */
+				raise_fault("profile not delivered");
 			} else {
 				detect_ms = now_ms();		/* the bypass clock starts here */
 				set_state(OBS_ST_BYPASSING);
@@ -519,7 +531,7 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 			if (got & S5_CTRL_BYPASS_DONE) {
 				set_state(OBS_ST_REACQUIRING_LINE);
 			} else if ((now_ms() - detect_ms) > S5_BYPASS_LIMIT_MS) {
-				raise_fault("bypass over 8 s");
+				raise_fault("bypass took too long");
 			}
 			break;
 

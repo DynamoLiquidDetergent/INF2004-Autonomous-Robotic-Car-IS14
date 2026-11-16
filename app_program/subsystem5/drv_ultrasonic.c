@@ -4,8 +4,9 @@
  *	See drv_ultrasonic.h.  Written against the RP2040 datasheet and the
  *	register names in include/sys/sysdepend/cpu/rp2040/sysdef.h.
  *
- *	NOT YET TESTED ON HARDWARE.  Bring-up order (testing/subsystem5):
- *	servo moves -> raw echo counter changes with distance -> ruler test.
+ *	Tested on the car (testing/subsystem5/TEST_LOG.md, S5-U and S5-M rows).
+ *	Bring-up order was: servo moves -> raw echo counter changes with
+ *	distance -> ruler test.
  */
 
 #include "drv_ultrasonic.h"

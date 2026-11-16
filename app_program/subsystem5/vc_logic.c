@@ -384,8 +384,7 @@ static int sw_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 				v->found_cnt = 0;
 			}
 		}
-		if (v->found_cnt >= VC_SEARCH_FOUND_MSGS &&
-		    1) {
+		if (v->found_cnt >= VC_SEARCH_FOUND_MSGS) {
 			int hd = heading_d10(v);
 
 			/* on the far side of the obstacle the line leads on away from it (a corner towards the
@@ -911,6 +910,10 @@ static VC_OUT vc_step_inner(VC_STATE *v, const VC_IN *in0)
 			v->holding  = 1;
 			if (v->creep_on && !v->creep_done) {
 				creep_remember(v, in);
+			} else if (v->creep_on) {
+				/* the order was finished: the next one (ordered straight from the scan, with no
+				   cycle without an order in between) starts from nothing travelled */
+				v->creep_acc = 0;
 			}
 			if (v->jn_state == JN_DRIVE && v->jn_on) {
 				int moved = odo_since(in->odo_mm, v->jn_odo0);

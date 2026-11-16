@@ -44,8 +44,9 @@ static int32_t sind(int d)
 
 void obs_cfg_default(OBS_CFG *cfg)
 {
-	/* PLACEHOLDERS: measure on the real robot before trusting these */
+	/* values used in the car tests (testing/subsystem5/TEST_LOG.md) */
 	cfg->detect_cm = 50;
+	cfg->start_cm = 30;		/* the car stops about 28 cm from the box (it was 50 cm: too far out) */
 	cfg->stop_cm = 8;
 	cfg->robot_half_width_cm = 8;
 	cfg->margin_cm = 3;
@@ -62,6 +63,7 @@ void obs_cfg_default(OBS_CFG *cfg)
 	cfg->approach_guard_cm = 13;	/* never closer than this while creeping */
 	cfg->approach_back_max_cm = 15;	/* back away at most 15 cm if stopped too close */
 	cfg->approach_min_cm = 3;	/* HC-SR04 minimum range is 2 cm: closer than 3 is not trusted */
+	cfg->right_pad_pm = 0;		/* the ideal sensor; the car sets its measured value (obstacle_detect.c) */
 }
 
 void obs_scan_clear(OBS_SCAN *s)
@@ -431,6 +433,9 @@ static void cluster_geom(const OBS_SCAN *s, const OBS_CFG *cfg, int lo, int hi, 
 			*x_ro = *x_lo = (*x_ro + *x_lo) / 2;
 		}
 	}
+
+	/* the sensor reads the right edge short (measured): plan it further out. Only ever outwards. */
+	*x_ro += (int32_t)s->dist_cm[closest] * cfg->right_pad_pm / 1000;
 }
 
 /* Plan for at least the widest obstacle the spec allows, centred where we
@@ -516,7 +521,9 @@ static int fine_is_hit(const OBS_SCAN *s, const OBS_CFG *cfg, unsigned deg, uint
 static unsigned fine_one_edge(OBS_SCAN *s, const OBS_CFG *cfg, int edge_idx, int dir,
 			      unsigned min_deg, unsigned max_deg, OBS_READ_FN rd, void *ctx)
 {
-	int k, misses = 0, hit_deg = 0;
+	/* the coarse hit itself is the first known 'seen' angle: if the first fine step
+	   already misses, the edge is still known to one fine step */
+	int k, misses = 0, hit_deg = edge_idx * OBS_STEP_DEG;
 	unsigned n = 0;
 	uint16_t ref = s->dist_cm[edge_idx], hit_cm = ref;
 	int next = edge_idx + dir;
@@ -546,7 +553,7 @@ static unsigned fine_one_edge(OBS_SCAN *s, const OBS_CFG *cfg, int edge_idx, int
 			}
 		}
 	}
-	if (hit_deg != 0) {
+	{
 		unsigned e = (dir < 0) ? 0u : 1u;
 
 		s->fine_deg[e] = (uint8_t)hit_deg;

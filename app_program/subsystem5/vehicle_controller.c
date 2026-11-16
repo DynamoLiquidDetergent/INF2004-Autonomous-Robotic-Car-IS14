@@ -369,7 +369,9 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 					tm_printf((UB*)"vc: WARNING turn did not finish in %d ms, carrying on\n",
 						  (INT)VC_TURN_TIMEOUT_MS);
 				}
-				if ((o.event & VC_EV_JN_DONE) && v.jn_cmd != VC_BC_FORWARD) {
+				if ((o.event & VC_EV_JN_DONE) && v.jn_cmd != VC_BC_FORWARD &&
+				    !(o.event & (VC_EV_BYP_DONE | VC_EV_BYP_FAIL | VC_EV_FOUND | VC_EV_GAVE_UP))) {
+					/* only a real junction turn: the end of a bypass or a search has its own line */
 					tm_printf((UB*)"vc: junction done, turned about %d degrees\n",
 						  (INT)(((v.turn_arc_um * v.turn_dir * 573) / (VC_TRACK_MM * 1000)) / 10));
 				}
@@ -390,10 +392,10 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 						   obstacle), so Subsystem 3 keeps reporting 'line lost' (IF-09 stays off) */
 						subsystem3_set_bypass(false);
 						tm_printf((UB*)"vc: smooth bypass round the %s, %d cm over, gap %d cm: back %d mm, "
-							  "curve %d mm at up to %d deg, straight %d mm\n",
+							  "curve %d mm at up to %d deg, straight %d mm (line zone %d at the stop, 4 = centred)\n",
 							  (v.byp_dir > 0) ? "right" : "left", (INT)(v.sw_d_mm / 10),
 							  (INT)in.prof_closest_cm, (INT)v.sw_back_mm, (INT)v.sw_lo_mm,
-							  (INT)(v.sw_psi_d10 / 10), (INT)v.sw_lp_mm);
+							  (INT)(v.sw_psi_d10 / 10), (INT)v.sw_lp_mm, (INT)in.zone);
 					} else {
 						subsystem3_set_bypass(true);		/* IF-09: leaving the line on purpose */
 						tm_printf((UB*)"vc: bypass round the %s, %d cm over, gap %d cm\n",
