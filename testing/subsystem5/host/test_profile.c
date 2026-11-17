@@ -999,6 +999,84 @@ int main(void)
 	}
 	CHECK("S5-H136c", any_narrower > 0, "the far fine look narrows the swing where the far edges are inside the view");
 	}
+
+	/* S5-H138 (M37 hand test, 2026-11-17): the look ahead during the bypass (obs_watch_step), fed
+	   the 90 degree readings of the hand test log in order, one every 100 ms (0 = no echo). The
+	   first rule (12 cm, 2 in a row, clear on 1 reading) stopped and drove on 8 times; the hand's
+	   readings jump between a few cm, no echo and the background. */
+	{
+	static const uint16_t hand[] = {
+		17, 17, 17, 18, 19, 19, 19, 20, 21, 21, 22, 22, 23, 23, 24, 24, 25, 25, 26, 28, 27, 28, 28, 28,
+		29, 29, 29, 30, 31, 32, 32, 32, 31, 31, 30, 30, 28, 73, 138, 138, 136, 138, 137, 138, 136, 136, 135, 136,
+		135, 134, 65, 65, 63, 14, 13, 13, 12, 58, 11, 11, 10, 0, 12, 11, 11, 0, 150, 150, 173, 15, 0, 0,
+		8, 6, 6, 5, 5, 8, 5, 8, 6, 11, 7, 12, 9, 0, 10, 14, 13, 14, 16, 0, 7, 0, 164, 0,
+		14, 0, 8, 132, 6, 160, 158, 127, 157, 117, 117, 115, 114, 114, 111, 112, 109, 111, 108, 107, 107, 107, 5, 107,
+		5, 6, 107, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4,
+		4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 5, 5, 6, 7, 7, 6, 5, 4, 4, 3,
+		4, 4, 6, 4, 102, 6, 5, 124, 104, 3, 103, 99, 10, 6, 4, 7, 6, 5, 5, 6, 13, 99, 3, 3,
+		3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+		3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 3, 3,
+		3, 3, 3, 3 };
+	const unsigned n = (unsigned)(sizeof hand / sizeof hand[0]);
+	OBS_WATCH w;
+	unsigned i, first_block = 0, blocks = 0, clears = 0, old_clears = 0, old_hits = 0, early = 0, bad_clear = 0;
+	int old_blk = 0, run_far = 0;
+
+	obs_watch_init(&w);
+	for (i = 0; i < n; i++) {
+		uint16_t c = hand[i] ? hand[i] : OBS_DIST_NONE;
+		int ev = obs_watch_step(&w, c, i * 100u);
+		int near = (c != OBS_DIST_NONE && c <= OBS_WATCH_CM);
+
+		if (ev == OBS_WATCH_BLOCK) {
+			blocks++;
+			if (first_block == 0) first_block = i;
+			if (i < 53) early++;
+		}
+		run_far = near ? 0 : run_far + 1;
+		if (ev == OBS_WATCH_CLEAR) {
+			clears++;
+			if (run_far < 7) bad_clear++;	/* 7 readings = 0.7 s with nothing close */
+		}
+		/* the first rule */
+		if (c != OBS_DIST_NONE && c <= 12) {
+			old_hits++;
+			if (old_hits >= 2) old_blk = 1;
+		} else {
+			old_hits = 0;
+			if (old_blk) { old_blk = 0; old_clears++; }
+		}
+	}
+	printf("[HOST] INFO H138: hand log %u readings: first rule drove on %u times; now blocked at reading %u (%u cm), %u block(s), %u clear(s)\n",
+	       n, old_clears, first_block, (unsigned)hand[first_block], blocks, clears);
+	CHECK("S5-H138a", early == 0, "hand log: nothing blocks while backing off from the box and turning out (readings 17..138 cm)");
+	CHECK("S5-H138b", first_block >= 53 && first_block <= 55, "hand log: the hand blocks the way at its first close readings (14, 13 cm)");
+	CHECK("S5-H138c", bad_clear == 0 && clears < old_clears, "hand log: never goes on after a single lost or far reading, far fewer stops and starts than the first rule");
+	/* a hand that gives an echo only every second reading */
+	obs_watch_init(&w);
+	(void)obs_watch_step(&w, 40, 0);
+	blocks = 0; clears = 0;
+	for (i = 1; i <= 40; i++) {
+		int ev = obs_watch_step(&w, (i & 1u) ? 8 : OBS_DIST_NONE, i * 100u);
+		if (ev == OBS_WATCH_BLOCK) blocks++;
+		if (ev == OBS_WATCH_CLEAR) clears++;
+	}
+	CHECK("S5-H138d", blocks == 1 && clears == 0 && w.blocked, "a hand seen in every second reading for 4 s: one stop, no restart");
+	/* the hand taken away: clear after OBS_WATCH_CLEAR_MS */
+	for (i = 41; i <= 60; i++) {
+		if (obs_watch_step(&w, OBS_DIST_NONE, i * 100u) == OBS_WATCH_CLEAR) break;
+	}
+	/* the last close reading was number 39 */
+	CHECK("S5-H138e", !w.blocked && (i - 39) * 100u >= OBS_WATCH_CLEAR_MS && (i - 39) * 100u <= OBS_WATCH_CLEAR_MS + 100u,
+	      "hand taken away: the way counts as clear again after 0.7 s");
+	/* the box itself at 12 cm when the bypass starts, the car backing away */
+	obs_watch_init(&w);
+	blocks = 0;
+	for (i = 0; i < 25; i++) {
+		if (obs_watch_step(&w, (uint16_t)(12 + i), i * 100u) == OBS_WATCH_BLOCK) blocks++;
+	}
+	CHECK("S5-H138f", blocks == 0, "the box 12 cm ahead at the start, backing away: not a blocked way (the watch arms past 20 cm)");
+	}
 	printf("[HOST] subsystem5 SUMMARY %d passed, %d failed\n", pass_n, fail_n);
 	return fail_n ? 1 : 0;
 }

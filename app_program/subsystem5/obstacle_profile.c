@@ -846,3 +846,42 @@ unsigned obs_unrefine_view_lim(OBS_SCAN *s, const OBS_PROFILE *p)
 	}
 	return out;
 }
+
+void obs_watch_init(OBS_WATCH *w)
+{
+	w->armed = 0;
+	w->blocked = 0;
+	w->hist = 0;
+	w->last_near_ms = 0;
+}
+
+int obs_watch_step(OBS_WATCH *w, uint16_t cm, uint32_t t_ms)
+{
+	int near = (cm != OBS_DIST_NONE && cm <= OBS_WATCH_CM);
+	unsigned i, n = 0;
+
+	if (!w->armed) {
+		if (cm == OBS_DIST_NONE || cm > OBS_WATCH_ARM_CM) {
+			w->armed = 1;
+		}
+		return OBS_WATCH_NONE;
+	}
+	w->hist = (uint8_t)(((unsigned)w->hist << 1) | (near ? 1u : 0u));
+	w->hist &= (uint8_t)((1u << OBS_WATCH_WIN) - 1u);
+	if (near) {
+		w->last_near_ms = t_ms;
+	}
+	for (i = 0; i < OBS_WATCH_WIN; i++) {
+		n += (w->hist >> i) & 1u;
+	}
+	if (!w->blocked && n >= OBS_WATCH_HITS) {
+		w->blocked = 1;
+		return OBS_WATCH_BLOCK;
+	}
+	if (w->blocked && !near && (uint32_t)(t_ms - w->last_near_ms) >= OBS_WATCH_CLEAR_MS) {
+		w->blocked = 0;
+		w->hist = 0;
+		return OBS_WATCH_CLEAR;
+	}
+	return OBS_WATCH_NONE;
+}

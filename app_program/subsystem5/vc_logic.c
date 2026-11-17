@@ -401,10 +401,15 @@ static int sw_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 		}
 		if (v->found_cnt >= VC_SEARCH_FOUND_MSGS) {
 			int hd = heading_d10(v);
+			/* Met while still out to the side: beside the obstacle, or in the first half of the curve
+			   back (the old line is still at least half the offset away, so this is not it). That is a
+			   corner towards the side we swerved to, and the line leads on that way (M37 left-corner
+			   run 2, 2026-11-17: met at the start of the curve back, the car looked back towards the old
+			   line, found the corner's way back and drove back to the box). Met later on the way back:
+			   the old line, which leads on along the travel. */
+			int early = (v->sw_kind == VC_SW_PASS) || (v->sw_kind == VC_SW_RET && 2 * s < v->sw_lo_mm);
 
-			/* on the far side of the obstacle the line leads on away from it (a corner towards the
-			   side we swerved to); on the way back it leads back towards the old line */
-			v->post_dir = (v->sw_kind == VC_SW_PASS) ? v->byp_dir : -v->byp_dir;
+			v->post_dir = early ? v->byp_dir : -v->byp_dir;
 			v->post_ms  = VC_SW_BIAS_MS;
 			if (v->sw_kind == VC_SW_PASS) {
 				o->event |= VC_EV_BYP_PASSED | VC_EV_BYP_RETURN;	/* the line came back early */

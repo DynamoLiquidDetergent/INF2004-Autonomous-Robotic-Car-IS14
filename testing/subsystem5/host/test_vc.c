@@ -130,13 +130,13 @@ static int sim_corner_x;	/* > 0: the line turns toward the bypass side at this x
 static int sim_obs_lag;		/* cycles the obstacle task stays in BYPASSING after BYP_PASSED */
 static int sim_never_find;	/* 1 = the line is never seen again after the start */
 static int sim_find_on_spin;	/* 1 = the line is only seen once the car turns on the spot (lost in the straight look) */
-static int sim_away_x;
-static int sim_side_z7;
-static int sim_cap_late;
-static int sim_block_a, sim_block_b;	/* path blocked from .. to (ms after the bypass starts), 0 0 = never */		/* 1: the edge only shows after 200 degrees of the turn back (needs its second leg) */
+static int sim_away_x;		/* > 0: the line turns AWAY from the bypass side (towards the old line's side) at this x (mm) */
+static int sim_side_z7;		/* 1: the side line only ever shows under the outer sensor (zone 7) */
+static int sim_cap_late;		/* 1: the edge only shows after 200 degrees of the turn back (needs its second leg) */
+static int sim_block_a, sim_block_b;	/* path blocked from .. to (ms after the bypass starts), 0 0 = never */
 static double sim_cap_rot;
 static int s2_deg, s2_sp, s2_done;	/* simulated Motion Control: last TURN word, done flag */
-static double s2_rem;		/* wheel travel left in that turn, mm */		/* 1: the side line only ever shows under the outer sensor (zone 7) */		/* > 0: the line turns AWAY from the bypass side (towards the old line's side) at this x (mm) */
+static double s2_rem;	/* wheel travel left in that turn, mm */
 
 typedef struct {
 	int   ok;		/* finished with VC_EV_BYP_DONE */
@@ -146,15 +146,19 @@ typedef struct {
 	int   ms;		/* time from BYP_START to BYP_DONE */
 	double end_y_mm;	/* lateral error 3 s after the hand-over */
 	int   lost_after;	/* line lost during those 3 s */
-	double done_y_mm;
-	int   moved_blocked;		/* a wheel moved while the path was blocked (after 300 ms to stop) */	/* y of the axle at BYP_DONE (the side line runs along y) */
+	double done_y_mm;	/* y of the axle at BYP_DONE (the side line runs along y) */
+	int   moved_blocked;	/* a wheel moved while the path was blocked (after 300 ms to stop) */
+	int   done_kind;		/* swerve leg the line was taken over in (VC_SW_...) */
+	int   done_post_dir;		/* where a loss just after the take-over is looked for */
+	int   on_side;	/* sim_corner_x: the sensor was last on the side line, not the main one */
 	double max_head_deg;	/* heading at the hand-over (absolute) */
 	int   back_mm, lo_mm, lp_mm, d_mm;
 	int   post_steer;	/* steering the controller gave in the forced-lost cycle */
 	int   starts, early;	/* BYP_START events, BYP_DONE without the return curve (line met early) */
 	int   spin_ev;
 	double end_th_deg, end_x_mm;
-	int   hook;			/* VC_EV_HOOK seen */	/* heading (+ = clockwise) and x of the axle at BYP_DONE */
+	int   hook;	/* VC_EV_HOOK seen */
+	/* heading (+ = clockwise) and x of the axle at BYP_DONE */
 	int   turns, zero_steer, max_steer;	/* turns on the spot, steer 0 commands, largest |steer| during the detour */
 } SIMRES;
 
@@ -224,6 +228,7 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 
 			lost = (d_main > 32.0 && d_side > 32.0) ? 1 : 0;
 			rel = 0.0;
+			if (!lost && done_t < 0) { r.on_side = (d_side + 15.0 < d_main) ? 1 : 0; }	/* clearly the side line, not the corner point */
 		}
 		if (sim_away_x > 0) {			/* main line ends at the corner, the side line goes off away from the bypass */
 			double sxx = x + 50.0 * cs, syy = y + 50.0 * sn;
@@ -231,7 +236,8 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 			double d_side = (-syy * side >= -20.0) ? fabs(sxx - sim_away_x) : 1e9;
 
 			lost = (d_main > 32.0 && d_side > 32.0) ? 1 : 0;
-			rel = (d_side <= d_main) ? (sxx - sim_away_x) : syy;
+			rel = (d_side <= d_main) ? (sxx - sim_away_x) / (fabs(sn) > 0.2 ? sn : (sn >= 0 ? 0.2 : -0.2))
+						 : -syy / (fabs(cs) > 0.2 ? cs : (cs >= 0 ? 0.2 : -0.2));
 			if (sim_side_z7 && d_side <= d_main) { rel = 40.0; }
 			if (sim_cap_late) { lost = (v.byp_capture != 0 && sim_cap_rot > 200.0) ? 0 : (v.byp_capture != 0 ? 1 : lost); rel = (v.byp_capture != 0) ? 0.0 : rel; }	/* zones 3..5 only within about 15 mm of the line */
 		}
@@ -243,7 +249,12 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 		if (sim_force_lost && done_t >= 0 && t == done_t + 3) {
 			b.lost = 1; b.zone = 1;
 		}
-		o = vc_step(&v, &b);
+		{
+			int kind_before = v.sw_kind;
+
+			o = vc_step(&v, &b);
+			if ((o.event & VC_EV_BYP_DONE) && r.done_kind == 0) { r.done_kind = kind_before ? kind_before : 99; r.done_post_dir = v.post_dir; }
+		}
 		if (sim_force_lost && done_t >= 0 && t == done_t + 3) { r.post_steer = o.steer; }
 		if (started && done_t < 0) {
 			if (o.mode == VC_MODE_TURN) { r.turns++; r.spin_ev |= 1; }
@@ -1525,7 +1536,7 @@ int main(void)
 	{
 		SIMRES c;
 		int side;
-		int n_ok = 0, n_early = 0, n_one = 0, n_hit = 0;
+		int n_ok = 0, n_early = 0, n_one = 0, n_hit = 0, n_wrong_dir = 0;
 		double worst = 1e9, wh = 0;
 		static const int corners[] = { 530, 600, 700, 800 };	/* box ends at 430 mm: the corner is past the box, as in M37 */
 		int ic;
@@ -1539,7 +1550,10 @@ int main(void)
 				if (c.early) { n_early++; }
 				if (c.starts == 1) { n_one++; }
 				if (c.hit) { n_hit++; }
-				if (getenv("S5_SIM_VERBOSE") != NULL) { printf("[H124] side %d corner %d ok%d early%d starts%d clear %.0f head %.0f ms %d\n", side, corners[ic], c.ok, c.early, c.starts, c.clear_mm, c.max_head_deg, c.ms); }
+				if (getenv("S5_SIM_VERBOSE") != NULL) { printf("[H124] side %d corner %d ok%d early%d starts%d clear %.0f head %.0f ms %d kind %d post %d side_line %d\n", side, corners[ic], c.ok, c.early, c.starts, c.clear_mm, c.max_head_deg, c.ms, c.done_kind, c.done_post_dir, c.on_side); }
+				/* a corner towards the bypass side: wherever the line is taken over, a loss right after
+				   is looked for on the bypass side, where the line leads on (left-corner run 2) */
+				if (c.ok && c.on_side && c.done_post_dir != side) { n_wrong_dir++; }
 				if (c.clear_mm < worst) { worst = c.clear_mm; }
 				if (c.max_head_deg > wh) { wh = c.max_head_deg; }
 			}
@@ -1550,6 +1564,7 @@ int main(void)
 		CHECK("S5-H124a", n_ok == 8 && n_early >= 2, "a corner just past the box: the bypass ends the moment the line is seen (both sides); further corners are met at the normal end of the detour");
 		CHECK("S5-H124b", n_one == 8, "the bypass is not started a second time while the obstacle task is still in BYPASSING");
 		CHECK("S5-H124d", wh <= 12.0, "the car is facing along the travel (within 12 degrees) when it takes the line: it does not rejoin turned back towards the old line");
+		CHECK("S5-H124e", n_wrong_dir == 0, "corner towards the bypass side, the corner's line taken over (beside the box or early on the way back): a loss right after is looked for on the bypass side, where the line leads on (M37 left-corner run 2: it looked back and drove back to the box)");
 		CHECK("S5-H124c", n_hit == 0 && worst >= 5.0, "no touch of the box when the line is taken over early (at least 5 mm, worst-case edge)");
 	}
 

@@ -56,13 +56,12 @@
 					   detection to profile, S5-M09) */
 #define S5_MAX_RETRIES		2	/* REVERSE_RETRY attempts (statechart 6.3) */
 /* Watching ahead during the bypass (2026-11-17): the sensor stays at 90 degrees, along the car's
-   heading, and is read all through BYPASSING and REACQUIRING_LINE. Something within S5_BLOCK_CM in
-   S5_BLOCK_CONFIRM readings in a row (a hand, a second obstacle) makes the Vehicle Controller stand
-   still (s5_path_blocked) and keep its detour; once the way is clear it goes on. Still blocked
-   after S5_BLOCK_WAIT_MS: FAULT. The waiting time does not count towards S5_BYPASS_LIMIT_MS.
-   12 cm is less than the sideways gap kept to the box being passed. */
-#define S5_BLOCK_CM		12
-#define S5_BLOCK_CONFIRM	2
+   heading, and is read all through BYPASSING and REACQUIRING_LINE. Something close ahead (a hand, a
+   second obstacle; the rule is obs_watch_step, OBS_WATCH_CM) makes the Vehicle Controller stand
+   still (s5_path_blocked) and keep its detour; once the way has been clear for OBS_WATCH_CLEAR_MS it
+   goes on. Still blocked after S5_BLOCK_WAIT_MS: FAULT. The waiting time does not count towards
+   S5_BYPASS_LIMIT_MS. M37 hand test (2026-11-17): the first rule (12 cm, 2 readings in a row, clear
+   on 1 reading) missed most hands: their readings jump between a few cm, no echo and the background. */
 #define S5_BLOCK_WAIT_MS	5000
 #define S5_SERVO_SETTLE_BASE_MS	40	/* assumption A-servo: no SG90 datasheet supplied */
 #define S5_SERVO_SETTLE_PER_DEG	2	/* ms per degree moved (SG90 is about 100 ms / 60 deg) */
@@ -108,7 +107,7 @@ LOCAL UW		approach_limit_ms;
 LOCAL BOOL		approach_moving;	/* Motion Control has reported DRIVING_DIST */
 LOCAL UW		guard_hits;
 LOCAL UH		approach_odo0;		/* odometry when the move was ordered */
-LOCAL UW		block_hits;		/* close readings in a row during the bypass */
+LOCAL OBS_WATCH		watch;			/* the look ahead during the bypass */
 LOCAL UW		blocked_since;		/* when the car started waiting */
 LOCAL UW		blocked_total;		/* ms waited in this bypass (not part of the time limit) */
 LOCAL BOOL		bg_shift_pending;	/* a move happened: re-project the background before the next profile */
@@ -345,12 +344,13 @@ LOCAL BOOL approach_over(UINT cm)
 }
 #endif
 
-/* One look ahead during the bypass (see S5_BLOCK_CM). Returns the ms of this bypass that count
+/* One look ahead during the bypass (see obs_watch_step). Returns the ms of this bypass that count
    towards S5_BYPASS_LIMIT_MS (the time since the bypass started, less the waiting). */
 LOCAL UW watch_path(UW start_ms)
 {
 	UINT cm;
 	UW t;
+	int ev;
 
 	servo_goto(90);
 	cm = read_distance();
@@ -359,22 +359,17 @@ LOCAL UW watch_path(UW start_ms)
 		s5_path_blocked = 0;
 		return 0;
 	}
-	if (cm != OBS_DIST_NONE && cm <= S5_BLOCK_CM) {
-		block_hits++;
-	} else {
-		block_hits = 0;
-		if (s5_path_blocked) {
-			s5_path_blocked = 0;
-			blocked_total += t - blocked_since;
-			tm_printf((UB*)"obstacle: the way is clear again after %d ms, the bypass goes on\n",
-				  (INT)(t - blocked_since));
-		}
-	}
-	if (!s5_path_blocked && block_hits >= S5_BLOCK_CONFIRM) {
+	ev = obs_watch_step(&watch, (uint16_t)cm, (uint32_t)t);
+	if (ev == OBS_WATCH_BLOCK) {
 		s5_path_blocked = 1;
 		blocked_since = t;
 		tm_printf((UB*)"obstacle: something %d cm ahead during the bypass, the car waits (up to %d ms)\n",
 			  (INT)cm, (INT)S5_BLOCK_WAIT_MS);
+	} else if (ev == OBS_WATCH_CLEAR && s5_path_blocked) {
+		s5_path_blocked = 0;
+		blocked_total += t - blocked_since;
+		tm_printf((UB*)"obstacle: the way has been clear for %d ms (waited %d ms), the bypass goes on\n",
+			  (INT)OBS_WATCH_CLEAR_MS, (INT)(t - blocked_since));
 	}
 	if (s5_path_blocked && (t - blocked_since) > S5_BLOCK_WAIT_MS) {
 		s5_path_blocked = 0;
@@ -635,7 +630,7 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 				raise_fault("profile not delivered");
 			} else {
 				detect_ms = now_ms();		/* the bypass clock starts here */
-				block_hits = 0;
+				obs_watch_init(&watch);
 				blocked_total = 0;
 				s5_path_blocked = 0;
 				set_state(OBS_ST_BYPASSING);
