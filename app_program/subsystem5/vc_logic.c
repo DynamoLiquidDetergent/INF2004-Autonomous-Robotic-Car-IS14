@@ -591,8 +591,11 @@ static int byp_next(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 		return 1;
 	case VC_HOOK_STEP + 3:
 	case VC_HOOK_STEP + 4:
-		turn_set(v, v->byp_dir, VC_HOOK_CAPTURE_DEG);		/* round until the centre is on the line */
-		v->byp_capture = v->byp_step - (VC_HOOK_STEP + 2);	/* leg 1 or 2: a full circle */
+		/* round until the centre is on the line; leg 1 or 2: a full circle. The second leg is one
+		   degree shorter: Motion Control ignores a command word identical to the one it has just
+		   finished (M37 run 11: the second 180 never started and the car stopped after half a circle) */
+		turn_set(v, v->byp_dir, VC_HOOK_CAPTURE_DEG - ((v->byp_step == VC_HOOK_STEP + 4) ? 1 : 0));
+		v->byp_capture = v->byp_step - (VC_HOOK_STEP + 2);
 		v->found_cnt   = 0;
 		return 1;
 	case VC_HOOK_STEP + 5:						/* a full circle and no line */

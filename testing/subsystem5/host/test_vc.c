@@ -131,7 +131,11 @@ static int sim_obs_lag;		/* cycles the obstacle task stays in BYPASSING after BY
 static int sim_never_find;	/* 1 = the line is never seen again after the start */
 static int sim_find_on_spin;	/* 1 = the line is only seen once the car turns on the spot (lost in the straight look) */
 static int sim_away_x;
-static int sim_side_z7;		/* 1: the side line only ever shows under the outer sensor (zone 7) */		/* > 0: the line turns AWAY from the bypass side (towards the old line's side) at this x (mm) */
+static int sim_side_z7;
+static int sim_cap_late;		/* 1: the edge only shows after 200 degrees of the turn back (needs its second leg) */
+static double sim_cap_rot;
+static int s2_deg, s2_sp, s2_done;	/* simulated Motion Control: last TURN word, done flag */
+static double s2_rem;		/* wheel travel left in that turn, mm */		/* 1: the side line only ever shows under the outer sensor (zone 7) */		/* > 0: the line turns AWAY from the bypass side (towards the old line's side) at this x (mm) */
 
 typedef struct {
 	int   ok;		/* finished with VC_EV_BYP_DONE */
@@ -183,6 +187,7 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 
 	vc_init(&v, 0);
 	v.smooth = 1;
+	s2_deg = 0; s2_sp = 0; s2_rem = 0.0; s2_done = 0; sim_cap_rot = 0.0;
 	for (t = 0; t < 2000 * 50 / 20 + 400; t++) {
 		double sy, rel;
 		int    lost, zone, k;
@@ -195,6 +200,7 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 		b.prof_shift_cm = (unsigned)shift_cm;
 		b.prof_closest_cm = (unsigned)closest_cm;
 		b.odo_mm = ((unsigned)(long)floor(odo)) & 0xFFFFu;
+		if (s2_done) { b.motion_done = 1; b.motion_state = 0; }
 		b.wheel_l = (int)lround(vl);
 		b.wheel_r = (int)lround(vr);
 		sy = y + 50.0 * sn;
@@ -219,7 +225,8 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 
 			lost = (d_main > 32.0 && d_side > 32.0) ? 1 : 0;
 			rel = (d_side <= d_main) ? (sxx - sim_away_x) : syy;
-			if (sim_side_z7 && d_side <= d_main) { rel = 40.0; }	/* zones 3..5 only within about 15 mm of the line */
+			if (sim_side_z7 && d_side <= d_main) { rel = 40.0; }
+			if (sim_cap_late) { lost = (v.byp_capture != 0 && sim_cap_rot > 200.0) ? 0 : (v.byp_capture != 0 ? 1 : lost); rel = (v.byp_capture != 0) ? 0.0 : rel; }	/* zones 3..5 only within about 15 mm of the line */
 		}
 		zone = lost ? 0 : 4 + (int)lround(rel / 10.0);
 		if (zone < 1 && !lost) { zone = 1; }
@@ -258,10 +265,23 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 			double tl = 0, tr = 0;
 
 			if (o.mode == VC_MODE_TURN) {		/* on the spot, as Motion Control does */
-				tl = (o.turn_deg > 0) ? o.speed : -o.speed; tr = -tl;
+				/* Motion Control starts a turn only for a command word that differs from the
+				   one it has (apply_command, 'same'): the same degrees and speed again do nothing */
+				if (o.turn_deg != s2_deg || o.speed != s2_sp) {
+					s2_deg = o.turn_deg; s2_sp = o.speed;
+					s2_rem = fabs((double)o.turn_deg) * 3.14159265 / 180.0 * 60.0;	/* wheel mm */
+					s2_done = 0;
+				}
+				if (s2_rem > 0.0) {
+					tl = (o.turn_deg > 0) ? o.speed : -o.speed; tr = -tl;
+				} else {
+					s2_done = 1;
+				}
 			} else if (o.mode == VC_MODE_DRIVE && o.busy) {
+				s2_deg = 0; s2_sp = 0; s2_done = 0;
 				tl = o.speed + o.steer; tr = o.speed - o.steer;
 			} else if (o.mode == VC_MODE_DRIVE) {
+				s2_deg = 0; s2_sp = 0; s2_done = 0;
 				/* line following: steering from the zone, 30 mm/s a zone (as the controller does) */
 				tl = o.speed + o.steer; tr = o.speed - o.steer;
 			}
@@ -273,6 +293,11 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 			double vm = (vl + vr) / 2.0, w = (vl - vr) / 120.0;
 
 			x += vm * cs * 0.02; y += vm * sn * 0.02; th += w * 0.02; odo += vm * 0.02;
+			if (v.byp_capture != 0) { sim_cap_rot += fabs(w * 0.02) * 57.2958; }
+			if (o.mode == VC_MODE_TURN && s2_rem > 0.0) {
+				s2_rem -= fabs(vl - vr) / 2.0 * 0.02;
+				if (s2_rem <= 0.0) { s2_rem = 0.0; s2_done = 1; }
+			}
 		}
 		/* clearance: sample the car outline */
 		cs = cos(th); sn = sin(th);
@@ -1430,6 +1455,13 @@ int main(void)
 			sim_away_x = 0; sim_side_z7 = 0;
 			CHECK("S5-H135d", c.hook && c.fail_ev && !c.ok && !c.hit,
 			      "turn back finds no edge in a full circle: BYP_FAIL (line fault), no hit");
+			/* e: M37 run 11: the edge only comes round in the second half of the circle. The second
+			   leg must be a command Motion Control takes as new (it ignores the same word again) */
+			sim_away_x = 60 + 200 + 100 + 170; sim_cap_late = 1;
+			c = sim_bypass(-1, 150, 100, 0, 20, 0, 0);
+			sim_away_x = 0; sim_cap_late = 0;
+			CHECK("S5-H135e", c.hook && c.ok && !c.fail_ev && !c.hit && sim_cap_rot > 200.0,
+			      "edge only in the second half of the circle: the second leg starts (Motion Control sees a new command), line found, BYP_DONE");
 			CHECK("S5-H135c", worst_ms + 4000 < 45000,
 			      "the whole detour with the hook stays well inside the obstacle task's 45 s limit");
 		}
