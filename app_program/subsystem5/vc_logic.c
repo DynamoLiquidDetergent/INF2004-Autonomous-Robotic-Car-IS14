@@ -590,10 +590,18 @@ static int byp_next(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 		drive_set(v, VC_BYP_ADV_MM, VC_JN_SPEED, 0);		/* wheels over the line */
 		return 1;
 	case VC_HOOK_STEP + 3:
-		turn_set(v, v->byp_dir, VC_HOOK_CAPTURE_DEG);		/* back round until the centre is on the edge */
-		v->byp_capture = 1;
+	case VC_HOOK_STEP + 4:
+		turn_set(v, v->byp_dir, VC_HOOK_CAPTURE_DEG);		/* round until the centre is on the line */
+		v->byp_capture = v->byp_step - (VC_HOOK_STEP + 2);	/* leg 1 or 2: a full circle */
 		v->found_cnt   = 0;
 		return 1;
+	case VC_HOOK_STEP + 5:						/* a full circle and no line */
+		v->byp_capture = 0;
+		v->byp_step    = 0;
+		jn_finish(v, in, o);
+		v->line_gave_up = 1;
+		o->event |= VC_EV_BYP_FAIL | VC_EV_GAVE_UP;
+		return 0;
 	default:
 		v->byp_capture = 0;
 		v->byp_step = 0;
@@ -778,8 +786,8 @@ static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 	/* JN_TURN */
 	if (v->byp_capture) {			/* turn back after the hook: stop on the line's edge */
 		if (in->dt_ms > 0) {
-			if (in->line_fresh && !in->lost && in->zone >= VC_SW_ZONE_LO && in->zone <= VC_SW_ZONE_HI &&
-			    turned_d10(v) >= VC_HOOK_CAPTURE_MIN_DEG * 10) {
+			if (in->line_fresh && !in->lost && in->zone >= VC_HOOK_CAPTURE_ZLO && in->zone <= VC_HOOK_CAPTURE_ZHI &&
+			    (v->byp_capture == 2 || turned_d10(v) >= VC_HOOK_CAPTURE_MIN_DEG * 10)) {
 				v->found_cnt++;
 			} else {
 				v->found_cnt = 0;

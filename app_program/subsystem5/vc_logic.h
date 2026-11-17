@@ -132,7 +132,8 @@
    search towards the side it was last seen) the car spins on the spot: VC_SEARCH_DEG towards
    that side, twice as far the other way, and back to where it started. It stops as soon as the
    line has been seen again. Only one sweep per loss; then it gives up and reports a line fault. ---- */
-#define VC_SEARCH_DEG		60
+#define VC_SEARCH_DEG		90	/* 60 before M37 run 10 (2026-11-17): a line at a right angle to the car was out of reach.
+					   90 + 180 + 90 covers everything but the way back (180 deg away) */
 #define VC_SEARCH_FOUND_MSGS	2	/* line seen in this many line messages in a row */
 
 /* ---- Events, for the log (VC_OUT.event) ---- */
@@ -240,12 +241,16 @@
 #define VC_HOOK_MM		650	/* 400 before M37 runs 8 and 9: the line was about 5 cm further */
 #define VC_HOOK_SPEED		60	/* mm/s on the hook's straight */
 #define VC_HOOK_STEP		20	/* byp_step of the hook's turn; 21..23 follow */
-/* The turn back after the hook (M37 run 7, 2026-11-17): a fixed 45 degrees left the line under the
-   outer sensor only, and the line follower swung past it. Now the car turns back up to
-   VC_HOOK_CAPTURE_DEG, slowly, and stops as soon as the centre sensor is on the line's edge
-   (zones VC_SW_ZONE_LO..HI): it then faces along the line wherever it leads. */
-#define VC_HOOK_CAPTURE_DEG	100
-#define VC_HOOK_CAPTURE_MIN_DEG	25	/* not before this: at 135 deg the sensor can still be over the line back towards the box */
+/* The turn back after the hook (M37 runs 7 and 10, 2026-11-17): a fixed 45 degrees left the line
+   under the outer sensor only and the line follower swung past it; a 100 degree turn that waited
+   for zones 3..5 saw only zone 7 and handed over blind. Now the car turns slowly towards the bypass
+   side (the way that meets the line's onward direction first) in two legs of VC_HOOK_CAPTURE_DEG,
+   a full circle, and stops as soon as the centre sensor is on the line edge (zones
+   VC_HOOK_CAPTURE_ZLO..ZHI). Not found in a full circle: line fault. */
+#define VC_HOOK_CAPTURE_DEG	180
+#define VC_HOOK_CAPTURE_MIN_DEG	25	/* first leg only: near 135 deg the sensor can still be over the line back towards the box */
+#define VC_HOOK_CAPTURE_ZLO	3	/* centre sensor on the line edge, outer one off it: */
+#define VC_HOOK_CAPTURE_ZHI	5	/* facing along the line. A slow sweep passes zones 7..1 in turn */
 #define VC_HOOK_CAPTURE_SPEED	60	/* wheel speed of that turn, mm/s (spins are 100) */
 #define VC_SW_ZONE_LO		3	/* the line is only taken over when it is this close to the middle ... */
 #define VC_SW_ZONE_HI		5	/* ... of the sensor (zones 3..5), not just at its edge; the last look takes any zone */
