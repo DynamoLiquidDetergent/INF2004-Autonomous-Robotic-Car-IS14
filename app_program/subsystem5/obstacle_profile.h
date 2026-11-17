@@ -84,6 +84,9 @@ typedef struct {
 					   out. Measured on the car (M33 runs 4..8, boxes measured with a
 					   ruler): the scan put right edges up to 0.23 x range too far in,
 					   left edges were never too far in */
+	uint16_t view_deg;		/* a flat face sends no echo back once the beam is this far off its
+					   normal: an edge last seen this far off straight ahead may lie
+					   further out (M33 run 17: an edge 43 degrees out was seen only to 30) */
 } OBS_CFG;
 
 /* One scan: a distance per angle index, plus which indices were measured */
@@ -113,6 +116,9 @@ typedef struct {
 	uint16_t plan_width_cm;	/* width the left/right shifts were planned for (>= width_cm) */
 	uint16_t unc_cm;	/* +/- uncertainty of width_cm from the 15 degree step (not sent) */
 	uint8_t  clusters;	/* how many separate obstacles the scan saw (not sent) */
+	uint8_t  view_lim;	/* bit 0 right, bit 1 left: that edge was last seen at least view_deg off
+				   straight ahead, where a flat face stops sending echoes back, so it may
+				   lie further out than seen (not sent) */
 } OBS_PROFILE;
 
 void obs_cfg_default(OBS_CFG *cfg);
@@ -131,6 +137,11 @@ unsigned obs_bg_clear_ahead(OBS_SCAN *s, const OBS_CFG *cfg);
    and a wall along the path reads the same everywhere), so forget all of it: from
    now on everything within detect range counts, which is the safe direction. */
 void obs_bg_forget(OBS_SCAN *s);
+
+/* After a creep: on each side whose edge the close scan saw only at the edge of its view
+   (view_lim), keep the sideways move of the first scan if it was larger, and choose the side
+   again. Only ever moves an edge outwards. */
+void obs_merge_first(OBS_PROFILE *p, const OBS_PROFILE *first, const OBS_CFG *cfg);
 /* Median of n (1..5) readings. OBS_DIST_NONE counts as the largest value, so
    one stray reading never wins and a majority of "nothing" gives "nothing". */
 uint16_t obs_median(const uint16_t *v, unsigned n);

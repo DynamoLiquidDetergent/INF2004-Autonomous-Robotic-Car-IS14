@@ -85,6 +85,8 @@ LOCAL OBS_SCAN		scan;
 LOCAL OBS_PROFILE	profile;
 LOCAL UINT		servo_deg = 90;
 LOCAL BOOL		fine_done;		/* the edges of this obstacle have been looked at closely */
+LOCAL OBS_PROFILE	first_prof;		/* the profile that ordered the first creep */
+LOCAL BOOL		have_first;
 LOCAL UW		noecho_run;
 LOCAL UB		seq;
 LOCAL UW		dropped_msgs;
@@ -375,6 +377,7 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 #if S5_APPROACH
 				if (cm == OBS_DIST_NONE || cm > cfg.detect_cm + cfg.detect_hyst_cm) {
 					approaches = 0;		/* the way is clear: a new obstacle may be approached */
+					have_first = FALSE;
 				}
 #endif
 			}
@@ -469,6 +472,18 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 				}
 			}
 #endif
+			if (have_first) {
+				/* from close up a flat face stops echoing past about 25 degrees: an edge seen only
+				   that far out may lie further out. Keep the first scan's plan for that side. */
+				uint16_t r0 = profile.right_cm, l0 = profile.left_cm;
+
+				obs_merge_first(&profile, &first_prof, &cfg);
+				if (profile.right_cm != r0 || profile.left_cm != l0) {
+					tm_printf((UB*)"obstacle: edge at the limit of the close view (%s%s), kept the first scan: "
+						  "left %d cm, right %d cm\n", (profile.view_lim & 2u) ? "left " : "",
+						  (profile.view_lim & 1u) ? "right" : "", (INT)profile.left_cm, (INT)profile.right_cm);
+				}
+			}
 			servo_goto(90);			/* face forward again */
 			s5_obs_summary = obs_summary_pack(&profile);
 			seq = (UB)((seq + 1) & 0xF);
@@ -491,6 +506,10 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 			   away instead of faulting, when the reading can be trusted */
 			} else if (approaches < S5_MAX_APPROACHES &&
 				   (mm = obs_approach_mm(&profile, &cfg)) != 0) {
+				if (approaches == 0) {
+					first_prof = profile;	/* the far scan sees the whole face */
+					have_first = TRUE;
+				}
 				approaches++;
 				approach_moving = FALSE;
 				guard_hits = 0;

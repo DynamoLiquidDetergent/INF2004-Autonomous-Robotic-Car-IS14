@@ -63,7 +63,8 @@ void obs_cfg_default(OBS_CFG *cfg)
 	cfg->approach_guard_cm = 13;	/* never closer than this while creeping */
 	cfg->approach_back_max_cm = 15;	/* back away at most 15 cm if stopped too close */
 	cfg->approach_min_cm = 3;	/* HC-SR04 minimum range is 2 cm: closer than 3 is not trusted */
-	cfg->right_pad_pm = 0;		/* the ideal sensor; the car sets its measured value (obstacle_detect.c) */
+	cfg->right_pad_pm = 0;
+	cfg->view_deg = 25;		/* the ideal sensor; the car sets its measured value (obstacle_detect.c) */
 }
 
 void obs_scan_clear(OBS_SCAN *s)
@@ -599,6 +600,7 @@ void obs_profile(const OBS_SCAN *s, const OBS_CFG *cfg, OBS_PROFILE *out)
 	out->plan_width_cm = 0;
 	out->unc_cm = 0;
 	out->clusters = 0;
+	out->view_lim = 0;
 
 	if (!find_cluster(s, cfg, &lo, &hi, &closest)) {
 		return;
@@ -613,6 +615,17 @@ void obs_profile(const OBS_SCAN *s, const OBS_CFG *cfg, OBS_PROFILE *out)
 	cluster_geom(s, cfg, lo, hi, closest, &x_r, &x_l, &w, &unres, &x_ro, &x_lo, 1);
 	out->partial = (uint8_t)unres;
 	out->width_cm = cap_cm(w);
+	{
+		int dr = (s->fine_deg[0] != 0) ? s->fine_deg[0] : lo * OBS_STEP_DEG;
+		int dl = (s->fine_deg[1] != 0) ? s->fine_deg[1] : hi * OBS_STEP_DEG;
+
+		if (dr <= 90 - (int)cfg->view_deg) {
+			out->view_lim |= 1u;
+		}
+		if (dl >= 90 + (int)cfg->view_deg) {
+			out->view_lim |= 2u;
+		}
+	}
 	out->clusters = 1;
 
 	/* Each edge is only known to +/- half a 15 degree step, i.e. about
@@ -742,6 +755,8 @@ void obs_unpack(const uint32_t w[OBS_MSG_WORDS], OBS_PROFILE *p, uint8_t *seq)
 	p->idx_left    = 0;
 	p->plan_width_cm = 0;
 	p->unc_cm      = 0;
+	p->clusters    = 0;
+	p->view_lim    = 0;
 }
 
 int obs_approach_mm(const OBS_PROFILE *p, const OBS_CFG *cfg)
@@ -789,4 +804,27 @@ int obs_approach_mm(const OBS_PROFILE *p, const OBS_CFG *cfg)
 void obs_bg_forget(OBS_SCAN *s)
 {
 	s->bg_known = 0;
+}
+
+void obs_merge_first(OBS_PROFILE *p, const OBS_PROFILE *first, const OBS_CFG *cfg)
+{
+	uint16_t m;
+
+	if (!p->detected || !first->detected || p->action == OBS_ACT_STOP || p->view_lim == 0) {
+		return;
+	}
+	if ((p->view_lim & 1u) && first->right_cm > p->right_cm) {
+		p->right_cm = first->right_cm;
+	}
+	if ((p->view_lim & 2u) && first->left_cm > p->left_cm) {
+		p->left_cm = first->left_cm;
+	}
+	m = (p->right_cm <= p->left_cm) ? p->right_cm : p->left_cm;
+	if (m > cfg->max_shift_cm) {
+		p->action = OBS_ACT_REVERSE_RETRY;
+	} else if (p->right_cm <= p->left_cm) {
+		p->action = OBS_ACT_TURN_RIGHT;
+	} else {
+		p->action = OBS_ACT_TURN_LEFT;
+	}
 }

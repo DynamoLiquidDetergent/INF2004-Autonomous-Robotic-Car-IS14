@@ -292,6 +292,7 @@ typedef struct {
 	unsigned	sw_kind;	/* leg of the smooth bypass: VC_SW_BACK .. VC_SW_FIND */
 	int		byp_wait;	/* bypass over early: do not start another until the obstacle task has left BYPASSING */
 	int		post_dir;	/* +1 right, -1 left: where to look if the line is lost just after a bypass take-over, 0 = none */
+	int		byp_search;	/* the spin search after a bypass whose straight look found no line */
 	int		post_ms;	/* time left for that */
 	int		sw_psi0;	/* heading when the settle leg began, tenths of a degree */
 	int		sw_psi_d10;	/* peak heading of this bypass, tenths of a degree */
