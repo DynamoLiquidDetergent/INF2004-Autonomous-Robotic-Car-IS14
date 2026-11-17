@@ -132,7 +132,8 @@
    search towards the side it was last seen) the car spins on the spot: VC_SEARCH_DEG towards
    that side, twice as far the other way, and back to where it started. It stops as soon as the
    line has been seen again. Only one sweep per loss; then it gives up and reports a line fault. ---- */
-#define VC_SEARCH_DEG		60
+#define VC_SEARCH_DEG		90	/* 60 before M37 run 10 (2026-11-17): a line at a right angle to the car was out of reach.
+					   90 + 180 + 90 covers everything but the way back (180 deg away) */
 #define VC_SEARCH_FOUND_MSGS	2	/* line seen in this many line messages in a row */
 
 /* ---- Events, for the log (VC_OUT.event) ---- */
@@ -149,6 +150,7 @@
 #define VC_EV_BYP_RETURN	0x400u	/* looking for the line: line-lost suppression off */
 #define VC_EV_BYP_DONE		0x800u	/* back on the line, facing along it: set LINE_FOUND */
 #define VC_EV_BYP_FAIL		0x1000u	/* line not found on the way back: stopped, line fault */
+#define VC_EV_HOOK		0x2000u	/* bypass: no line where it should be, the hook search starts */
 
 /* ---- Mission state, reported to subsystem 1 in IF-13 (0..14; S1 proposes 1 = READY) ---- */
 #define VC_MS_INIT		0u	/* power-up: calibrating, being placed on the line */
@@ -180,7 +182,8 @@
 #define VC_BYP_SPEED		150	/* mm/s on the two long legs */
 #define VC_BYP_TURN_DEG		90
 #define VC_BYP_DEPTH_MM		200	/* obstacle depth assumed (spec: obstacles are 10..20 cm) */
-#define VC_BYP_CAR_MM		150	/* car body behind the ultrasonic sensor that must also clear it */
+#define VC_BYP_CAR_MM		100	/* car body behind the ultrasonic sensor that must also clear it (150 before 2026-11-17:
+					   S5-H122 keeps the same 8 mm worst clearance at 100, touches at 80) */
 #define VC_BYP_MAX_LEG_MM	1000	/* S2 / odometry sanity limit for one leg */
 #define VC_BYP_FIND_EXTRA_MM	120	/* look for the line this much farther than the shift */
 #define VC_BYP_ADV_MM		(VC_SENSOR_AXLE_MM + VC_BAR_MM / 2)	/* line first seen at its near edge: axle over its centre */
@@ -229,6 +232,27 @@
 #define VC_SW_PASS_SPEED	90	/* mm/s on the straight past the obstacle */
 #define VC_SW_FIND_SPEED	60	/* mm/s while looking for the line at the end */
 #define VC_SW_FIND_MM		150	/* straight look for the line after the curve */
+/* Hook search (M37, 2026-11-17): the straight look found nothing, so the line bent away from the car
+   while it was out beside the obstacle (a corner towards the old line's side). It now lies behind the
+   car on that side. Turn VC_HOOK_DEG towards that side (facing back and across), drive up to
+   VC_HOOK_MM looking for it, then, once over it, turn back by VC_HOOK_DEG - 90 so the car faces
+   along a line that left at a right angle. A spin on the spot only sweeps the sensors about 6 cm
+   round the axle and missed a line 20 cm away. */
+#define VC_HOOK_DEG		135
+#define VC_HOOK_MM		650	/* 400 before M37 runs 8 and 9: the line was about 5 cm further */
+#define VC_HOOK_SPEED		60	/* mm/s on the hook's straight */
+#define VC_HOOK_STEP		20	/* byp_step of the hook's turn; 21..23 follow */
+/* The turn back after the hook (M37 runs 7 and 10, 2026-11-17): a fixed 45 degrees left the line
+   under the outer sensor only and the line follower swung past it; a 100 degree turn that waited
+   for zones 3..5 saw only zone 7 and handed over blind. Now the car turns slowly towards the bypass
+   side, VC_HOOK_CAPTURE_DEG (the half circle that holds the line's onward direction, not its way
+   back), then the same half back again, and stops as soon as the centre sensor is on the line edge
+   (zones VC_HOOK_CAPTURE_ZLO..ZHI), from the first degree on (M37 run 14: a 25 degree dead band
+   skipped the right edge). Not found in either sweep: line fault. */
+#define VC_HOOK_CAPTURE_DEG	180
+#define VC_HOOK_CAPTURE_ZLO	3	/* centre sensor on the line edge, outer one off it: */
+#define VC_HOOK_CAPTURE_ZHI	5	/* facing along the line. A slow sweep passes zones 7..1 in turn */
+#define VC_HOOK_CAPTURE_SPEED	60	/* wheel speed of that turn, mm/s (spins are 100) */
 #define VC_SW_ZONE_LO		3	/* the line is only taken over when it is this close to the middle ... */
 #define VC_SW_ZONE_HI		5	/* ... of the sensor (zones 3..5), not just at its edge; the last look takes any zone */
 #define VC_SW_BIAS_MS		2500	/* after an early take-over a lost line is searched for towards the way the line leads */
@@ -280,6 +304,7 @@ typedef struct {
 	int		search_dir;	/* +1 right first, -1 left first */
 	int		search_used;	/* the one sweep of this loss is used */
 	int		found_cnt;	/* line messages in a row with the line seen, during the search */
+	int		byp_capture;	/* 1: the turn back after the hook stops on the line's edge */
 	int		byp_step;	/* 0 = no bypass, 1..8 = step of the detour */
 	int		byp_dir;	/* +1 round the right, -1 round the left */
 	int		byp_s_mm;	/* the shift sideways */
@@ -292,7 +317,6 @@ typedef struct {
 	unsigned	sw_kind;	/* leg of the smooth bypass: VC_SW_BACK .. VC_SW_FIND */
 	int		byp_wait;	/* bypass over early: do not start another until the obstacle task has left BYPASSING */
 	int		post_dir;	/* +1 right, -1 left: where to look if the line is lost just after a bypass take-over, 0 = none */
-	int		byp_search;	/* the spin search after a bypass whose straight look found no line */
 	int		post_ms;	/* time left for that */
 	int		sw_psi0;	/* heading when the settle leg began, tenths of a degree */
 	int		sw_psi_d10;	/* peak heading of this bypass, tenths of a degree */
@@ -319,6 +343,7 @@ typedef struct {
 	int		bc_busy;	/* subsystem 3: GP28 is inside a possible barcode (keep the steering small) */
 	int		obst_present;	/* Obstacle Detection has an obstacle (no spinning near it) */
 	int		phase7;		/* the Vehicle Controller does the bypass (S5_STANDALONE 0) */
+	int		path_blocked;	/* s5_path_blocked: something close ahead during the bypass: wait */
 	unsigned	prof_action;	/* newest profile: OBS_ACT_* */
 	unsigned	prof_closest_cm;
 	unsigned	prof_shift_cm;	/* sideways move to pass on the side chosen by prof_action */

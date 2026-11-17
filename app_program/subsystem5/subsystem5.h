@@ -85,6 +85,7 @@ IMPORT volatile UB	s5_fault_mask;
 
 /* Current Obstacle Detection state (OBS_STATE, 3 bits). Read only. */
 IMPORT volatile UB	s5_obs_state;
+IMPORT volatile UB	s5_path_blocked;	/* obstacle_detect.c: something close ahead during a bypass */
 
 /* Move order from Obstacle Detection to the Vehicle Controller (phase 6+):
    0 = none; > 0 = creep forward this many mm FOLLOWING THE LINE at 40 mm/s;

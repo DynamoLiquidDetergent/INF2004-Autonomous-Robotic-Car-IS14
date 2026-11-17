@@ -130,6 +130,13 @@ static int sim_corner_x;	/* > 0: the line turns toward the bypass side at this x
 static int sim_obs_lag;		/* cycles the obstacle task stays in BYPASSING after BYP_PASSED */
 static int sim_never_find;	/* 1 = the line is never seen again after the start */
 static int sim_find_on_spin;	/* 1 = the line is only seen once the car turns on the spot (lost in the straight look) */
+static int sim_away_x;		/* > 0: the line turns AWAY from the bypass side (towards the old line's side) at this x (mm) */
+static int sim_side_z7;		/* 1: the side line only ever shows under the outer sensor (zone 7) */
+static int sim_cap_late;		/* 1: the edge only shows after 200 degrees of the turn back (needs its second leg) */
+static int sim_block_a, sim_block_b;	/* path blocked from .. to (ms after the bypass starts), 0 0 = never */
+static double sim_cap_rot;
+static int s2_deg, s2_sp, s2_done;	/* simulated Motion Control: last TURN word, done flag */
+static double s2_rem;	/* wheel travel left in that turn, mm */
 
 typedef struct {
 	int   ok;		/* finished with VC_EV_BYP_DONE */
@@ -139,11 +146,19 @@ typedef struct {
 	int   ms;		/* time from BYP_START to BYP_DONE */
 	double end_y_mm;	/* lateral error 3 s after the hand-over */
 	int   lost_after;	/* line lost during those 3 s */
+	double done_y_mm;	/* y of the axle at BYP_DONE (the side line runs along y) */
+	int   moved_blocked;	/* a wheel moved while the path was blocked (after 300 ms to stop) */
+	int   done_kind;		/* swerve leg the line was taken over in (VC_SW_...) */
+	int   done_post_dir;		/* where a loss just after the take-over is looked for */
+	int   on_side;	/* sim_corner_x: the sensor was last on the side line, not the main one */
 	double max_head_deg;	/* heading at the hand-over (absolute) */
 	int   back_mm, lo_mm, lp_mm, d_mm;
 	int   post_steer;	/* steering the controller gave in the forced-lost cycle */
 	int   starts, early;	/* BYP_START events, BYP_DONE without the return curve (line met early) */
 	int   spin_ev;
+	double end_th_deg, end_x_mm;
+	int   hook;	/* VC_EV_HOOK seen */
+	/* heading (+ = clockwise) and x of the axle at BYP_DONE */
 	int   turns, zero_steer, max_steer;	/* turns on the spot, steer 0 commands, largest |steer| during the detour */
 } SIMRES;
 
@@ -179,6 +194,7 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 
 	vc_init(&v, 0);
 	v.smooth = 1;
+	s2_deg = 0; s2_sp = 0; s2_rem = 0.0; s2_done = 0; sim_cap_rot = 0.0;
 	for (t = 0; t < 2000 * 50 / 20 + 400; t++) {
 		double sy, rel;
 		int    lost, zone, k;
@@ -191,6 +207,11 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 		b.prof_shift_cm = (unsigned)shift_cm;
 		b.prof_closest_cm = (unsigned)closest_cm;
 		b.odo_mm = ((unsigned)(long)floor(odo)) & 0xFFFFu;
+		if (s2_done) { b.motion_done = 1; b.motion_state = 0; }
+		if (sim_block_b > 0 && started && (t - start_t) * 20 >= sim_block_a && (t - start_t) * 20 < sim_block_b) {
+			b.path_blocked = 1;
+			if ((t - start_t) * 20 >= sim_block_a + 300 && (fabs(vl) > 5.0 || fabs(vr) > 5.0)) { r.moved_blocked = 1; }
+		}
 		b.wheel_l = (int)lround(vl);
 		b.wheel_r = (int)lround(vr);
 		sy = y + 50.0 * sn;
@@ -207,6 +228,18 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 
 			lost = (d_main > 32.0 && d_side > 32.0) ? 1 : 0;
 			rel = 0.0;
+			if (!lost && done_t < 0) { r.on_side = (d_side + 15.0 < d_main) ? 1 : 0; }	/* clearly the side line, not the corner point */
+		}
+		if (sim_away_x > 0) {			/* main line ends at the corner, the side line goes off away from the bypass */
+			double sxx = x + 50.0 * cs, syy = y + 50.0 * sn;
+			double d_main = (sxx <= sim_away_x) ? fabs(syy) : 1e9;
+			double d_side = (-syy * side >= -20.0) ? fabs(sxx - sim_away_x) : 1e9;
+
+			lost = (d_main > 32.0 && d_side > 32.0) ? 1 : 0;
+			rel = (d_side <= d_main) ? (sxx - sim_away_x) / (fabs(sn) > 0.2 ? sn : (sn >= 0 ? 0.2 : -0.2))
+						 : -syy / (fabs(cs) > 0.2 ? cs : (cs >= 0 ? 0.2 : -0.2));
+			if (sim_side_z7 && d_side <= d_main) { rel = 40.0; }
+			if (sim_cap_late) { lost = (v.byp_capture != 0 && sim_cap_rot > 200.0) ? 0 : (v.byp_capture != 0 ? 1 : lost); rel = (v.byp_capture != 0) ? 0.0 : rel; }	/* zones 3..5 only within about 15 mm of the line */
 		}
 		zone = lost ? 0 : 4 + (int)lround(rel / 10.0);
 		if (zone < 1 && !lost) { zone = 1; }
@@ -216,7 +249,12 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 		if (sim_force_lost && done_t >= 0 && t == done_t + 3) {
 			b.lost = 1; b.zone = 1;
 		}
-		o = vc_step(&v, &b);
+		{
+			int kind_before = v.sw_kind;
+
+			o = vc_step(&v, &b);
+			if ((o.event & VC_EV_BYP_DONE) && r.done_kind == 0) { r.done_kind = kind_before ? kind_before : 99; r.done_post_dir = v.post_dir; }
+		}
 		if (sim_force_lost && done_t >= 0 && t == done_t + 3) { r.post_steer = o.steer; }
 		if (started && done_t < 0) {
 			if (o.mode == VC_MODE_TURN) { r.turns++; r.spin_ev |= 1; }
@@ -228,6 +266,7 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 			started = 1; start_t = t;
 			r.back_mm = v.sw_back_mm; r.lo_mm = v.sw_lo_mm; r.lp_mm = v.sw_lp_mm; r.d_mm = v.sw_d_mm;
 		}
+		if (o.event & VC_EV_HOOK) { r.hook = 1; }
 		if (o.event & VC_EV_BYP_FAIL) { r.fail_ev = 1; break; }
 		if ((o.event & VC_EV_BYP_PASSED) && v.sw_kind != VC_SW_RET) { r.early = 1; }
 		if (o.event & VC_EV_BYP_PASSED) { lag = sim_obs_lag; if (lag == 0) { obs = 5; } }
@@ -244,10 +283,23 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 			double tl = 0, tr = 0;
 
 			if (o.mode == VC_MODE_TURN) {		/* on the spot, as Motion Control does */
-				tl = (o.turn_deg > 0) ? o.speed : -o.speed; tr = -tl;
+				/* Motion Control starts a turn only for a command word that differs from the
+				   one it has (apply_command, 'same'): the same degrees and speed again do nothing */
+				if (o.turn_deg != s2_deg || o.speed != s2_sp) {
+					s2_deg = o.turn_deg; s2_sp = o.speed;
+					s2_rem = fabs((double)o.turn_deg) * 3.14159265 / 180.0 * 60.0;	/* wheel mm */
+					s2_done = 0;
+				}
+				if (s2_rem > 0.0) {
+					tl = (o.turn_deg > 0) ? o.speed : -o.speed; tr = -tl;
+				} else {
+					s2_done = 1;
+				}
 			} else if (o.mode == VC_MODE_DRIVE && o.busy) {
+				s2_deg = 0; s2_sp = 0; s2_done = 0;
 				tl = o.speed + o.steer; tr = o.speed - o.steer;
 			} else if (o.mode == VC_MODE_DRIVE) {
+				s2_deg = 0; s2_sp = 0; s2_done = 0;
 				/* line following: steering from the zone, 30 mm/s a zone (as the controller does) */
 				tl = o.speed + o.steer; tr = o.speed - o.steer;
 			}
@@ -259,6 +311,11 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 			double vm = (vl + vr) / 2.0, w = (vl - vr) / 120.0;
 
 			x += vm * cs * 0.02; y += vm * sn * 0.02; th += w * 0.02; odo += vm * 0.02;
+			if (v.byp_capture != 0) { sim_cap_rot += fabs(w * 0.02) * 57.2958; }
+			if (o.mode == VC_MODE_TURN && s2_rem > 0.0) {
+				s2_rem -= fabs(vl - vr) / 2.0 * 0.02;
+				if (s2_rem <= 0.0) { s2_rem = 0.0; s2_done = 1; }
+			}
 		}
 		/* clearance: sample the car outline */
 		cs = cos(th); sn = sin(th);
@@ -283,6 +340,8 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 		}
 		if (r.clear_mm < 0.5) { r.hit = 1; }
 		if (done_t >= 0 && t - done_t == 150) { r.end_y_mm = y; }
+		if (done_t == t) { r.done_y_mm = y; }
+		if (done_t == t) { r.end_th_deg = th * 57.2958; r.end_x_mm = x; }
 		if (done_t >= 0 && t > done_t && lost) { r.lost_after = 1; }
 	}
 	if (!r.ok) { r.end_y_mm = y; }
@@ -1066,14 +1125,14 @@ int main(void)
 		vc_init(&v, 0);
 		for (k = 0; k < 74; k++) { b = line_in(5, 1); o = vc_step(&v, &b); }
 		b = line_in(5, 1); o = vc_step(&v, &b);
-		CHECK("S5-H101a", (o.event & VC_EV_SEARCH) && o.mode == VC_MODE_TURN && o.turn_deg == 60 &&
+		CHECK("S5-H101a", (o.event & VC_EV_SEARCH) && o.mode == VC_MODE_TURN && o.turn_deg == VC_SEARCH_DEG &&
 		      o.speed == VC_TURN_SPEED && o.mission_state == VC_MS_TURNING && !v.line_gave_up && o.busy,
-		      "lost 1500 ms, last zone 5 (line towards the right of the robot): spin +60 degrees, TURNING, not given up");
+		      "lost 1500 ms, last zone 5 (line towards the right of the robot): spin +VC_SEARCH_DEG degrees, TURNING, not given up");
 		vc_init(&v, 0);
 		for (k = 0; k < 75; k++) { b = line_in(3, 1); o = vc_step(&v, &b); }
-		CHECK("S5-H101b", o.mode == VC_MODE_TURN && o.turn_deg == -60, "last zone 3: spin -60 degrees (left first)");
+		CHECK("S5-H101b", o.mode == VC_MODE_TURN && o.turn_deg == -VC_SEARCH_DEG, "last zone 3: spin -VC_SEARCH_DEG degrees (left first)");
 
-		/* H102: not found: legs +60, -120, +60 (each ends on the done flag), then stopped with a line fault */
+		/* H102: not found: legs +D, -2D, +D (D = VC_SEARCH_DEG, 90) (each ends on the done flag), then stopped with a line fault */
 		vc_init(&v, 0);
 		for (k = 0; k < 75; k++) { b = line_in(5, 1); o = vc_step(&v, &b); }
 		for (leg = 0; leg < 4; leg++) { sawturn[leg] = 0; }
@@ -1085,13 +1144,13 @@ int main(void)
 				b.motion_state = 0; b.motion_done = 1;
 			}
 			o = vc_step(&v, &b);
-			if (o.mode == VC_MODE_TURN && leg < 3 && (o.turn_deg == 60 || o.turn_deg == -120) && sawturn[leg] == 0 &&
-			    ((leg == 0 && o.turn_deg == 60) || (leg == 1 && o.turn_deg == -120) || (leg == 2 && o.turn_deg == 60))) {
+			if (o.mode == VC_MODE_TURN && leg < 3 && (o.turn_deg == VC_SEARCH_DEG || o.turn_deg == -2 * VC_SEARCH_DEG) && sawturn[leg] == 0 &&
+			    ((leg == 0 && o.turn_deg == VC_SEARCH_DEG) || (leg == 1 && o.turn_deg == -2 * VC_SEARCH_DEG) || (leg == 2 && o.turn_deg == VC_SEARCH_DEG))) {
 				sawturn[leg] = 1;
 				leg++;
 			}
 		}
-		CHECK("S5-H102a", sawturn[0] && sawturn[1] && sawturn[2], "three legs sent in order: +60, -120, +60");
+		CHECK("S5-H102a", sawturn[0] && sawturn[1] && sawturn[2], "three legs sent in order: +D, -2D, +D");
 		CHECK("S5-H102b", v.line_gave_up && (o.event & VC_EV_GAVE_UP) && o.mode == VC_MODE_STOP && !o.busy &&
 		      o.mission_state == VC_MS_FAULT, "legs done, line not found: STOP, FAULT, give-up event for the line fault");
 		b = line_in(4, 0); o = vc_step(&v, &b);
@@ -1100,12 +1159,12 @@ int main(void)
 		/* H103: the line is seen during the second leg (2 line messages): stop searching, follow it */
 		vc_init(&v, 0);
 		for (k = 0; k < 75; k++) { b = line_in(5, 1); o = vc_step(&v, &b); }
-		for (k = 0; k < 400 && o.turn_deg != -120; k++) {
+		for (k = 0; k < 400 && o.turn_deg != -2 * VC_SEARCH_DEG; k++) {
 			b = line_in(5, 1); b.motion_state = 2;
 			if (o.mode == VC_MODE_TURN && v.turn_ms >= 200) { b.motion_state = 0; b.motion_done = 1; }
 			o = vc_step(&v, &b);
 		}
-		CHECK("S5-H103a", o.turn_deg == -120, "second leg reached");
+		CHECK("S5-H103a", o.turn_deg == -2 * VC_SEARCH_DEG, "second leg reached");
 		b = line_in(4, 0); b.motion_state = 2; o = vc_step(&v, &b);
 		CHECK("S5-H103b", o.mode == VC_MODE_TURN, "line seen in one message only: still turning");
 		b = line_in(4, 0); b.motion_state = 2; o = vc_step(&v, &b);
@@ -1129,8 +1188,8 @@ int main(void)
 		}
 		b = line_in(5, 1); b.sup_cmd = VC_SUP_PAUSE; o = vc_step(&v, &b);
 		b = line_in(5, 1); b.sup_cmd = VC_SUP_RESUME; o = vc_step(&v, &b);
-		CHECK("S5-H105", o.mode == VC_MODE_TURN && o.turn_deg >= 40 && o.turn_deg <= 42,
-		      "paused after 19 of 60 degrees: resumed with the rest, about 41");
+		CHECK("S5-H105", o.mode == VC_MODE_TURN && o.turn_deg >= VC_SEARCH_DEG - 20 && o.turn_deg <= VC_SEARCH_DEG - 18,
+		      "paused after 19 of D degrees: resumed with the rest, about D - 19");
 
 		/* H106: line lost in a creep: the creep ends (for a rescan) but the car is not stopped for good */
 		vc_init(&v, 0);
@@ -1376,12 +1435,79 @@ int main(void)
 		c = sim_bypass(-1, 150, 200, 0, 20, 0, 0);
 		sim_never_find = 0;
 		CHECK("S5-H123i", c.fail_ev && !c.ok && c.turns > 0 && !c.hit,
-		      "line never found again: after the 150 mm look the car spins on the spot to look (no hit), then BYP_FAIL and stops");
-		sim_find_on_spin = 1;
-		c = sim_bypass(-1, 150, 200, 0, 20, 0, 0);
-		sim_find_on_spin = 0;
-		CHECK("S5-H123j", c.ok && !c.fail_ev && c.turns > 0 && !c.hit,
-		      "line missed by the straight look but found by the spin: back on the line (BYP_DONE), no hit");
+		      "line never found again: after the 150 mm look the car turns for the hook search, drives it out (no hit), then BYP_FAIL and stops");
+		/* H135: M37 run 1 (2026-11-17): the line turned right, away from a bypass on the left, about 175 mm
+		   past the box's centre. The car came back onto the old line's path beyond the corner and found
+		   nothing; the hook search must find the line behind it and face along it. Corners at several
+		   distances, both sides. */
+		{
+			static const int cxs[] = { 120, 170, 220, 270 };	/* line this far past the back of a 10 cm deep box */
+			int ci, sd, all_ok = 1, all_face = 1, all_fwd = 1, any_hit = 0, worst_ms = 0, hooks = 0;
+
+			for (sd = -1; sd <= 1; sd += 2) {
+				for (ci = 0; ci < 4; ci++) {
+					double want;
+
+					sim_away_x = 60 + 200 + 100 + cxs[ci];	/* sensor 60, gap 20 cm, the box, then the line */
+					c = sim_bypass(sd, 150, 100, 0, 20, 0, 0);
+					hooks += c.hook;
+					sim_away_x = 0;
+					want = -sd * 90.0;
+					if (!c.ok || c.fail_ev) { all_ok = 0; }
+					if (c.ok && c.hook && fabs(c.end_th_deg - want) > 35.0) { all_face = 0; }
+					/* then it follows the side line ONWARD (away from the old line), not back */
+					if (c.ok && c.hook && (c.end_y_mm - c.done_y_mm) * (-sd) < 50.0) { all_fwd = 0; }
+					if (c.hit) { any_hit = 1; }
+					if (c.ms > worst_ms) { worst_ms = c.ms; }
+					if (getenv("S5_H135") != NULL || !c.ok) {
+						printf("[H135] side %d corner %d: ok %d fail %d hit %d th %.0f x %.0f ms %d\n", sd, cxs[ci],
+						       c.ok, c.fail_ev, c.hit, c.end_th_deg, c.end_x_mm, c.ms);
+					}
+				}
+			}
+			CHECK("S5-H135a", all_ok && !any_hit && hooks >= 4,
+			      "line bends away from the bypass side 12..27 cm past the back of a 10 cm box: the hook search is used and finds it every time (8 runs, both sides), no hit");
+			CHECK("S5-H135b", all_face && all_fwd,
+			      "after the hook the car turns until the centre sensor is on the edge (within 35 degrees of the new line) and then follows the line ONWARD, at least 5 cm in 3 s, never back (M37 run 14)");
+			/* d: the turn back never gets the centre sensor onto the edge: both sweeps, then a line fault,
+			   not a blind hand-over */
+			sim_away_x = 60 + 200 + 100 + 170; sim_side_z7 = 1;
+			c = sim_bypass(-1, 150, 100, 0, 20, 0, 0);
+			sim_away_x = 0; sim_side_z7 = 0;
+			CHECK("S5-H135d", c.hook && c.fail_ev && !c.ok && !c.hit,
+			      "turn back finds no edge in either sweep: BYP_FAIL (line fault), no hit");
+			/* e: M37 runs 11 and 14: the edge is missed in the first sweep; the second sweep (back over the
+			   same half) must start: Motion Control ignores an identical command word */
+			sim_away_x = 60 + 200 + 100 + 170; sim_cap_late = 1;
+			c = sim_bypass(-1, 150, 100, 0, 20, 0, 0);
+			sim_away_x = 0; sim_cap_late = 0;
+			CHECK("S5-H135e", c.hook && c.ok && !c.fail_ev && !c.hit && sim_cap_rot > 200.0,
+			      "edge missed in the first sweep: the second sweep (back over the same half) starts, as a new command for Motion Control, and finds it: BYP_DONE");
+			/* H137: something in the way during the bypass (a hand): the car stands still while
+			   path_blocked is up, keeps its detour and finishes it afterwards. Blocked 3 s at
+			   several points (curve out, beside the box, curve back, the look for the line) */
+			{
+				static const int at[] = { 1000, 4000, 7000, 9500 };
+				int ai, blk_ok = 1, blk_still = 1, blk_hit = 0;
+
+				for (ai = 0; ai < 4; ai++) {
+					sim_block_a = at[ai]; sim_block_b = at[ai] + 3000;
+					c = sim_bypass(-1, 150, 200, 0, 20, 0, 0);
+					sim_block_a = 0; sim_block_b = 0;
+					if (!c.ok || c.fail_ev) { blk_ok = 0; }
+					if (c.moved_blocked) { blk_still = 0; }
+					if (c.hit) { blk_hit = 1; }
+					if (getenv("S5_H137") != NULL) {
+						printf("[H137] blocked %d..%d ms: ok %d moved %d hit %d clear %.0f ms %d\n", at[ai], at[ai] + 3000,
+						       c.ok, c.moved_blocked, c.hit, c.clear_mm, c.ms);
+					}
+				}
+				CHECK("S5-H137a", blk_still, "path blocked during the bypass (curve out, beside the box, curve back, the look for the line): the car stands still");
+				CHECK("S5-H137b", blk_ok && !blk_hit, "...and once the way is clear it finishes the same detour: back on the line, no hit");
+			}
+			CHECK("S5-H135c", worst_ms + 4000 < 45000,
+			      "the whole detour with the hook stays well inside the obstacle task's 45 s limit");
+		}
 		c = sim_bypass(1, 200, 200, 0, 17, 0, 0);
 		CHECK("S5-H123f", c.ok && !c.hit && c.clear_mm >= 5.0 && c.ms < 20000,
 		      "20 cm box, 17 cm away (the M33 set-up): done, at least 5 mm clear of the box, under 20 s");
@@ -1410,7 +1536,7 @@ int main(void)
 	{
 		SIMRES c;
 		int side;
-		int n_ok = 0, n_early = 0, n_one = 0, n_hit = 0;
+		int n_ok = 0, n_early = 0, n_one = 0, n_hit = 0, n_wrong_dir = 0;
 		double worst = 1e9, wh = 0;
 		static const int corners[] = { 530, 600, 700, 800 };	/* box ends at 430 mm: the corner is past the box, as in M37 */
 		int ic;
@@ -1424,7 +1550,10 @@ int main(void)
 				if (c.early) { n_early++; }
 				if (c.starts == 1) { n_one++; }
 				if (c.hit) { n_hit++; }
-				if (getenv("S5_SIM_VERBOSE") != NULL) { printf("[H124] side %d corner %d ok%d early%d starts%d clear %.0f head %.0f ms %d\n", side, corners[ic], c.ok, c.early, c.starts, c.clear_mm, c.max_head_deg, c.ms); }
+				if (getenv("S5_SIM_VERBOSE") != NULL) { printf("[H124] side %d corner %d ok%d early%d starts%d clear %.0f head %.0f ms %d kind %d post %d side_line %d\n", side, corners[ic], c.ok, c.early, c.starts, c.clear_mm, c.max_head_deg, c.ms, c.done_kind, c.done_post_dir, c.on_side); }
+				/* a corner towards the bypass side: wherever the line is taken over, a loss right after
+				   is looked for on the bypass side, where the line leads on (left-corner run 2) */
+				if (c.ok && c.on_side && c.done_post_dir != side) { n_wrong_dir++; }
 				if (c.clear_mm < worst) { worst = c.clear_mm; }
 				if (c.max_head_deg > wh) { wh = c.max_head_deg; }
 			}
@@ -1435,6 +1564,7 @@ int main(void)
 		CHECK("S5-H124a", n_ok == 8 && n_early >= 2, "a corner just past the box: the bypass ends the moment the line is seen (both sides); further corners are met at the normal end of the detour");
 		CHECK("S5-H124b", n_one == 8, "the bypass is not started a second time while the obstacle task is still in BYPASSING");
 		CHECK("S5-H124d", wh <= 12.0, "the car is facing along the travel (within 12 degrees) when it takes the line: it does not rejoin turned back towards the old line");
+		CHECK("S5-H124e", n_wrong_dir == 0, "corner towards the bypass side, the corner's line taken over (beside the box or early on the way back): a loss right after is looked for on the bypass side, where the line leads on (M37 left-corner run 2: it looked back and drove back to the box)");
 		CHECK("S5-H124c", n_hit == 0 && worst >= 5.0, "no touch of the box when the line is taken over early (at least 5 mm, worst-case edge)");
 	}
 

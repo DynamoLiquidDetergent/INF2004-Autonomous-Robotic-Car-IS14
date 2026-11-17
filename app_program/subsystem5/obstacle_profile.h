@@ -142,6 +142,10 @@ void obs_bg_forget(OBS_SCAN *s);
    (view_lim), keep the sideways move of the first scan if it was larger, and choose the side
    again. Only ever moves an edge outwards. */
 void obs_merge_first(OBS_PROFILE *p, const OBS_PROFILE *first, const OBS_CFG *cfg);
+/* A fine edge at the limit of the view (p->view_lim, from obs_profile) may lie inside the real edge:
+   forget that side's fine refinement so the next obs_profile plans it from the 15 degree scan, padded
+   as before. Returns the sides forgotten (bit0 right, bit1 left). */
+unsigned obs_unrefine_view_lim(OBS_SCAN *s, const OBS_PROFILE *p);
 /* Median of n (1..5) readings. OBS_DIST_NONE counts as the largest value, so
    one stray reading never wins and a majority of "nothing" gives "nothing". */
 uint16_t obs_median(const uint16_t *v, unsigned n);
@@ -250,5 +254,28 @@ static inline uint32_t obs_summary_with_dist(uint32_t s, unsigned cm)
 {
 	return (s & ~(0x1FFu << 1)) | ((cm > 511u ? 511u : cm) << 1);
 }
+
+/* Watch ahead during the bypass (M37 hand test, 2026-11-17). A hand is a poor echo target: the
+   readings jump between a few cm, no echo and the far background, so one reading must not decide
+   either way. BLOCKED: at least OBS_WATCH_HITS of the last OBS_WATCH_WIN readings are within
+   OBS_WATCH_CM. CLEAR again: no reading within OBS_WATCH_CM for OBS_WATCH_CLEAR_MS. The watch
+   only arms once something further than OBS_WATCH_ARM_CM (or no echo) has been seen, so the box
+   itself, straight ahead at the start of the backing-off, never counts. */
+#define OBS_WATCH_CM		15
+#define OBS_WATCH_ARM_CM	20
+#define OBS_WATCH_WIN		4
+#define OBS_WATCH_HITS		2
+#define OBS_WATCH_CLEAR_MS	700u
+typedef struct {
+	uint8_t  armed;
+	uint8_t  blocked;
+	uint8_t  hist;		/* bit i: reading i back was within OBS_WATCH_CM */
+	uint32_t last_near_ms;	/* time of the last reading within OBS_WATCH_CM */
+} OBS_WATCH;
+#define OBS_WATCH_NONE		0	/* nothing changed */
+#define OBS_WATCH_BLOCK		1	/* the path just became blocked */
+#define OBS_WATCH_CLEAR		2	/* the path just became clear again */
+void obs_watch_init(OBS_WATCH *w);
+int  obs_watch_step(OBS_WATCH *w, uint16_t cm, uint32_t t_ms);
 
 #endif /* OBSTACLE_PROFILE_H */

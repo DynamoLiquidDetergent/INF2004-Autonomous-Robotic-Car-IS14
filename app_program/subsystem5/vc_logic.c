@@ -68,6 +68,7 @@ void vc_init(VC_STATE *v, unsigned epoch)
 	v->search_used  = 0;
 	v->found_cnt    = 0;
 	v->byp_step     = 0;
+	v->byp_capture = 0;
 	v->byp_dir      = 1;
 	v->byp_s_mm     = 0;
 	v->byp_f_mm     = 0;
@@ -82,7 +83,6 @@ void vc_init(VC_STATE *v, unsigned epoch)
 	v->sw_psi0      = 0;
 	v->post_dir     = 0;
 	v->post_ms      = 0;
-	v->byp_search   = 0;
 	v->byp_wait     = 0;
 	v->sw_lo_mm     = 0;
 	v->sw_lp_mm     = 0;
@@ -302,21 +302,15 @@ static void jn_finish(VC_STATE *v, const VC_IN *in, VC_OUT *o);
 static void search_leg_set(VC_STATE *v);
 static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o);
 
-/* The straight look after the bypass found no line: before giving up, spin on the spot the way
-   the line must be (back across the old line, the side away from the bypass), then twice as far
-   the other way and back, as for any lost line. The obstacle is behind the car by now. */
-static void byp_search_begin(VC_STATE *v, VC_OUT *o)
+/* The straight look after the bypass found no line: the hook search (see VC_HOOK_DEG). Turn
+   towards the old line's side, the side away from the bypass; byp_next() drives on from there.
+   The obstacle is behind the car by now. */
+static void byp_hook_begin(VC_STATE *v, VC_OUT *o)
 {
-	v->search_used = 1;
-	v->search_leg  = 1;
-	v->search_dir  = -v->byp_dir;
-	v->found_cnt   = 0;
-	v->jn_state    = JN_TURN;
-	v->jn_cmd      = VC_BC_NONE;
-	v->jn_on       = 0;
-	v->byp_search  = 1;
-	search_leg_set(v);
-	o->event      |= VC_EV_SEARCH;
+	v->byp_step = VC_HOOK_STEP;
+	v->jn_cmd   = VC_BC_NONE;
+	turn_set(v, -v->byp_dir, VC_HOOK_DEG);
+	o->event   |= VC_EV_HOOK;
 }
 
 /* ---- smooth bypass ---------------------------------------------------------------------- */
@@ -368,6 +362,7 @@ static int sw_moved(const VC_STATE *v, const VC_IN *in)
 static void sw_done(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 {
 	v->byp_step = 0;
+	v->byp_capture = 0;
 	v->sw_kind  = 0;
 	jn_finish(v, in, o);
 	o->event |= VC_EV_BYP_DONE;
@@ -406,10 +401,15 @@ static int sw_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 		}
 		if (v->found_cnt >= VC_SEARCH_FOUND_MSGS) {
 			int hd = heading_d10(v);
+			/* Met while still out to the side: beside the obstacle, or in the first half of the curve
+			   back (the old line is still at least half the offset away, so this is not it). That is a
+			   corner towards the side we swerved to, and the line leads on that way (M37 left-corner
+			   run 2, 2026-11-17: met at the start of the curve back, the car looked back towards the old
+			   line, found the corner's way back and drove back to the box). Met later on the way back:
+			   the old line, which leads on along the travel. */
+			int early = (v->sw_kind == VC_SW_PASS) || (v->sw_kind == VC_SW_RET && 2 * s < v->sw_lo_mm);
 
-			/* on the far side of the obstacle the line leads on away from it (a corner towards the
-			   side we swerved to); on the way back it leads back towards the old line */
-			v->post_dir = (v->sw_kind == VC_SW_PASS) ? v->byp_dir : -v->byp_dir;
+			v->post_dir = early ? v->byp_dir : -v->byp_dir;
 			v->post_ms  = VC_SW_BIAS_MS;
 			if (v->sw_kind == VC_SW_PASS) {
 				o->event |= VC_EV_BYP_PASSED | VC_EV_BYP_RETURN;	/* the line came back early */
@@ -479,11 +479,10 @@ static int sw_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 		break;
 	default:				/* VC_SW_FIND */
 		if (s >= VC_SW_FIND_MM) {
-			v->byp_step = 0;
 			v->sw_kind  = 0;
 			jn_finish(v, in, o);
 			o->event &= ~VC_EV_JN_DONE;
-			byp_search_begin(v, o);		/* look round on the spot before giving up */
+			byp_hook_begin(v, o);		/* the line bent away: hook back for it */
 			return jn_step(v, in, o);
 		}
 		speed = VC_SW_FIND_SPEED;
@@ -589,7 +588,33 @@ static int byp_next(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 	case 8:
 		turn_set(v, v->byp_dir, VC_BYP_TURN_DEG);		/* face along the line */
 		return 1;
+	case VC_HOOK_STEP + 1:
+		drive_set(v, VC_HOOK_MM, VC_HOOK_SPEED, 1);		/* back across, until the line is seen */
+		return 1;
+	case VC_HOOK_STEP + 2:
+		drive_set(v, VC_BYP_ADV_MM, VC_JN_SPEED, 0);		/* wheels over the line */
+		return 1;
+	case VC_HOOK_STEP + 3:
+	case VC_HOOK_STEP + 4:
+		/* until the centre is on the line. Leg 1 sweeps the half circle that holds the line's onward
+		   direction (from facing back across towards the bypass side); leg 2 sweeps the same half
+		   back again, a second look. Never the other half: that is the way back along the line
+		   (M37 run 14: a full circle found the line's way back and the car drove off backwards).
+		   The opposite sign also makes leg 2 a new command for Motion Control, which ignores a
+		   word identical to the one it has just finished (M37 run 11). */
+		turn_set(v, (v->byp_step == VC_HOOK_STEP + 4) ? -v->byp_dir : v->byp_dir, VC_HOOK_CAPTURE_DEG);
+		v->byp_capture = v->byp_step - (VC_HOOK_STEP + 2);
+		v->found_cnt   = 0;
+		return 1;
+	case VC_HOOK_STEP + 5:						/* a full circle and no line */
+		v->byp_capture = 0;
+		v->byp_step    = 0;
+		jn_finish(v, in, o);
+		v->line_gave_up = 1;
+		o->event |= VC_EV_BYP_FAIL | VC_EV_GAVE_UP;
+		return 0;
 	default:
+		v->byp_capture = 0;
 		v->byp_step = 0;
 		jn_finish(v, in, o);
 		o->event |= VC_EV_BYP_DONE;
@@ -691,10 +716,6 @@ static int turn_over(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 	jn_finish(v, in, o);
 	v->line_gave_up = 1;
 	o->event       |= VC_EV_GAVE_UP;
-	if (v->byp_search) {
-		v->byp_search = 0;
-		o->event |= VC_EV_BYP_FAIL;	/* the bypass ends here, line fault */
-	}
 	return 0;
 }
 
@@ -758,6 +779,7 @@ static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 		}
 		if (v->drv_find) {		/* the line was not where it should be */
 			v->byp_step = 0;
+			v->byp_capture = 0;
 			jn_finish(v, in, o);
 			v->line_gave_up = 1;
 			o->event |= VC_EV_BYP_FAIL | VC_EV_GAVE_UP;
@@ -773,6 +795,22 @@ static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 		turn_set(v, v->turn_dir, v->turn_target_d10 / 10);
 	}
 	/* JN_TURN */
+	if (v->byp_capture) {			/* turn back after the hook: stop on the line's edge */
+		if (in->dt_ms > 0) {
+			if (in->line_fresh && !in->lost && in->zone >= VC_HOOK_CAPTURE_ZLO && in->zone <= VC_HOOK_CAPTURE_ZHI) {
+				v->found_cnt++;
+			} else {
+				v->found_cnt = 0;
+			}
+		}
+		if (v->found_cnt >= VC_SEARCH_FOUND_MSGS) {
+			v->byp_capture = 0;
+			v->byp_step = 0;
+			jn_finish(v, in, o);
+			o->event |= VC_EV_BYP_DONE;
+			return 0;
+		}
+	}
 	if (v->search_leg != 0) {		/* the line is looked for while spinning */
 		if (in->dt_ms > 0) {
 			if (in->line_fresh && !in->lost && in->zone != 0) {
@@ -785,10 +823,6 @@ static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 			v->search_leg = 0;
 			jn_finish(v, in, o);
 			o->event |= VC_EV_FOUND;
-			if (v->byp_search) {
-				v->byp_search = 0;
-				o->event |= VC_EV_BYP_DONE;	/* back on the line after the bypass */
-			}
 			return 0;
 		}
 	}
@@ -815,7 +849,7 @@ static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 		return turn_over(v, in, o);
 	}
 	o->mode     = VC_MODE_TURN;
-	o->speed    = VC_TURN_SPEED;
+	o->speed    = v->byp_capture ? VC_HOOK_CAPTURE_SPEED : VC_TURN_SPEED;
 	o->turn_deg = v->turn_dir * v->turn_cmd_deg;
 	return 1;
 }
@@ -893,6 +927,7 @@ static VC_OUT vc_step_inner(VC_STATE *v, const VC_IN *in0)
 		/* Obstacle Detection gave up (fault, timeout) in the middle of the detour: drop it.
 		   The car is off the line; line following and the spin search take over. */
 		v->byp_step = 0;
+		v->byp_capture = 0;
 		v->jn_state = JN_NONE;
 		v->jn_on    = 0;
 		v->turn_live = 0;
@@ -919,6 +954,12 @@ static VC_OUT vc_step_inner(VC_STATE *v, const VC_IN *in0)
 		    in->obs_state == VC_OBS_REACQUIRING || in->obs_state == VC_OBS_REVERSE_RETRY) {
 			hold = 0;
 		}
+	}
+	/* something close ahead during the detour (a hand, a second obstacle): stand still, keep the
+	   detour, go on with what is left when the way is clear (Obstacle Detection gives up after a
+	   while and faults) */
+	if (in->path_blocked && (in->obs_state == VC_OBS_BYPASSING || in->obs_state == VC_OBS_REACQUIRING)) {
+		hold = 1;
 	}
 	if (in->phase7 && in->obs_state == VC_OBS_REVERSE_RETRY && !hold) {
 		retry = *in0;				/* too tight to pass: back away straight, then scan again */

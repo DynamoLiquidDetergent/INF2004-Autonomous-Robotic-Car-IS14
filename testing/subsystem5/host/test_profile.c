@@ -139,6 +139,8 @@ static int sim_two_boxes(int lo, int hi, int *cases_o, int *retry_o, int *go_o)
 /* ---- S5-H130: finer look at the edges (obs_fine_edges) ---- */
 typedef struct { double D, true_l, true_r; int drop_at, calls; } FINE_CTX;
 
+static double g_face_deg = 90;	/* a ray more than this far off the face's normal (straight ahead) gives no echo */
+
 static uint16_t fine_reader(void *ctx, unsigned deg)
 {
 	FINE_CTX *c = (FINE_CTX *)ctx;
@@ -146,10 +148,11 @@ static uint16_t fine_reader(void *ctx, unsigned deg)
 	int k;
 
 	for (k = -g_beam_n; k <= g_beam_n; k++) {
-		double th = ((double)deg + g_rot + k * 1.5) * 3.14159265358979 / 180.0;
+		double thd = (double)deg + g_rot + k * 1.5;
+		double th = thd * 3.14159265358979 / 180.0;
 		double sn = sin(th), cs = cos(th), x, t;
 
-		if (sn <= 0.05) continue;
+		if (sn <= 0.05 || fabs(thd - 90.0) > g_face_deg) continue;
 		t = c->D / sn;
 		x = c->D * cs / sn;
 		if (x >= c->true_l && x <= c->true_r && t < best) best = t;
@@ -913,6 +916,166 @@ int main(void)
 		first.detected = 0;
 		cfg.right_pad_pm = 0;
 		cfg.margin_cm = 3;
+	}
+	/* S5-H136 (M37 run 1, 2026-11-17): the far scan (about 29 cm) gets the fine edge look too. A flat
+	   face echoes only up to 27 degrees off its normal here. Far scan: 15 degree readings, fine look,
+	   a side whose fine edge is at the limit of the view goes back to the padded 15 degree plan
+	   (obs_unrefine_view_lim); close scan 12 cm nearer: the same, then obs_merge_first. Compared with
+	   the far scan left coarse (as before): never unsafe, and narrower on average. */
+	{
+	int model, any_narrower = 0;
+
+	for (model = 0; model < 2; model++) {	/* 0: ideal beam +/-7.5 deg; 1: the car's beam +/-13.5 deg and right pad */
+		int W, X, D, a, cases = 0, bad_new = 0, bad_old = 0, narrower = 0, wider = 0, worst = 100;
+		double sum_new = 0, sum_old = 0;
+		int hw;
+
+		cfg.right_pad_pm = model ? 250 : 0;
+		cfg.margin_cm = 4;
+		g_beam_n = model ? 9 : 5;
+		hw = (int)cfg.robot_half_width_cm;
+		g_face_deg = 27;
+		for (W = 10; W <= 30; W += 2) {
+		for (X = -12; X <= 12; X += 3) {
+		for (D = 27; D <= 31; D += 2) {
+			FINE_CTX fc;
+			OBS_SCAN sf, sc;
+			OBS_PROFILE pf_old, pf_new, pc, m_old, m_new;
+			double tr = X + W / 2.0, tl = X - W / 2.0;
+			int s_new, s_old, c_new, c_old;
+
+			fc.true_r = tr; fc.true_l = tl; fc.drop_at = -1;
+			/* far scan */
+			fc.D = D; fc.calls = 1000;
+			obs_scan_init(&sf);
+			for (a = 2; a <= 10; a++) obs_scan_set(&sf, (unsigned)a, fine_reader(&fc, (unsigned)(a * 15)));
+			obs_profile(&sf, &cfg, &pf_old);
+			if (!pf_old.detected || (pf_old.action != OBS_ACT_TURN_RIGHT && pf_old.action != OBS_ACT_TURN_LEFT)) continue;
+			(void)obs_fine_edges(&sf, &cfg, 30, 150, fine_reader, &fc);
+			obs_profile(&sf, &cfg, &pf_new);
+			if (obs_unrefine_view_lim(&sf, &pf_new) != 0u) obs_profile(&sf, &cfg, &pf_new);
+			/* close scan */
+			fc.D = D - 12;
+			obs_scan_init(&sc);
+			for (a = 2; a <= 10; a++) obs_scan_set(&sc, (unsigned)a, fine_reader(&fc, (unsigned)(a * 15)));
+			obs_profile(&sc, &cfg, &pc);
+			if (!pc.detected) continue;
+			(void)obs_fine_edges(&sc, &cfg, 30, 150, fine_reader, &fc);
+			obs_profile(&sc, &cfg, &pc);
+			m_old = pc; m_new = pc;
+			obs_merge_first(&m_old, &pf_old, &cfg);
+			obs_merge_first(&m_new, &pf_new, &cfg);
+			cases++;
+			if (m_new.action != OBS_ACT_TURN_RIGHT && m_new.action != OBS_ACT_TURN_LEFT) { bad_new++; continue; }
+			s_new = (m_new.action == OBS_ACT_TURN_RIGHT) ? m_new.right_cm : m_new.left_cm;
+			c_new = (m_new.action == OBS_ACT_TURN_RIGHT) ? s_new - (int)ceil(tr + hw) : s_new - (int)ceil(-tl + hw);
+			if (c_new < 0) bad_new++;
+			if (c_new < worst) worst = c_new;
+			if (m_old.action == OBS_ACT_TURN_RIGHT || m_old.action == OBS_ACT_TURN_LEFT) {
+				s_old = (m_old.action == OBS_ACT_TURN_RIGHT) ? m_old.right_cm : m_old.left_cm;
+				c_old = (m_old.action == OBS_ACT_TURN_RIGHT) ? s_old - (int)ceil(tr + hw) : s_old - (int)ceil(-tl + hw);
+				if (c_old < 0) bad_old++;
+				sum_old += s_old; sum_new += s_new;
+				if (s_new < s_old) narrower++;
+				if (getenv("S5_H136") != NULL && (pc.view_lim != 0)) {
+					printf("[H136] W%d X%d D%d close lim %u: old %s %d/%d new %s %d/%d (far fine %d/%d deg)\n", W, X, D, pc.view_lim,
+					       m_old.action == OBS_ACT_TURN_RIGHT ? "R" : "L", m_old.left_cm, m_old.right_cm,
+					       m_new.action == OBS_ACT_TURN_RIGHT ? "R" : "L", m_new.left_cm, m_new.right_cm, sf.fine_deg[0], sf.fine_deg[1]);
+				}
+				if (s_new > s_old) wider++;
+			}
+		}}}
+		g_face_deg = 90;
+		g_beam_n = 5;
+		printf("[HOST] INFO H136 (%s): %d cases, unsafe old %d new %d, worst clearance new %d cm, mean swing old %.1f new %.1f cm, "
+		       "narrower %d wider %d\n", model ? "car beam" : "ideal beam", cases, bad_old, bad_new, worst, cases ? sum_old / cases : 0.0,
+		       cases ? sum_new / cases : 0.0, narrower, wider);
+		CHECK(model ? "S5-H136b" : "S5-H136a", cases > 100 && bad_new == 0 && wider == 0,
+		      model ? "car beam: with the far fine look every bypass still clears the true edge, never a wider swing"
+			    : "ideal beam: boxes 10..30 cm, 12 cm either side, far scan 27..31 cm: every bypass clears the true edge, never a wider swing");
+		any_narrower += narrower;
+		cfg.right_pad_pm = 0;
+		cfg.margin_cm = 3;
+	}
+	CHECK("S5-H136c", any_narrower > 0, "the far fine look narrows the swing where the far edges are inside the view");
+	}
+
+	/* S5-H138 (M37 hand test, 2026-11-17): the look ahead during the bypass (obs_watch_step), fed
+	   the 90 degree readings of the hand test log in order, one every 100 ms (0 = no echo). The
+	   first rule (12 cm, 2 in a row, clear on 1 reading) stopped and drove on 8 times; the hand's
+	   readings jump between a few cm, no echo and the background. */
+	{
+	static const uint16_t hand[] = {
+		17, 17, 17, 18, 19, 19, 19, 20, 21, 21, 22, 22, 23, 23, 24, 24, 25, 25, 26, 28, 27, 28, 28, 28,
+		29, 29, 29, 30, 31, 32, 32, 32, 31, 31, 30, 30, 28, 73, 138, 138, 136, 138, 137, 138, 136, 136, 135, 136,
+		135, 134, 65, 65, 63, 14, 13, 13, 12, 58, 11, 11, 10, 0, 12, 11, 11, 0, 150, 150, 173, 15, 0, 0,
+		8, 6, 6, 5, 5, 8, 5, 8, 6, 11, 7, 12, 9, 0, 10, 14, 13, 14, 16, 0, 7, 0, 164, 0,
+		14, 0, 8, 132, 6, 160, 158, 127, 157, 117, 117, 115, 114, 114, 111, 112, 109, 111, 108, 107, 107, 107, 5, 107,
+		5, 6, 107, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4,
+		4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 5, 5, 6, 7, 7, 6, 5, 4, 4, 3,
+		4, 4, 6, 4, 102, 6, 5, 124, 104, 3, 103, 99, 10, 6, 4, 7, 6, 5, 5, 6, 13, 99, 3, 3,
+		3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+		3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 3, 3,
+		3, 3, 3, 3 };
+	const unsigned n = (unsigned)(sizeof hand / sizeof hand[0]);
+	OBS_WATCH w;
+	unsigned i, first_block = 0, blocks = 0, clears = 0, old_clears = 0, old_hits = 0, early = 0, bad_clear = 0;
+	int old_blk = 0, run_far = 0;
+
+	obs_watch_init(&w);
+	for (i = 0; i < n; i++) {
+		uint16_t c = hand[i] ? hand[i] : OBS_DIST_NONE;
+		int ev = obs_watch_step(&w, c, i * 100u);
+		int near = (c != OBS_DIST_NONE && c <= OBS_WATCH_CM);
+
+		if (ev == OBS_WATCH_BLOCK) {
+			blocks++;
+			if (first_block == 0) first_block = i;
+			if (i < 53) early++;
+		}
+		run_far = near ? 0 : run_far + 1;
+		if (ev == OBS_WATCH_CLEAR) {
+			clears++;
+			if (run_far < 7) bad_clear++;	/* 7 readings = 0.7 s with nothing close */
+		}
+		/* the first rule */
+		if (c != OBS_DIST_NONE && c <= 12) {
+			old_hits++;
+			if (old_hits >= 2) old_blk = 1;
+		} else {
+			old_hits = 0;
+			if (old_blk) { old_blk = 0; old_clears++; }
+		}
+	}
+	printf("[HOST] INFO H138: hand log %u readings: first rule drove on %u times; now blocked at reading %u (%u cm), %u block(s), %u clear(s)\n",
+	       n, old_clears, first_block, (unsigned)hand[first_block], blocks, clears);
+	CHECK("S5-H138a", early == 0, "hand log: nothing blocks while backing off from the box and turning out (readings 17..138 cm)");
+	CHECK("S5-H138b", first_block >= 53 && first_block <= 55, "hand log: the hand blocks the way at its first close readings (14, 13 cm)");
+	CHECK("S5-H138c", bad_clear == 0 && clears < old_clears, "hand log: never goes on after a single lost or far reading, far fewer stops and starts than the first rule");
+	/* a hand that gives an echo only every second reading */
+	obs_watch_init(&w);
+	(void)obs_watch_step(&w, 40, 0);
+	blocks = 0; clears = 0;
+	for (i = 1; i <= 40; i++) {
+		int ev = obs_watch_step(&w, (i & 1u) ? 8 : OBS_DIST_NONE, i * 100u);
+		if (ev == OBS_WATCH_BLOCK) blocks++;
+		if (ev == OBS_WATCH_CLEAR) clears++;
+	}
+	CHECK("S5-H138d", blocks == 1 && clears == 0 && w.blocked, "a hand seen in every second reading for 4 s: one stop, no restart");
+	/* the hand taken away: clear after OBS_WATCH_CLEAR_MS */
+	for (i = 41; i <= 60; i++) {
+		if (obs_watch_step(&w, OBS_DIST_NONE, i * 100u) == OBS_WATCH_CLEAR) break;
+	}
+	/* the last close reading was number 39 */
+	CHECK("S5-H138e", !w.blocked && (i - 39) * 100u >= OBS_WATCH_CLEAR_MS && (i - 39) * 100u <= OBS_WATCH_CLEAR_MS + 100u,
+	      "hand taken away: the way counts as clear again after 0.7 s");
+	/* the box itself at 12 cm when the bypass starts, the car backing away */
+	obs_watch_init(&w);
+	blocks = 0;
+	for (i = 0; i < 25; i++) {
+		if (obs_watch_step(&w, (uint16_t)(12 + i), i * 100u) == OBS_WATCH_BLOCK) blocks++;
+	}
+	CHECK("S5-H138f", blocks == 0, "the box 12 cm ahead at the start, backing away: not a blocked way (the watch arms past 20 cm)");
 	}
 	printf("[HOST] subsystem5 SUMMARY %d passed, %d failed\n", pass_n, fail_n);
 	return fail_n ? 1 : 0;
