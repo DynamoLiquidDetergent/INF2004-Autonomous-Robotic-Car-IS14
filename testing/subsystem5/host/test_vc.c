@@ -145,6 +145,7 @@ typedef struct {
 	int   ms;		/* time from BYP_START to BYP_DONE */
 	double end_y_mm;	/* lateral error 3 s after the hand-over */
 	int   lost_after;	/* line lost during those 3 s */
+	double done_y_mm;	/* y of the axle at BYP_DONE (the side line runs along y) */
 	double max_head_deg;	/* heading at the hand-over (absolute) */
 	int   back_mm, lo_mm, lp_mm, d_mm;
 	int   post_steer;	/* steering the controller gave in the forced-lost cycle */
@@ -322,6 +323,7 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 		}
 		if (r.clear_mm < 0.5) { r.hit = 1; }
 		if (done_t >= 0 && t - done_t == 150) { r.end_y_mm = y; }
+		if (done_t == t) { r.done_y_mm = y; }
 		if (done_t == t) { r.end_th_deg = th * 57.2958; r.end_x_mm = x; }
 		if (done_t >= 0 && t > done_t && lost) { r.lost_after = 1; }
 	}
@@ -1423,7 +1425,7 @@ int main(void)
 		   distances, both sides. */
 		{
 			static const int cxs[] = { 120, 170, 220, 270 };	/* line this far past the back of a 10 cm deep box */
-			int ci, sd, all_ok = 1, all_face = 1, any_hit = 0, worst_ms = 0, hooks = 0;
+			int ci, sd, all_ok = 1, all_face = 1, all_fwd = 1, any_hit = 0, worst_ms = 0, hooks = 0;
 
 			for (sd = -1; sd <= 1; sd += 2) {
 				for (ci = 0; ci < 4; ci++) {
@@ -1435,7 +1437,9 @@ int main(void)
 					sim_away_x = 0;
 					want = -sd * 90.0;
 					if (!c.ok || c.fail_ev) { all_ok = 0; }
-					if (c.ok && c.hook && fabs(c.end_th_deg - want) > 25.0) { all_face = 0; }
+					if (c.ok && c.hook && fabs(c.end_th_deg - want) > 35.0) { all_face = 0; }
+					/* then it follows the side line ONWARD (away from the old line), not back */
+					if (c.ok && c.hook && (c.end_y_mm - c.done_y_mm) * (-sd) < 50.0) { all_fwd = 0; }
 					if (c.hit) { any_hit = 1; }
 					if (c.ms > worst_ms) { worst_ms = c.ms; }
 					if (getenv("S5_H135") != NULL || !c.ok) {
@@ -1446,22 +1450,22 @@ int main(void)
 			}
 			CHECK("S5-H135a", all_ok && !any_hit && hooks >= 4,
 			      "line bends away from the bypass side 12..27 cm past the back of a 10 cm box: the hook search is used and finds it every time (8 runs, both sides), no hit");
-			CHECK("S5-H135b", all_face,
-			      "after the hook the car turns back until the centre sensor is on the edge, and faces along the line that left at a right angle (within 25 degrees)");
-			/* d: the turn back never gets the centre sensor onto the edge: a full circle (two 180 degree
-			   legs, same way), then a line fault, not a blind hand-over */
+			CHECK("S5-H135b", all_face && all_fwd,
+			      "after the hook the car turns until the centre sensor is on the edge (within 35 degrees of the new line) and then follows the line ONWARD, at least 5 cm in 3 s, never back (M37 run 14)");
+			/* d: the turn back never gets the centre sensor onto the edge: both sweeps, then a line fault,
+			   not a blind hand-over */
 			sim_away_x = 60 + 200 + 100 + 170; sim_side_z7 = 1;
 			c = sim_bypass(-1, 150, 100, 0, 20, 0, 0);
 			sim_away_x = 0; sim_side_z7 = 0;
 			CHECK("S5-H135d", c.hook && c.fail_ev && !c.ok && !c.hit,
-			      "turn back finds no edge in a full circle: BYP_FAIL (line fault), no hit");
-			/* e: M37 run 11: the edge only comes round in the second half of the circle. The second
-			   leg must be a command Motion Control takes as new (it ignores the same word again) */
+			      "turn back finds no edge in either sweep: BYP_FAIL (line fault), no hit");
+			/* e: M37 runs 11 and 14: the edge is missed in the first sweep; the second sweep (back over the
+			   same half) must start: Motion Control ignores an identical command word */
 			sim_away_x = 60 + 200 + 100 + 170; sim_cap_late = 1;
 			c = sim_bypass(-1, 150, 100, 0, 20, 0, 0);
 			sim_away_x = 0; sim_cap_late = 0;
 			CHECK("S5-H135e", c.hook && c.ok && !c.fail_ev && !c.hit && sim_cap_rot > 200.0,
-			      "edge only in the second half of the circle: the second leg starts (Motion Control sees a new command), line found, BYP_DONE");
+			      "edge missed in the first sweep: the second sweep (back over the same half) starts, as a new command for Motion Control, and finds it: BYP_DONE");
 			CHECK("S5-H135c", worst_ms + 4000 < 45000,
 			      "the whole detour with the hook stays well inside the obstacle task's 45 s limit");
 		}

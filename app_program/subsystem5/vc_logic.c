@@ -591,10 +591,13 @@ static int byp_next(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 		return 1;
 	case VC_HOOK_STEP + 3:
 	case VC_HOOK_STEP + 4:
-		/* round until the centre is on the line; leg 1 or 2: a full circle. The second leg is one
-		   degree shorter: Motion Control ignores a command word identical to the one it has just
-		   finished (M37 run 11: the second 180 never started and the car stopped after half a circle) */
-		turn_set(v, v->byp_dir, VC_HOOK_CAPTURE_DEG - ((v->byp_step == VC_HOOK_STEP + 4) ? 1 : 0));
+		/* until the centre is on the line. Leg 1 sweeps the half circle that holds the line's onward
+		   direction (from facing back across towards the bypass side); leg 2 sweeps the same half
+		   back again, a second look. Never the other half: that is the way back along the line
+		   (M37 run 14: a full circle found the line's way back and the car drove off backwards).
+		   The opposite sign also makes leg 2 a new command for Motion Control, which ignores a
+		   word identical to the one it has just finished (M37 run 11). */
+		turn_set(v, (v->byp_step == VC_HOOK_STEP + 4) ? -v->byp_dir : v->byp_dir, VC_HOOK_CAPTURE_DEG);
 		v->byp_capture = v->byp_step - (VC_HOOK_STEP + 2);
 		v->found_cnt   = 0;
 		return 1;
@@ -789,8 +792,7 @@ static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 	/* JN_TURN */
 	if (v->byp_capture) {			/* turn back after the hook: stop on the line's edge */
 		if (in->dt_ms > 0) {
-			if (in->line_fresh && !in->lost && in->zone >= VC_HOOK_CAPTURE_ZLO && in->zone <= VC_HOOK_CAPTURE_ZHI &&
-			    (v->byp_capture == 2 || turned_d10(v) >= VC_HOOK_CAPTURE_MIN_DEG * 10)) {
+			if (in->line_fresh && !in->lost && in->zone >= VC_HOOK_CAPTURE_ZLO && in->zone <= VC_HOOK_CAPTURE_ZHI) {
 				v->found_cnt++;
 			} else {
 				v->found_cnt = 0;

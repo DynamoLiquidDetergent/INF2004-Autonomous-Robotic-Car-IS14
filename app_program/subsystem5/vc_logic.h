@@ -244,11 +244,11 @@
 /* The turn back after the hook (M37 runs 7 and 10, 2026-11-17): a fixed 45 degrees left the line
    under the outer sensor only and the line follower swung past it; a 100 degree turn that waited
    for zones 3..5 saw only zone 7 and handed over blind. Now the car turns slowly towards the bypass
-   side (the way that meets the line's onward direction first) in two legs of VC_HOOK_CAPTURE_DEG,
-   a full circle, and stops as soon as the centre sensor is on the line edge (zones
-   VC_HOOK_CAPTURE_ZLO..ZHI). Not found in a full circle: line fault. */
+   side, VC_HOOK_CAPTURE_DEG (the half circle that holds the line's onward direction, not its way
+   back), then the same half back again, and stops as soon as the centre sensor is on the line edge
+   (zones VC_HOOK_CAPTURE_ZLO..ZHI), from the first degree on (M37 run 14: a 25 degree dead band
+   skipped the right edge). Not found in either sweep: line fault. */
 #define VC_HOOK_CAPTURE_DEG	180
-#define VC_HOOK_CAPTURE_MIN_DEG	25	/* first leg only: near 135 deg the sensor can still be over the line back towards the box */
 #define VC_HOOK_CAPTURE_ZLO	3	/* centre sensor on the line edge, outer one off it: */
 #define VC_HOOK_CAPTURE_ZHI	5	/* facing along the line. A slow sweep passes zones 7..1 in turn */
 #define VC_HOOK_CAPTURE_SPEED	60	/* wheel speed of that turn, mm/s (spins are 100) */
