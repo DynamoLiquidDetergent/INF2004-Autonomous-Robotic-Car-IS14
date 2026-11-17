@@ -55,6 +55,15 @@
 					   when it begins, so the scans before it do not count (NFR31's 5 s is
 					   detection to profile, S5-M09) */
 #define S5_MAX_RETRIES		2	/* REVERSE_RETRY attempts (statechart 6.3) */
+/* Watching ahead during the bypass (2026-11-17): the sensor stays at 90 degrees, along the car's
+   heading, and is read all through BYPASSING and REACQUIRING_LINE. Something within S5_BLOCK_CM in
+   S5_BLOCK_CONFIRM readings in a row (a hand, a second obstacle) makes the Vehicle Controller stand
+   still (s5_path_blocked) and keep its detour; once the way is clear it goes on. Still blocked
+   after S5_BLOCK_WAIT_MS: FAULT. The waiting time does not count towards S5_BYPASS_LIMIT_MS.
+   12 cm is less than the sideways gap kept to the box being passed. */
+#define S5_BLOCK_CM		12
+#define S5_BLOCK_CONFIRM	2
+#define S5_BLOCK_WAIT_MS	5000
 #define S5_SERVO_SETTLE_BASE_MS	40	/* assumption A-servo: no SG90 datasheet supplied */
 #define S5_SERVO_SETTLE_PER_DEG	2	/* ms per degree moved (SG90 is about 100 ms / 60 deg) */
 #define S5_STANDALONE_REST_MS	1500	/* bench mode: pause after a scan before watching again */
@@ -79,6 +88,7 @@
 EXPORT volatile UB	s5_obs_state = OBS_ST_IDLE_MONITORING;
 EXPORT volatile H	s5_approach_mm = 0;
 EXPORT volatile UW	s5_obs_summary = 0;
+EXPORT volatile UB	s5_path_blocked = 0;	/* 1: something close ahead during the bypass, the car waits */
 
 LOCAL OBS_CFG		cfg;
 LOCAL OBS_SCAN		scan;
@@ -98,6 +108,9 @@ LOCAL UW		approach_limit_ms;
 LOCAL BOOL		approach_moving;	/* Motion Control has reported DRIVING_DIST */
 LOCAL UW		guard_hits;
 LOCAL UH		approach_odo0;		/* odometry when the move was ordered */
+LOCAL UW		block_hits;		/* close readings in a row during the bypass */
+LOCAL UW		blocked_since;		/* when the car started waiting */
+LOCAL UW		blocked_total;		/* ms waited in this bypass (not part of the time limit) */
 LOCAL BOOL		bg_shift_pending;	/* a move happened: re-project the background before the next profile */
 #endif
 
@@ -331,6 +344,45 @@ LOCAL BOOL approach_over(UINT cm)
 	return TRUE;
 }
 #endif
+
+/* One look ahead during the bypass (see S5_BLOCK_CM). Returns the ms of this bypass that count
+   towards S5_BYPASS_LIMIT_MS (the time since the bypass started, less the waiting). */
+LOCAL UW watch_path(UW start_ms)
+{
+	UINT cm;
+	UW t;
+
+	servo_goto(90);
+	cm = read_distance();
+	t = now_ms();
+	if (s5_obs_state == OBS_ST_FAULT) {
+		s5_path_blocked = 0;
+		return 0;
+	}
+	if (cm != OBS_DIST_NONE && cm <= S5_BLOCK_CM) {
+		block_hits++;
+	} else {
+		block_hits = 0;
+		if (s5_path_blocked) {
+			s5_path_blocked = 0;
+			blocked_total += t - blocked_since;
+			tm_printf((UB*)"obstacle: the way is clear again after %d ms, the bypass goes on\n",
+				  (INT)(t - blocked_since));
+		}
+	}
+	if (!s5_path_blocked && block_hits >= S5_BLOCK_CONFIRM) {
+		s5_path_blocked = 1;
+		blocked_since = t;
+		tm_printf((UB*)"obstacle: something %d cm ahead during the bypass, the car waits (up to %d ms)\n",
+			  (INT)cm, (INT)S5_BLOCK_WAIT_MS);
+	}
+	if (s5_path_blocked && (t - blocked_since) > S5_BLOCK_WAIT_MS) {
+		s5_path_blocked = 0;
+		raise_fault("way still blocked during the bypass");
+		return 0;
+	}
+	return (t - start_ms) - blocked_total - (s5_path_blocked ? (t - blocked_since) : 0);
+}
 
 LOCAL BOOL scan_timed_out(UW start_ms)
 {
@@ -583,16 +635,20 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 				raise_fault("profile not delivered");
 			} else {
 				detect_ms = now_ms();		/* the bypass clock starts here */
+				block_hits = 0;
+				blocked_total = 0;
+				s5_path_blocked = 0;
 				set_state(OBS_ST_BYPASSING);
 			}
 			break;
 
 		case OBS_ST_BYPASSING:
-			/* Vehicle Controller drives round the obstacle, then tells us */
+			/* Vehicle Controller drives round the obstacle, then tells us; meanwhile watch ahead */
 			got = wait_ctrl(S5_CTRL_BYPASS_DONE, 50);
 			if (got & S5_CTRL_BYPASS_DONE) {
 				set_state(OBS_ST_REACQUIRING_LINE);
-			} else if ((now_ms() - detect_ms) > S5_BYPASS_LIMIT_MS) {
+			} else if (watch_path(detect_ms) > S5_BYPASS_LIMIT_MS) {
+				s5_path_blocked = 0;
 				raise_fault("bypass took too long");
 			}
 			break;
@@ -600,9 +656,11 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 		case OBS_ST_REACQUIRING_LINE:
 			got = wait_ctrl(S5_CTRL_LINE_FOUND, 50);
 			if (got & S5_CTRL_LINE_FOUND) {
+				s5_path_blocked = 0;
 				tm_printf((UB*)"obstacle: bypass done in %d ms\n", (INT)(now_ms() - detect_ms));
 				set_state(OBS_ST_IDLE_MONITORING);
-			} else if ((now_ms() - detect_ms) > S5_BYPASS_LIMIT_MS) {
+			} else if (watch_path(detect_ms) > S5_BYPASS_LIMIT_MS) {
+				s5_path_blocked = 0;
 				raise_fault("line not found in time");
 			}
 			break;

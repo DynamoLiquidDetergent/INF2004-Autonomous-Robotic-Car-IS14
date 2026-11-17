@@ -261,6 +261,7 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 		in.fault_mask   = s5_fault_mask;
 		in.obst_present = obs_summary_present(s5_obs_summary) ? 1 : 0;
 		in.phase7       = S5_STANDALONE ? 0 : 1;
+		in.path_blocked = s5_path_blocked ? 1 : 0;
 		take_profile(&prof, &have_prof);
 		in.prof_action     = have_prof ? prof.action : 0;
 		in.prof_closest_cm = have_prof ? prof.closest_cm : 0;

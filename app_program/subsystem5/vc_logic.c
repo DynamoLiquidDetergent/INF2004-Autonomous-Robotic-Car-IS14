@@ -950,6 +950,12 @@ static VC_OUT vc_step_inner(VC_STATE *v, const VC_IN *in0)
 			hold = 0;
 		}
 	}
+	/* something close ahead during the detour (a hand, a second obstacle): stand still, keep the
+	   detour, go on with what is left when the way is clear (Obstacle Detection gives up after a
+	   while and faults) */
+	if (in->path_blocked && (in->obs_state == VC_OBS_BYPASSING || in->obs_state == VC_OBS_REACQUIRING)) {
+		hold = 1;
+	}
 	if (in->phase7 && in->obs_state == VC_OBS_REVERSE_RETRY && !hold) {
 		retry = *in0;				/* too tight to pass: back away straight, then scan again */
 		retry.approach_mm = -VC_RETRY_BACK_MM;

@@ -182,7 +182,8 @@
 #define VC_BYP_SPEED		150	/* mm/s on the two long legs */
 #define VC_BYP_TURN_DEG		90
 #define VC_BYP_DEPTH_MM		200	/* obstacle depth assumed (spec: obstacles are 10..20 cm) */
-#define VC_BYP_CAR_MM		150	/* car body behind the ultrasonic sensor that must also clear it */
+#define VC_BYP_CAR_MM		100	/* car body behind the ultrasonic sensor that must also clear it (150 before 2026-11-17:
+					   S5-H122 keeps the same 8 mm worst clearance at 100, touches at 80) */
 #define VC_BYP_MAX_LEG_MM	1000	/* S2 / odometry sanity limit for one leg */
 #define VC_BYP_FIND_EXTRA_MM	120	/* look for the line this much farther than the shift */
 #define VC_BYP_ADV_MM		(VC_SENSOR_AXLE_MM + VC_BAR_MM / 2)	/* line first seen at its near edge: axle over its centre */
@@ -342,6 +343,7 @@ typedef struct {
 	int		bc_busy;	/* subsystem 3: GP28 is inside a possible barcode (keep the steering small) */
 	int		obst_present;	/* Obstacle Detection has an obstacle (no spinning near it) */
 	int		phase7;		/* the Vehicle Controller does the bypass (S5_STANDALONE 0) */
+	int		path_blocked;	/* s5_path_blocked: something close ahead during the bypass: wait */
 	unsigned	prof_action;	/* newest profile: OBS_ACT_* */
 	unsigned	prof_closest_cm;
 	unsigned	prof_shift_cm;	/* sideways move to pass on the side chosen by prof_action */
