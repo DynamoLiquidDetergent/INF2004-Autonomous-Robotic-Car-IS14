@@ -142,6 +142,10 @@ void obs_bg_forget(OBS_SCAN *s);
    (view_lim), keep the sideways move of the first scan if it was larger, and choose the side
    again. Only ever moves an edge outwards. */
 void obs_merge_first(OBS_PROFILE *p, const OBS_PROFILE *first, const OBS_CFG *cfg);
+/* A fine edge at the limit of the view (p->view_lim, from obs_profile) may lie inside the real edge:
+   forget that side's fine refinement so the next obs_profile plans it from the 15 degree scan, padded
+   as before. Returns the sides forgotten (bit0 right, bit1 left). */
+unsigned obs_unrefine_view_lim(OBS_SCAN *s, const OBS_PROFILE *p);
 /* Median of n (1..5) readings. OBS_DIST_NONE counts as the largest value, so
    one stray reading never wins and a majority of "nothing" gives "nothing". */
 uint16_t obs_median(const uint16_t *v, unsigned n);

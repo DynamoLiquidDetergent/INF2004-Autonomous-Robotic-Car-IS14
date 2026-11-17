@@ -82,7 +82,6 @@ void vc_init(VC_STATE *v, unsigned epoch)
 	v->sw_psi0      = 0;
 	v->post_dir     = 0;
 	v->post_ms      = 0;
-	v->byp_search   = 0;
 	v->byp_wait     = 0;
 	v->sw_lo_mm     = 0;
 	v->sw_lp_mm     = 0;
@@ -302,21 +301,15 @@ static void jn_finish(VC_STATE *v, const VC_IN *in, VC_OUT *o);
 static void search_leg_set(VC_STATE *v);
 static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o);
 
-/* The straight look after the bypass found no line: before giving up, spin on the spot the way
-   the line must be (back across the old line, the side away from the bypass), then twice as far
-   the other way and back, as for any lost line. The obstacle is behind the car by now. */
-static void byp_search_begin(VC_STATE *v, VC_OUT *o)
+/* The straight look after the bypass found no line: the hook search (see VC_HOOK_DEG). Turn
+   towards the old line's side, the side away from the bypass; byp_next() drives on from there.
+   The obstacle is behind the car by now. */
+static void byp_hook_begin(VC_STATE *v, VC_OUT *o)
 {
-	v->search_used = 1;
-	v->search_leg  = 1;
-	v->search_dir  = -v->byp_dir;
-	v->found_cnt   = 0;
-	v->jn_state    = JN_TURN;
-	v->jn_cmd      = VC_BC_NONE;
-	v->jn_on       = 0;
-	v->byp_search  = 1;
-	search_leg_set(v);
-	o->event      |= VC_EV_SEARCH;
+	v->byp_step = VC_HOOK_STEP;
+	v->jn_cmd   = VC_BC_NONE;
+	turn_set(v, -v->byp_dir, VC_HOOK_DEG);
+	o->event   |= VC_EV_HOOK;
 }
 
 /* ---- smooth bypass ---------------------------------------------------------------------- */
@@ -479,11 +472,10 @@ static int sw_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 		break;
 	default:				/* VC_SW_FIND */
 		if (s >= VC_SW_FIND_MM) {
-			v->byp_step = 0;
 			v->sw_kind  = 0;
 			jn_finish(v, in, o);
 			o->event &= ~VC_EV_JN_DONE;
-			byp_search_begin(v, o);		/* look round on the spot before giving up */
+			byp_hook_begin(v, o);		/* the line bent away: hook back for it */
 			return jn_step(v, in, o);
 		}
 		speed = VC_SW_FIND_SPEED;
@@ -589,6 +581,15 @@ static int byp_next(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 	case 8:
 		turn_set(v, v->byp_dir, VC_BYP_TURN_DEG);		/* face along the line */
 		return 1;
+	case VC_HOOK_STEP + 1:
+		drive_set(v, VC_HOOK_MM, VC_HOOK_SPEED, 1);		/* back across, until the line is seen */
+		return 1;
+	case VC_HOOK_STEP + 2:
+		drive_set(v, VC_BYP_ADV_MM, VC_JN_SPEED, 0);		/* wheels over the line */
+		return 1;
+	case VC_HOOK_STEP + 3:
+		turn_set(v, v->byp_dir, VC_HOOK_DEG - 90);		/* face along a line that left at a right angle */
+		return 1;
 	default:
 		v->byp_step = 0;
 		jn_finish(v, in, o);
@@ -691,10 +692,6 @@ static int turn_over(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 	jn_finish(v, in, o);
 	v->line_gave_up = 1;
 	o->event       |= VC_EV_GAVE_UP;
-	if (v->byp_search) {
-		v->byp_search = 0;
-		o->event |= VC_EV_BYP_FAIL;	/* the bypass ends here, line fault */
-	}
 	return 0;
 }
 
@@ -785,10 +782,6 @@ static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 			v->search_leg = 0;
 			jn_finish(v, in, o);
 			o->event |= VC_EV_FOUND;
-			if (v->byp_search) {
-				v->byp_search = 0;
-				o->event |= VC_EV_BYP_DONE;	/* back on the line after the bypass */
-			}
 			return 0;
 		}
 	}

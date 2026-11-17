@@ -149,6 +149,7 @@
 #define VC_EV_BYP_RETURN	0x400u	/* looking for the line: line-lost suppression off */
 #define VC_EV_BYP_DONE		0x800u	/* back on the line, facing along it: set LINE_FOUND */
 #define VC_EV_BYP_FAIL		0x1000u	/* line not found on the way back: stopped, line fault */
+#define VC_EV_HOOK		0x2000u	/* bypass: no line where it should be, the hook search starts */
 
 /* ---- Mission state, reported to subsystem 1 in IF-13 (0..14; S1 proposes 1 = READY) ---- */
 #define VC_MS_INIT		0u	/* power-up: calibrating, being placed on the line */
@@ -229,6 +230,16 @@
 #define VC_SW_PASS_SPEED	90	/* mm/s on the straight past the obstacle */
 #define VC_SW_FIND_SPEED	60	/* mm/s while looking for the line at the end */
 #define VC_SW_FIND_MM		150	/* straight look for the line after the curve */
+/* Hook search (M37, 2026-11-17): the straight look found nothing, so the line bent away from the car
+   while it was out beside the obstacle (a corner towards the old line's side). It now lies behind the
+   car on that side. Turn VC_HOOK_DEG towards that side (facing back and across), drive up to
+   VC_HOOK_MM looking for it, then, once over it, turn back by VC_HOOK_DEG - 90 so the car faces
+   along a line that left at a right angle. A spin on the spot only sweeps the sensors about 6 cm
+   round the axle and missed a line 20 cm away. */
+#define VC_HOOK_DEG		135
+#define VC_HOOK_MM		400
+#define VC_HOOK_SPEED		60	/* mm/s on the hook's straight */
+#define VC_HOOK_STEP		20	/* byp_step of the hook's turn; 21..23 follow */
 #define VC_SW_ZONE_LO		3	/* the line is only taken over when it is this close to the middle ... */
 #define VC_SW_ZONE_HI		5	/* ... of the sensor (zones 3..5), not just at its edge; the last look takes any zone */
 #define VC_SW_BIAS_MS		2500	/* after an early take-over a lost line is searched for towards the way the line leads */
@@ -292,7 +303,6 @@ typedef struct {
 	unsigned	sw_kind;	/* leg of the smooth bypass: VC_SW_BACK .. VC_SW_FIND */
 	int		byp_wait;	/* bypass over early: do not start another until the obstacle task has left BYPASSING */
 	int		post_dir;	/* +1 right, -1 left: where to look if the line is lost just after a bypass take-over, 0 = none */
-	int		byp_search;	/* the spin search after a bypass whose straight look found no line */
 	int		post_ms;	/* time left for that */
 	int		sw_psi0;	/* heading when the settle leg began, tenths of a degree */
 	int		sw_psi_d10;	/* peak heading of this bypass, tenths of a degree */

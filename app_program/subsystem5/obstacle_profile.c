@@ -828,3 +828,21 @@ void obs_merge_first(OBS_PROFILE *p, const OBS_PROFILE *first, const OBS_CFG *cf
 		p->action = OBS_ACT_TURN_LEFT;
 	}
 }
+
+unsigned obs_unrefine_view_lim(OBS_SCAN *s, const OBS_PROFILE *p)
+{
+	unsigned out = 0;
+
+	if (!p->detected) {
+		return 0;
+	}
+	if ((p->view_lim & 1u) && s->fine_deg[0] != 0) {
+		s->fine_deg[0] = 0;
+		out |= 1u;
+	}
+	if ((p->view_lim & 2u) && s->fine_deg[1] != 0) {
+		s->fine_deg[1] = 0;
+		out |= 2u;
+	}
+	return out;
+}

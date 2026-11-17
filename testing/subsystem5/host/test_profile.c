@@ -139,6 +139,8 @@ static int sim_two_boxes(int lo, int hi, int *cases_o, int *retry_o, int *go_o)
 /* ---- S5-H130: finer look at the edges (obs_fine_edges) ---- */
 typedef struct { double D, true_l, true_r; int drop_at, calls; } FINE_CTX;
 
+static double g_face_deg = 90;	/* a ray more than this far off the face's normal (straight ahead) gives no echo */
+
 static uint16_t fine_reader(void *ctx, unsigned deg)
 {
 	FINE_CTX *c = (FINE_CTX *)ctx;
@@ -146,10 +148,11 @@ static uint16_t fine_reader(void *ctx, unsigned deg)
 	int k;
 
 	for (k = -g_beam_n; k <= g_beam_n; k++) {
-		double th = ((double)deg + g_rot + k * 1.5) * 3.14159265358979 / 180.0;
+		double thd = (double)deg + g_rot + k * 1.5;
+		double th = thd * 3.14159265358979 / 180.0;
 		double sn = sin(th), cs = cos(th), x, t;
 
-		if (sn <= 0.05) continue;
+		if (sn <= 0.05 || fabs(thd - 90.0) > g_face_deg) continue;
 		t = c->D / sn;
 		x = c->D * cs / sn;
 		if (x >= c->true_l && x <= c->true_r && t < best) best = t;
@@ -913,6 +916,88 @@ int main(void)
 		first.detected = 0;
 		cfg.right_pad_pm = 0;
 		cfg.margin_cm = 3;
+	}
+	/* S5-H136 (M37 run 1, 2026-11-17): the far scan (about 29 cm) gets the fine edge look too. A flat
+	   face echoes only up to 27 degrees off its normal here. Far scan: 15 degree readings, fine look,
+	   a side whose fine edge is at the limit of the view goes back to the padded 15 degree plan
+	   (obs_unrefine_view_lim); close scan 12 cm nearer: the same, then obs_merge_first. Compared with
+	   the far scan left coarse (as before): never unsafe, and narrower on average. */
+	{
+	int model, any_narrower = 0;
+
+	for (model = 0; model < 2; model++) {	/* 0: ideal beam +/-7.5 deg; 1: the car's beam +/-13.5 deg and right pad */
+		int W, X, D, a, cases = 0, bad_new = 0, bad_old = 0, narrower = 0, wider = 0, worst = 100;
+		double sum_new = 0, sum_old = 0;
+		int hw;
+
+		cfg.right_pad_pm = model ? 250 : 0;
+		cfg.margin_cm = 4;
+		g_beam_n = model ? 9 : 5;
+		hw = (int)cfg.robot_half_width_cm;
+		g_face_deg = 27;
+		for (W = 10; W <= 30; W += 2) {
+		for (X = -12; X <= 12; X += 3) {
+		for (D = 27; D <= 31; D += 2) {
+			FINE_CTX fc;
+			OBS_SCAN sf, sc;
+			OBS_PROFILE pf_old, pf_new, pc, m_old, m_new;
+			double tr = X + W / 2.0, tl = X - W / 2.0;
+			int s_new, s_old, c_new, c_old;
+
+			fc.true_r = tr; fc.true_l = tl; fc.drop_at = -1;
+			/* far scan */
+			fc.D = D; fc.calls = 1000;
+			obs_scan_init(&sf);
+			for (a = 2; a <= 10; a++) obs_scan_set(&sf, (unsigned)a, fine_reader(&fc, (unsigned)(a * 15)));
+			obs_profile(&sf, &cfg, &pf_old);
+			if (!pf_old.detected || (pf_old.action != OBS_ACT_TURN_RIGHT && pf_old.action != OBS_ACT_TURN_LEFT)) continue;
+			(void)obs_fine_edges(&sf, &cfg, 30, 150, fine_reader, &fc);
+			obs_profile(&sf, &cfg, &pf_new);
+			if (obs_unrefine_view_lim(&sf, &pf_new) != 0u) obs_profile(&sf, &cfg, &pf_new);
+			/* close scan */
+			fc.D = D - 12;
+			obs_scan_init(&sc);
+			for (a = 2; a <= 10; a++) obs_scan_set(&sc, (unsigned)a, fine_reader(&fc, (unsigned)(a * 15)));
+			obs_profile(&sc, &cfg, &pc);
+			if (!pc.detected) continue;
+			(void)obs_fine_edges(&sc, &cfg, 30, 150, fine_reader, &fc);
+			obs_profile(&sc, &cfg, &pc);
+			m_old = pc; m_new = pc;
+			obs_merge_first(&m_old, &pf_old, &cfg);
+			obs_merge_first(&m_new, &pf_new, &cfg);
+			cases++;
+			if (m_new.action != OBS_ACT_TURN_RIGHT && m_new.action != OBS_ACT_TURN_LEFT) { bad_new++; continue; }
+			s_new = (m_new.action == OBS_ACT_TURN_RIGHT) ? m_new.right_cm : m_new.left_cm;
+			c_new = (m_new.action == OBS_ACT_TURN_RIGHT) ? s_new - (int)ceil(tr + hw) : s_new - (int)ceil(-tl + hw);
+			if (c_new < 0) bad_new++;
+			if (c_new < worst) worst = c_new;
+			if (m_old.action == OBS_ACT_TURN_RIGHT || m_old.action == OBS_ACT_TURN_LEFT) {
+				s_old = (m_old.action == OBS_ACT_TURN_RIGHT) ? m_old.right_cm : m_old.left_cm;
+				c_old = (m_old.action == OBS_ACT_TURN_RIGHT) ? s_old - (int)ceil(tr + hw) : s_old - (int)ceil(-tl + hw);
+				if (c_old < 0) bad_old++;
+				sum_old += s_old; sum_new += s_new;
+				if (s_new < s_old) narrower++;
+				if (getenv("S5_H136") != NULL && (pc.view_lim != 0)) {
+					printf("[H136] W%d X%d D%d close lim %u: old %s %d/%d new %s %d/%d (far fine %d/%d deg)\n", W, X, D, pc.view_lim,
+					       m_old.action == OBS_ACT_TURN_RIGHT ? "R" : "L", m_old.left_cm, m_old.right_cm,
+					       m_new.action == OBS_ACT_TURN_RIGHT ? "R" : "L", m_new.left_cm, m_new.right_cm, sf.fine_deg[0], sf.fine_deg[1]);
+				}
+				if (s_new > s_old) wider++;
+			}
+		}}}
+		g_face_deg = 90;
+		g_beam_n = 5;
+		printf("[HOST] INFO H136 (%s): %d cases, unsafe old %d new %d, worst clearance new %d cm, mean swing old %.1f new %.1f cm, "
+		       "narrower %d wider %d\n", model ? "car beam" : "ideal beam", cases, bad_old, bad_new, worst, cases ? sum_old / cases : 0.0,
+		       cases ? sum_new / cases : 0.0, narrower, wider);
+		CHECK(model ? "S5-H136b" : "S5-H136a", cases > 100 && bad_new == 0 && wider == 0,
+		      model ? "car beam: with the far fine look every bypass still clears the true edge, never a wider swing"
+			    : "ideal beam: boxes 10..30 cm, 12 cm either side, far scan 27..31 cm: every bypass clears the true edge, never a wider swing");
+		any_narrower += narrower;
+		cfg.right_pad_pm = 0;
+		cfg.margin_cm = 3;
+	}
+	CHECK("S5-H136c", any_narrower > 0, "the far fine look narrows the swing where the far edges are inside the view");
 	}
 	printf("[HOST] subsystem5 SUMMARY %d passed, %d failed\n", pass_n, fail_n);
 	return fail_n ? 1 : 0;

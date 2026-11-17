@@ -346,10 +346,15 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 						  (INT)VC_TURN_TIMEOUT_MS);
 				}
 				if ((o.event & VC_EV_JN_DONE) && v.jn_cmd != VC_BC_FORWARD &&
-				    !(o.event & (VC_EV_BYP_DONE | VC_EV_BYP_FAIL | VC_EV_FOUND | VC_EV_GAVE_UP | VC_EV_SEARCH))) {
+				    !(o.event & (VC_EV_BYP_DONE | VC_EV_BYP_FAIL | VC_EV_FOUND | VC_EV_GAVE_UP | VC_EV_SEARCH | VC_EV_HOOK))) {
 					/* only a real junction turn: the end of a bypass or a search has its own line */
 					tm_printf((UB*)"vc: junction done, turned about %d degrees\n",
 						  (INT)(((v.turn_arc_um * v.turn_dir * 573) / (VC_TRACK_MM * 1000)) / 10));
+				}
+				if (o.event & VC_EV_HOOK) {
+					tm_printf((UB*)"vc: no line after the bypass (it bent away), turning %d deg to the %s "
+						  "and looking up to %d mm back across\n", (INT)VC_HOOK_DEG,
+						  (v.byp_dir > 0) ? "left" : "right", (INT)VC_HOOK_MM);
 				}
 				if (o.event & VC_EV_SEARCH) {
 					tm_printf((UB*)"vc: line lost, spinning on the spot to look for it (%s first)\n",

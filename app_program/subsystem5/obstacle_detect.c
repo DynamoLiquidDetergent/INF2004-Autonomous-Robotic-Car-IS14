@@ -50,7 +50,7 @@
 					   Each ping costs about 60 ms (HC-SR04 minimum cycle). */
 #define S5_USE_BACKGROUND	1	/* take an empty-track scan at start-up and subtract it.
 					   Needs the track in front of the robot to be CLEAR at power-up. */
-#define S5_BYPASS_LIMIT_MS	25000	/* the detour (turns, sideways, past the obstacle, back to the line) or
+#define S5_BYPASS_LIMIT_MS	40000	/* (25 s before the hook search, M37) the detour (turns, sideways, past the obstacle, back to the line) or
 					   the back-away of a retry must finish within this; the clock restarts
 					   when it begins, so the scans before it do not count (NFR31's 5 s is
 					   detection to profile, S5-M09) */
@@ -218,6 +218,42 @@ LOCAL uint16_t fine_read(void *ctx, unsigned deg)
 	servo_goto(deg);
 	return (uint16_t)read_median();
 }
+
+#if S5_FINE_EDGES
+/* Both edges of the box in 3 degree steps, then the profile again. With no far scan to fall back on
+   (this IS the far scan, or the car bypasses straight away), a fine edge at the limit of the view
+   (cfg.view_deg) is not trusted: that side is planned from the 15 degree scan, padded, as before.
+   FALSE when the sensor faulted on the way. */
+LOCAL BOOL refine_edges(void)
+{
+	UW t0 = now_ms();
+	int n = (int)obs_fine_edges(&scan, &cfg, S5_IDX_MIN * OBS_STEP_DEG,
+				    S5_IDX_MAX * OBS_STEP_DEG, fine_read, (void*)0);
+
+	fine_done = TRUE;
+	if (s5_obs_state == OBS_ST_FAULT) {
+		return FALSE;
+	}
+	tm_printf((UB*)"obstacle: fine edges: %d readings in %d ms, right edge %d deg (%d cm), "
+		  "left edge %d deg (%d cm) (0 = not refined)\n", n, (INT)(now_ms() - t0),
+		  (INT)scan.fine_deg[0], (INT)scan.fine_cm[0],
+		  (INT)scan.fine_deg[1], (INT)scan.fine_cm[1]);
+	if (n != 0) {
+		obs_profile(&scan, &cfg, &profile);
+		if (!have_first) {
+			unsigned u = obs_unrefine_view_lim(&scan, &profile);
+
+			if (u != 0u) {
+				obs_profile(&scan, &cfg, &profile);
+				tm_printf((UB*)"obstacle: fine edge at the limit of the view (%s%s), "
+					  "that side planned from the 15 degree scan\n",
+					  (u & 2u) ? "left " : "", (u & 1u) ? "right" : "");
+			}
+		}
+	}
+	return TRUE;
+}
+#endif
 
 LOCAL UINT measure_index(unsigned idx)
 {
@@ -450,25 +486,14 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 #if S5_FINE_EDGES
 			/* About to bypass (no creep first): look at both edges of the box in 3 degree
 			   steps, so the swing is planned for the real edges and not for the outer end of
-			   a 15 degree step. */
+			   a 15 degree step. (Before a creep the far scan's edges are refined further down,
+			   after its profile has gone out.) */
 			if (profile.detected && !fine_done &&
 			    (profile.action == OBS_ACT_TURN_RIGHT || profile.action == OBS_ACT_TURN_LEFT ||
 			     profile.action == OBS_ACT_REVERSE_RETRY) &&
 			    !(approaches < S5_MAX_APPROACHES && obs_approach_mm(&profile, &cfg) != 0)) {
-				UW t0 = now_ms();
-
-				n = (int)obs_fine_edges(&scan, &cfg, S5_IDX_MIN * OBS_STEP_DEG,
-							S5_IDX_MAX * OBS_STEP_DEG, fine_read, (void*)0);
-				fine_done = TRUE;
-				if (s5_obs_state == OBS_ST_FAULT) {
+				if (!refine_edges()) {
 					break;
-				}
-				tm_printf((UB*)"obstacle: fine edges: %d readings in %d ms, right edge %d deg (%d cm), "
-					  "left edge %d deg (%d cm) (0 = not refined)\n", n, (INT)(now_ms() - t0),
-					  (INT)scan.fine_deg[0], (INT)scan.fine_cm[0],
-					  (INT)scan.fine_deg[1], (INT)scan.fine_cm[1]);
-				if (n != 0) {
-					obs_profile(&scan, &cfg, &profile);
 				}
 			}
 #endif
@@ -507,6 +532,24 @@ EXPORT void obstacle_detect_task(INT stacd, void *exinf)
 			} else if (approaches < S5_MAX_APPROACHES &&
 				   (mm = obs_approach_mm(&profile, &cfg)) != 0) {
 				if (approaches == 0) {
+#if S5_FINE_EDGES
+					/* M37 (2026-11-17): refine the far scan's edges too. From about 29 cm the
+					   edges of a box up to about 27 cm wide lie inside the angle a flat face
+					   still echoes at (cfg.view_deg); from 17 cm only up to about 16 cm, so the
+					   close scan's edges often sit at that limit and this far plan is used (a
+					   31 cm swing when it was the coarse, padded one). Done after the profile
+					   above has gone out, so NFR31 (detection to profile) is not stretched;
+					   it costs about 2 s before the creep. */
+					if (!fine_done) {
+						if (!refine_edges()) {
+							break;
+						}
+						servo_goto(90);
+						tm_printf((UB*)"obstacle: far plan after the fine edges: width %d cm, left %d cm, "
+							  "right %d cm, action %d\n", (INT)profile.width_cm, (INT)profile.left_cm,
+							  (INT)profile.right_cm, (INT)profile.action);
+					}
+#endif
 					first_prof = profile;	/* the far scan sees the whole face */
 					have_first = TRUE;
 				}

@@ -130,6 +130,7 @@ static int sim_corner_x;	/* > 0: the line turns toward the bypass side at this x
 static int sim_obs_lag;		/* cycles the obstacle task stays in BYPASSING after BYP_PASSED */
 static int sim_never_find;	/* 1 = the line is never seen again after the start */
 static int sim_find_on_spin;	/* 1 = the line is only seen once the car turns on the spot (lost in the straight look) */
+static int sim_away_x;		/* > 0: the line turns AWAY from the bypass side (towards the old line's side) at this x (mm) */
 
 typedef struct {
 	int   ok;		/* finished with VC_EV_BYP_DONE */
@@ -144,6 +145,8 @@ typedef struct {
 	int   post_steer;	/* steering the controller gave in the forced-lost cycle */
 	int   starts, early;	/* BYP_START events, BYP_DONE without the return curve (line met early) */
 	int   spin_ev;
+	double end_th_deg, end_x_mm;
+	int   hook;			/* VC_EV_HOOK seen */	/* heading (+ = clockwise) and x of the axle at BYP_DONE */
 	int   turns, zero_steer, max_steer;	/* turns on the spot, steer 0 commands, largest |steer| during the detour */
 } SIMRES;
 
@@ -208,6 +211,14 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 			lost = (d_main > 32.0 && d_side > 32.0) ? 1 : 0;
 			rel = 0.0;
 		}
+		if (sim_away_x > 0) {			/* main line ends at the corner, the side line goes off away from the bypass */
+			double sxx = x + 50.0 * cs, syy = y + 50.0 * sn;
+			double d_main = (sxx <= sim_away_x) ? fabs(syy) : 1e9;
+			double d_side = (-syy * side >= -20.0) ? fabs(sxx - sim_away_x) : 1e9;
+
+			lost = (d_main > 32.0 && d_side > 32.0) ? 1 : 0;
+			rel = 0.0;
+		}
 		zone = lost ? 0 : 4 + (int)lround(rel / 10.0);
 		if (zone < 1 && !lost) { zone = 1; }
 		if (zone > 7) { zone = 7; }
@@ -228,6 +239,7 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 			started = 1; start_t = t;
 			r.back_mm = v.sw_back_mm; r.lo_mm = v.sw_lo_mm; r.lp_mm = v.sw_lp_mm; r.d_mm = v.sw_d_mm;
 		}
+		if (o.event & VC_EV_HOOK) { r.hook = 1; }
 		if (o.event & VC_EV_BYP_FAIL) { r.fail_ev = 1; break; }
 		if ((o.event & VC_EV_BYP_PASSED) && v.sw_kind != VC_SW_RET) { r.early = 1; }
 		if (o.event & VC_EV_BYP_PASSED) { lag = sim_obs_lag; if (lag == 0) { obs = 5; } }
@@ -283,6 +295,7 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 		}
 		if (r.clear_mm < 0.5) { r.hit = 1; }
 		if (done_t >= 0 && t - done_t == 150) { r.end_y_mm = y; }
+		if (done_t == t) { r.end_th_deg = th * 57.2958; r.end_x_mm = x; }
 		if (done_t >= 0 && t > done_t && lost) { r.lost_after = 1; }
 	}
 	if (!r.ok) { r.end_y_mm = y; }
@@ -1376,12 +1389,41 @@ int main(void)
 		c = sim_bypass(-1, 150, 200, 0, 20, 0, 0);
 		sim_never_find = 0;
 		CHECK("S5-H123i", c.fail_ev && !c.ok && c.turns > 0 && !c.hit,
-		      "line never found again: after the 150 mm look the car spins on the spot to look (no hit), then BYP_FAIL and stops");
-		sim_find_on_spin = 1;
-		c = sim_bypass(-1, 150, 200, 0, 20, 0, 0);
-		sim_find_on_spin = 0;
-		CHECK("S5-H123j", c.ok && !c.fail_ev && c.turns > 0 && !c.hit,
-		      "line missed by the straight look but found by the spin: back on the line (BYP_DONE), no hit");
+		      "line never found again: after the 150 mm look the car turns for the hook search, drives it out (no hit), then BYP_FAIL and stops");
+		/* H135: M37 run 1 (2026-11-17): the line turned right, away from a bypass on the left, about 175 mm
+		   past the box's centre. The car came back onto the old line's path beyond the corner and found
+		   nothing; the hook search must find the line behind it and face along it. Corners at several
+		   distances, both sides. */
+		{
+			static const int cxs[] = { 120, 170, 220, 270 };	/* line this far past the back of a 10 cm deep box */
+			int ci, sd, all_ok = 1, all_face = 1, any_hit = 0, worst_ms = 0, hooks = 0;
+
+			for (sd = -1; sd <= 1; sd += 2) {
+				for (ci = 0; ci < 4; ci++) {
+					double want;
+
+					sim_away_x = 60 + 200 + 100 + cxs[ci];	/* sensor 60, gap 20 cm, the box, then the line */
+					c = sim_bypass(sd, 150, 100, 0, 20, 0, 0);
+					hooks += c.hook;
+					sim_away_x = 0;
+					want = -sd * 90.0;
+					if (!c.ok || c.fail_ev) { all_ok = 0; }
+					if (c.ok && c.hook && fabs(c.end_th_deg - want) > 25.0) { all_face = 0; }
+					if (c.hit) { any_hit = 1; }
+					if (c.ms > worst_ms) { worst_ms = c.ms; }
+					if (getenv("S5_H135") != NULL || !c.ok) {
+						printf("[H135] side %d corner %d: ok %d fail %d hit %d th %.0f x %.0f ms %d\n", sd, cxs[ci],
+						       c.ok, c.fail_ev, c.hit, c.end_th_deg, c.end_x_mm, c.ms);
+					}
+				}
+			}
+			CHECK("S5-H135a", all_ok && !any_hit && hooks >= 4,
+			      "line bends away from the bypass side 12..27 cm past the back of a 10 cm box: the hook search is used and finds it every time (8 runs, both sides), no hit");
+			CHECK("S5-H135b", all_face,
+			      "after the hook the car faces along the line that left at a right angle (within 25 degrees)");
+			CHECK("S5-H135c", worst_ms + 4000 < 40000,
+			      "the whole detour with the hook stays well inside the obstacle task's 40 s limit");
+		}
 		c = sim_bypass(1, 200, 200, 0, 17, 0, 0);
 		CHECK("S5-H123f", c.ok && !c.hit && c.clear_mm >= 5.0 && c.ms < 20000,
 		      "20 cm box, 17 cm away (the M33 set-up): done, at least 5 mm clear of the box, under 20 s");
