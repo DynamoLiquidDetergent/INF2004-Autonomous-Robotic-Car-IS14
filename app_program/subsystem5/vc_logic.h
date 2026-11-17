@@ -237,9 +237,16 @@
    along a line that left at a right angle. A spin on the spot only sweeps the sensors about 6 cm
    round the axle and missed a line 20 cm away. */
 #define VC_HOOK_DEG		135
-#define VC_HOOK_MM		400
+#define VC_HOOK_MM		650	/* 400 before M37 runs 8 and 9: the line was about 5 cm further */
 #define VC_HOOK_SPEED		60	/* mm/s on the hook's straight */
 #define VC_HOOK_STEP		20	/* byp_step of the hook's turn; 21..23 follow */
+/* The turn back after the hook (M37 run 7, 2026-11-17): a fixed 45 degrees left the line under the
+   outer sensor only, and the line follower swung past it. Now the car turns back up to
+   VC_HOOK_CAPTURE_DEG, slowly, and stops as soon as the centre sensor is on the line's edge
+   (zones VC_SW_ZONE_LO..HI): it then faces along the line wherever it leads. */
+#define VC_HOOK_CAPTURE_DEG	100
+#define VC_HOOK_CAPTURE_MIN_DEG	25	/* not before this: at 135 deg the sensor can still be over the line back towards the box */
+#define VC_HOOK_CAPTURE_SPEED	60	/* wheel speed of that turn, mm/s (spins are 100) */
 #define VC_SW_ZONE_LO		3	/* the line is only taken over when it is this close to the middle ... */
 #define VC_SW_ZONE_HI		5	/* ... of the sensor (zones 3..5), not just at its edge; the last look takes any zone */
 #define VC_SW_BIAS_MS		2500	/* after an early take-over a lost line is searched for towards the way the line leads */
@@ -291,6 +298,7 @@ typedef struct {
 	int		search_dir;	/* +1 right first, -1 left first */
 	int		search_used;	/* the one sweep of this loss is used */
 	int		found_cnt;	/* line messages in a row with the line seen, during the search */
+	int		byp_capture;	/* 1: the turn back after the hook stops on the line's edge */
 	int		byp_step;	/* 0 = no bypass, 1..8 = step of the detour */
 	int		byp_dir;	/* +1 round the right, -1 round the left */
 	int		byp_s_mm;	/* the shift sideways */

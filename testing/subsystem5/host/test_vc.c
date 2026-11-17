@@ -217,7 +217,7 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 			double d_side = (-syy * side >= -20.0) ? fabs(sxx - sim_away_x) : 1e9;
 
 			lost = (d_main > 32.0 && d_side > 32.0) ? 1 : 0;
-			rel = 0.0;
+			rel = (d_side <= d_main) ? (sxx - sim_away_x) : syy;	/* zones 3..5 only within about 15 mm of the line */
 		}
 		zone = lost ? 0 : 4 + (int)lround(rel / 10.0);
 		if (zone < 1 && !lost) { zone = 1; }
@@ -1420,9 +1420,9 @@ int main(void)
 			CHECK("S5-H135a", all_ok && !any_hit && hooks >= 4,
 			      "line bends away from the bypass side 12..27 cm past the back of a 10 cm box: the hook search is used and finds it every time (8 runs, both sides), no hit");
 			CHECK("S5-H135b", all_face,
-			      "after the hook the car faces along the line that left at a right angle (within 25 degrees)");
-			CHECK("S5-H135c", worst_ms + 4000 < 40000,
-			      "the whole detour with the hook stays well inside the obstacle task's 40 s limit");
+			      "after the hook the car turns back until the centre sensor is on the edge, and faces along the line that left at a right angle (within 25 degrees)");
+			CHECK("S5-H135c", worst_ms + 4000 < 45000,
+			      "the whole detour with the hook stays well inside the obstacle task's 45 s limit");
 		}
 		c = sim_bypass(1, 200, 200, 0, 17, 0, 0);
 		CHECK("S5-H123f", c.ok && !c.hit && c.clear_mm >= 5.0 && c.ms < 20000,

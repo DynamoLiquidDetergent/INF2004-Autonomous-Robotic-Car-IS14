@@ -68,6 +68,7 @@ void vc_init(VC_STATE *v, unsigned epoch)
 	v->search_used  = 0;
 	v->found_cnt    = 0;
 	v->byp_step     = 0;
+	v->byp_capture = 0;
 	v->byp_dir      = 1;
 	v->byp_s_mm     = 0;
 	v->byp_f_mm     = 0;
@@ -361,6 +362,7 @@ static int sw_moved(const VC_STATE *v, const VC_IN *in)
 static void sw_done(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 {
 	v->byp_step = 0;
+	v->byp_capture = 0;
 	v->sw_kind  = 0;
 	jn_finish(v, in, o);
 	o->event |= VC_EV_BYP_DONE;
@@ -588,9 +590,12 @@ static int byp_next(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 		drive_set(v, VC_BYP_ADV_MM, VC_JN_SPEED, 0);		/* wheels over the line */
 		return 1;
 	case VC_HOOK_STEP + 3:
-		turn_set(v, v->byp_dir, VC_HOOK_DEG - 90);		/* face along a line that left at a right angle */
+		turn_set(v, v->byp_dir, VC_HOOK_CAPTURE_DEG);		/* back round until the centre is on the edge */
+		v->byp_capture = 1;
+		v->found_cnt   = 0;
 		return 1;
 	default:
+		v->byp_capture = 0;
 		v->byp_step = 0;
 		jn_finish(v, in, o);
 		o->event |= VC_EV_BYP_DONE;
@@ -755,6 +760,7 @@ static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 		}
 		if (v->drv_find) {		/* the line was not where it should be */
 			v->byp_step = 0;
+			v->byp_capture = 0;
 			jn_finish(v, in, o);
 			v->line_gave_up = 1;
 			o->event |= VC_EV_BYP_FAIL | VC_EV_GAVE_UP;
@@ -770,6 +776,23 @@ static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 		turn_set(v, v->turn_dir, v->turn_target_d10 / 10);
 	}
 	/* JN_TURN */
+	if (v->byp_capture) {			/* turn back after the hook: stop on the line's edge */
+		if (in->dt_ms > 0) {
+			if (in->line_fresh && !in->lost && in->zone >= VC_SW_ZONE_LO && in->zone <= VC_SW_ZONE_HI &&
+			    turned_d10(v) >= VC_HOOK_CAPTURE_MIN_DEG * 10) {
+				v->found_cnt++;
+			} else {
+				v->found_cnt = 0;
+			}
+		}
+		if (v->found_cnt >= VC_SEARCH_FOUND_MSGS) {
+			v->byp_capture = 0;
+			v->byp_step = 0;
+			jn_finish(v, in, o);
+			o->event |= VC_EV_BYP_DONE;
+			return 0;
+		}
+	}
 	if (v->search_leg != 0) {		/* the line is looked for while spinning */
 		if (in->dt_ms > 0) {
 			if (in->line_fresh && !in->lost && in->zone != 0) {
@@ -808,7 +831,7 @@ static int jn_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 		return turn_over(v, in, o);
 	}
 	o->mode     = VC_MODE_TURN;
-	o->speed    = VC_TURN_SPEED;
+	o->speed    = v->byp_capture ? VC_HOOK_CAPTURE_SPEED : VC_TURN_SPEED;
 	o->turn_deg = v->turn_dir * v->turn_cmd_deg;
 	return 1;
 }
@@ -886,6 +909,7 @@ static VC_OUT vc_step_inner(VC_STATE *v, const VC_IN *in0)
 		/* Obstacle Detection gave up (fault, timeout) in the middle of the detour: drop it.
 		   The car is off the line; line following and the spin search take over. */
 		v->byp_step = 0;
+		v->byp_capture = 0;
 		v->jn_state = JN_NONE;
 		v->jn_on    = 0;
 		v->turn_live = 0;
