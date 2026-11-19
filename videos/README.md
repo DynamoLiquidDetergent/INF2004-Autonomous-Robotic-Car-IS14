@@ -39,3 +39,6 @@ Newest at the bottom. Never delete a row.
 | Date | Subsystem | Test ID / demo | Commit | Student ID | Link | Notes |
 |---|---|---|---|---|---|---|
 | YYYY-MM-DD | S1 | S1-U03 | `abc1234` | | <https://youtu.be/...> | LED blinks at 2 Hz |
+| 2026-10-29 | S3 | S3-I01 (printed `INT-01`) | `494b82f` | 2500172 | https://youtu.be/egCM2ayKMbE | `line_sensor_task` delivers `LINE_DATA_MSG` on `q_line_data` within 100 ms; calibration timed out (left/centre sensors unplugged), default range kept |
+| 2026-10-30 | S3 | S3-M03 | `ccf825a` | 2500172 | https://youtu.be/FmM1FnGhDMA | robot drives at 100 mm/s over `*Z*` then `*A*`; each decoded once (`ch=Z cmd=2`, `ch=A cmd=1`) without stopping; Z-then-A run only |
+| 2026-11-04 | S3 | S3-M04 line-following demo | `90e353c` | 2500172 | https://youtube.com/shorts/brAS69HngTo | follows the black line on its own with the left + centre sensors, through curves (S3 demo standing in for S5's Vehicle Controller) |
