@@ -28,6 +28,7 @@
 #include "telemetry.h"
 #include "s1_topics.h"
 #include "cmd_parse.h"
+#include "../subsystem5/subsystem5.h"   /* IF-14: mbf_sup_cmd, SUP_* */
 #include "telem_pack.h"
 #include "outage_buf.h"
 
@@ -77,6 +78,7 @@ static void s1_send_event(s1_telem_ctx_t *p_ctx, uint8_t type, uint16_t data);
 static bool s1_tx_put(uint8_t topic, const uint8_t *p_frame, uint8_t len);
 static bool s1_tx_has_room(uint8_t len);
 static void s1_count_drop(s1_telem_ctx_t *p_ctx);
+static void s1_send_sup(s1_telem_ctx_t *p_ctx, uint8_t cmd);
 
 EXPORT void telemetry_task(INT stacd, void *exinf)
 {
@@ -96,6 +98,7 @@ EXPORT void telemetry_task(INT stacd, void *exinf)
     cmd_parse_init(&s_ctx.parser);
     outage_buf_init(&s_ctx.outage);
     s_ctx.b_link_up = s1_read_link();
+    s1_send_sup(&s_ctx, (uint8_t)SUP_CMD_NONE);   /* IF-14: link state */
 
     (void)tk_get_tim(&now);
     next_ms = now.lo + TELEM_TICK_MS;
@@ -199,6 +202,7 @@ static void s1_update_link(s1_telem_ctx_t *p_ctx)
     if (b_up != p_ctx->b_link_up)
     {
         p_ctx->b_link_up = b_up;
+        s1_send_sup(p_ctx, (uint8_t)SUP_CMD_NONE);   /* IF-14: FR9 */
         if (b_up)
         {
             tm_printf((UB *)"s1: link up, %d frame(s) to replay\n",
@@ -264,10 +268,10 @@ static void s1_handle_rx(s1_telem_ctx_t *p_ctx)
         {
             result = cmd_parse(&p_ctx->parser, &msg[1],
                                (uint32_t)(len - 1), &cmd);
-            /* Accepted commands go to S5 over IF-14 at integration */
             data = (uint16_t)cmd;
             if (result == CMD_OK)
             {
+                s1_send_sup(p_ctx, cmd);          /* IF-14 to S5 */
                 data = (uint16_t)(data | S1_EVT_CMD_OK);
             }
             s1_send_event(p_ctx, TELEM_EVT_CMD_ACK, data);
@@ -466,5 +470,29 @@ static void s1_count_drop(s1_telem_ctx_t *p_ctx)
     if (p_ctx->tx_drops < S1_COUNT_MAX)
     {
         p_ctx->tx_drops++;
+    }
+}
+
+/*
+ * IF-14: one byte to S5's Vehicle Controller.  Bits 0-1 the command
+ * (SUP_CMD_NONE for a link-only update), bit 2 link up (FR9).  Sent with
+ * TMO_POL; if S5 has not emptied its buffer the byte is dropped and
+ * counted.  Skipped if S5 did not create the buffer.
+ */
+static void s1_send_sup(s1_telem_ctx_t *p_ctx, uint8_t cmd)
+{
+    UB b = (UB)(cmd & SUP_CMD_MASK);
+
+    if (mbf_sup_cmd <= 0)
+    {
+        return;
+    }
+    if (p_ctx->b_link_up)
+    {
+        b = (UB)(b | SUP_LINK_UP);
+    }
+    if (tk_snd_mbf(mbf_sup_cmd, &b, (INT)sizeof(b), TMO_POL) != E_OK)
+    {
+        s1_count_drop(p_ctx);
     }
 }
