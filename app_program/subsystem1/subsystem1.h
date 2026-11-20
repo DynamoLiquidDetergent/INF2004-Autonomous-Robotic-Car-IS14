@@ -106,29 +106,11 @@ IMPORT BOOL s1_nav_lookup(UB letter, UB *p_move);
 IMPORT void s1_set_nav_map(UW map_word);
 
 /*
- * TEMPORARY: stand-in for S5 until its real IF-13 sender exists.
- * Normal builds only (test builds send IF-13 from the tests).
- * Set to 0 and DELETE once S5 sends IF-13.
- */
-#define S1_FAKE_S5          (0)    /* S5 sends IF-13 now (vehicle_controller.c) */
-
-/*
  * Debug: in builds WITHOUT MQTT=1, a task takes each message from
  * mbf_mqtt_tx and prints what would be published.  With MQTT=1,
  * mqtt_utk.c publishes them instead and this task is not built.
  * Test builds drain the buffer themselves.  Set to 0 to drop it.
  */
 #define S1_TX_SINK          (1)
-
-/*
- * TEMPORARY: IF-05 compatibility for S4's example monitor, which
- * suspends/resumes tid_led.  tid_led is a stub task that only sleeps.
- * Set to 0 and DELETE once S4 removes IF-05 code.
- */
-#define S1_IF05_COMPAT      (1)
-#if S1_IF05_COMPAT
-#define S1_PRI_LED          (S1_PRI_TELEM)
-IMPORT ID tid_led;
-#endif
 
 #endif /* SUBSYSTEM1_H */

@@ -19,10 +19,6 @@
 #define S1_RX_DEPTH          (4U)   /* commands/maps arrive rarely     */
 #define S1_STATUS_DEPTH      (2U)   /* S1 only needs the newest        */
 
-#define S1_FAKE_PERIOD_MS    (500)    /* IF-13 period                  */
-#define S1_FAKE_PHASE_SENDS  (20U)    /* 10 s READY, then 10 s state 2 */
-#define S1_FAKE_HUMP_SENDS   (60U)    /* first hump reported after 30 s */
-#define S1_FAKE_HUMP_MM      (42U)    /* its peak height                */
 
 EXPORT ID g_s1_tid_telem = 0;
 EXPORT ID mbf_telem_status = 0;
@@ -97,10 +93,6 @@ static ID s1_create_mbf(INT maxmsz, UW depth);
 static UW s1_fit(UW value, UW max, UW none);
 static UW s1_put(UW value, UW width, UW shift);
 static UW s1_get(UW word, UW width, UW shift);
-#if S1_FAKE_S5 && !APP_TEST
-static void fake_s5_task(INT stacd, void *exinf);
-#endif
-
 #if S1_TX_SINK && !APP_TEST && !(defined(TM_MQTT) && (TM_MQTT == 1))
 #define S1_USE_TX_SINK       (1)
 static void tx_sink_task(INT stacd, void *exinf);
@@ -117,23 +109,6 @@ typedef char s1_check_map_moves[((S1_MOVE_FORWARD == CMD_MOVE_FORWARD) &&
                                  (S1_MOVE_UTURN == CMD_MOVE_UTURN) &&
                                  (S1_MOVE_LEFT == CMD_MOVE_LEFT) &&
                                  (S1_MOVE_RIGHT == CMD_MOVE_RIGHT)) ? 1 : -1];
-
-#if S1_IF05_COMPAT
-EXPORT ID tid_led = 0;
-
-/* Stub for S4's IF-05: sleeps forever, safe to suspend/resume.
-   DELETE when S4 removes its IF-05 code. */
-static void if05_stub_task(INT stacd, void *exinf)
-{
-    (void)stacd;
-    (void)exinf;
-
-    for (;;)
-    {
-        (void)tk_slp_tsk(TMO_FEVR);
-    }
-}
-#endif
 
 /* Create kernel objects: the IF-13 and IF-15 message buffers. */
 EXPORT ER subsystem1_init(void)
@@ -177,18 +152,6 @@ EXPORT ER subsystem1_start(void)
         er = g_s1_tid_telem;
     }
 
-#if S1_FAKE_S5 && !APP_TEST
-    if (er == E_OK)
-    {
-        ID tid_fake = app_start_task(fake_s5_task, S1_PRI_TELEM, 0,
-                                     "fake_s5");
-        if (tid_fake < E_OK)
-        {
-            er = tid_fake;
-        }
-    }
-#endif
-
 #if S1_USE_TX_SINK
     if (er == E_OK)
     {
@@ -197,18 +160,6 @@ EXPORT ER subsystem1_start(void)
         if (tid_sink < E_OK)
         {
             er = tid_sink;
-        }
-    }
-#endif
-
-#if S1_IF05_COMPAT
-    if (er == E_OK)
-    {
-        tid_led = app_start_task(if05_stub_task, S1_PRI_LED, 0,
-                                 "if05_stub");
-        if (tid_led < E_OK)
-        {
-            er = tid_led;
         }
     }
 #endif
@@ -365,42 +316,6 @@ static ID s1_create_mbf(INT maxmsz, UW depth)
     cmbf.bufsz  = (SZ)(depth * S1_MBF_SLOT(maxmsz));
     return tk_cre_mbf(&cmbf);
 }
-
-#if S1_FAKE_S5 && !APP_TEST
-/*
- * TEMPORARY stand-in for S5's IF-13 sender (normal builds only).
- * Every 500 ms: mission time counts up, the letter steps A..Z, and the
- * state alternates READY / 2 every 10 s so STATE_CHANGE events appear.
- */
-static void fake_s5_task(INT stacd, void *exinf)
-{
-    s1_status_t st = {0};
-    UW          sends = 0U;
-
-    (void)stacd;
-    (void)exinf;
-
-    st.obst_dist_cm  = (uint16_t)TELEM_OBST_DIST_NONE;
-    st.obst_width_cm = (uint8_t)TELEM_OBST_WIDTH_NONE;
-
-    for (;;)
-    {
-        /* FR5 demo: no hump for the first 30 s, then a 42 mm peak */
-        st.hump_peak_mm    = (sends < S1_FAKE_HUMP_SENDS) ?
-                             (uint8_t)TELEM_HUMP_NONE :
-                             (uint8_t)S1_FAKE_HUMP_MM;
-        st.mission_time_ds = (uint16_t)(sends * 5U);
-        st.mission_state   = (((sends / S1_FAKE_PHASE_SENDS) % 2U) == 0U) ?
-                             (uint8_t)S1_MSTATE_READY : 2U;
-        st.letter          = (uint8_t)(sends % 26U);
-        st.barcodes        = (uint8_t)((sends / 10U) % 16U);
-
-        (void)s1_status_send(&st);
-        sends++;
-        (void)tk_dly_tsk(S1_FAKE_PERIOD_MS);
-    }
-}
-#endif
 
 #if S1_USE_TX_SINK
 /*

@@ -76,7 +76,10 @@
     var MOVE_NAMES = ["FORWARD", "U-TURN", "LEFT", "RIGHT"];
     var SIDE_NAMES = ["none", "left", "right", "?"];
     var MAP_REASONS = ["format", "letter", "duplicate", "state"];
-    var STATE_NAMES = { 1: "READY" };          /* PROPOSED, IF-13 */
+    var STATE_NAMES = {                        /* S5 vc_logic.h VC_MS_* */
+        0: "INIT", 1: "READY", 2: "RUNNING", 3: "PAUSED", 4: "AVOIDING",
+        5: "FAULT", 6: "ABORTED", 7: "TURNING"
+    };
 
     var CMD_CODES = { PAUSE: 1, RESUME: 2, ABORT: 3 };
     var CMD_NAMES = ["?", "PAUSE", "RESUME", "ABORT"];
