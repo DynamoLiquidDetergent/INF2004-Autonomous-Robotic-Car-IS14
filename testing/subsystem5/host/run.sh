@@ -12,3 +12,6 @@ gcc -std=c99 -Wall -Wextra -Wpedantic -O1 -fsanitize=address,undefined \
 gcc -std=c99 -Wall -Wextra -Wpedantic -O1 -fsanitize=address,undefined \
     test_vc.c ../../../app_program/subsystem5/vc_logic.c -lm -o /tmp/s5_host_vc
 /tmp/s5_host_vc
+gcc -std=c99 -Wall -Wextra -Wpedantic -O1 -fsanitize=address,undefined \
+    test_handling.c ../../../app_program/subsystem5/handling_logic.c -lm -o /tmp/s5_host_handling
+/tmp/s5_host_handling
