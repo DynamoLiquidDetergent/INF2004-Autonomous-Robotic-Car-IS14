@@ -20,6 +20,15 @@
 #include "../subsystem1/subsystem1.h"	/* IF-13 */
 #include "../subsystem4/s4_integration.h"
 #include "../subsystem4/s4_bench_stop.h"
+#include "handling_logic.h"				/* HL_COLLISION, HL_PICKED_UP */
+
+/* Demo rubric: stop the motors when the car hits something or is picked up; that ends the
+   run (ABORTED, motors off until reset). The check itself runs in subsystem 4's IMU task
+   (handling_logic.c); a motor stall reported by subsystem 2 also counts as a collision.
+   Only while the run is under way: being put on the line before the start is not an event. */
+#ifndef S5_HANDLING_STOP
+#define S5_HANDLING_STOP	1
+#endif
 
 #if S5_PHASE >= 6
 
@@ -199,6 +208,10 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 	int height_bench_announced = 0;
 #endif
 	int		last_hold = 0;
+#if S5_HANDLING_STOP
+	UW		hl_seen = 0;
+	int		hl_stopped = 0;
+#endif
 	int		last_creep = 0;
 	int		done_sent = 0;
 
@@ -348,6 +361,26 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 			tm_printf((UB*)"S4_BENCH STOP kind=%u reason=%s odo_mm=%u humps=%u\n",
 				(UINT)height_bench.kind,s4_bench_stop_reason(height_bench.reason),
 				(UINT)in.odo_mm,(UINT)subsystem4_completed_humps());
+		}
+#endif
+#if S5_HANDLING_STOP
+		{
+			UW hl_n;
+			UINT hl_kind = subsystem4_handling(&hl_n);
+			UINT ms = o.mission_state;
+			int active = v.started && !v.aborted &&
+				     (ms == VC_MS_RUNNING || ms == VC_MS_AVOIDING || ms == VC_MS_TURNING ||
+				      ms == VC_MS_PAUSED || ms == VC_MS_FAULT);
+
+			if (!active) {
+				hl_seen = hl_n;		/* anything before the start does not count */
+			} else if (!hl_stopped && (hl_n != hl_seen || in.motion_state == S2_STATE_STALLED)) {
+				hl_stopped = 1;
+				in.sup_cmd = VC_SUP_ABORT;
+				tm_printf((UB*)"vc: %s: motors stopped, run over (reset to start again)\n",
+					  (hl_n == hl_seen) ? "COLLISION (wheels stalled)" :
+					  (hl_kind == HL_PICKED_UP) ? "PICKED UP" : "COLLISION");
+			}
 		}
 #endif
 		/* the line controller only advances on a new line message (dt_ms > 0);

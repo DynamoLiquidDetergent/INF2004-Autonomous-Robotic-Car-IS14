@@ -111,6 +111,9 @@ typedef struct {
 
 
 // Called by usermain() phase 1: create all kernel objects
+/* raw left, centre, GP28 of the last 20 ms line cycle (line_sensor.c) */
+IMPORT volatile UW s3_raw_lcr[3];
+
 IMPORT ER subsystem3_init(void);
 
 // Called by usermain() phase 2: start all tasks

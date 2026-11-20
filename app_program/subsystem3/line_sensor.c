@@ -137,6 +137,9 @@
  *  State
  * --------------------------------------------------------------------- */
 LOCAL ID            flg_s3_calib;            /* calibration handshake   */
+/* Raw left, centre and GP28 readings of the last line cycle, for the pick-up check
+   (subsystem 5 handling_logic, run in subsystem 4's task). Each word is written whole. */
+EXPORT volatile UW  s3_raw_lcr[S3_NUM_SENSORS];
 LOCAL volatile bool s_bypass = false;        /* IF-09                   */
 LOCAL volatile bool s_gp28_paused = false;   /* tests inject GP28 data  */
 LOCAL volatile UW   s_gp28_sent   = 0;       /* samples put in q_gp28_samples */
@@ -552,6 +555,9 @@ LOCAL void line_sensor_task(INT stacd, void *exinf)
 
             raw[S3_CH_LEFT]   = adc_read(dd, S3_CH_LEFT,   raw[S3_CH_LEFT]);
             raw[S3_CH_CENTRE] = adc_read(dd, S3_CH_CENTRE, raw[S3_CH_CENTRE]);
+            s3_raw_lcr[S3_CH_LEFT]   = raw[S3_CH_LEFT];
+            s3_raw_lcr[S3_CH_CENTRE] = raw[S3_CH_CENTRE];
+            s3_raw_lcr[S3_CH_RIGHT]  = raw[S3_CH_RIGHT];
 
             /* GP28 dark for at least half of this cycle's samples */
             r_dark      = (gp28_n > 0u) && (gp28_dark_n * 2u >= gp28_n);

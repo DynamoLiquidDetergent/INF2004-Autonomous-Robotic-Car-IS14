@@ -22,5 +22,9 @@ config/wifi_secrets.h
 *.avi
 *.mkv
 
+# Course material (copyright, local only) and the hand-delivered fix archive
+course_docs/
+handling_fix_v25.zip
+
 # macOS
 .DS_Store
