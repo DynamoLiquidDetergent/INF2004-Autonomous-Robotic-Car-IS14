@@ -34,7 +34,7 @@
 #define S5_PHASE_H
 
 #ifndef S5_PHASE
-#define S5_PHASE	2
+#define S5_PHASE	7
 #endif
 
 #endif /* S5_PHASE_H */
