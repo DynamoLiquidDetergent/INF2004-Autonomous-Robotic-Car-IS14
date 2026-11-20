@@ -7,6 +7,52 @@
 #include "s4_right_wheel.h"
 #include "s4_clock_check.h"
 #include "s4_integration.h"
+#include "../subsystem3/subsystem3.h"          /* s3_raw_lcr */
+#include "../subsystem5/handling_logic.h"      /* hit or picked up (demo rubric) */
+/* 1: print the handling peaks once a second (for tuning HL_JOLT_MG / HL_MOVE_MG) */
+#ifndef S5_HANDLING_DEBUG
+#define S5_HANDLING_DEBUG 1
+#endif
+
+/* One IMU sample into the hit / picked-up check. Mapped axes: x forward, y left, z up. */
+static void handling_sample(const s4_sample_t *s, uint32_t now_us)
+{
+    static HL_STATE hl;
+    static int started=0;
+    static unsigned prev=HL_NONE;
+#if S5_HANDLING_DEBUG
+    static uint32_t n=0U;
+#endif
+    int32_t a[3];
+    uint32_t raw[3];
+    unsigned ev,i;
+    if(!started){hl_init(&hl);started=1;}
+    for(i=0U;i<3U;++i)
+    {
+        float g=s->accel_g[i]*1000.0F;
+        a[i]=(int32_t)((g>=0.0F)?(g+0.5F):(g-0.5F));
+        raw[i]=(uint32_t)s3_raw_lcr[i];
+    }
+    ev=hl_step(&hl,a,raw,now_us/1000U);
+    if(ev!=HL_NONE&&ev!=prev)
+    {
+        s4_handling_publish(ev);
+        tm_printf((UB *)"handling: %s (jolt %d mg, moved %d mg, floor lost %u ms; line raw L=%u C=%u R=%u)\n",
+            (ev==HL_COLLISION)?"COLLISION":"PICKED UP",(int)hl.ev_jolt,(int)hl.ev_move,
+            (unsigned)hl.ev_nofloor_ms,(unsigned)raw[0],(unsigned)raw[1],(unsigned)raw[2]);
+    }
+    prev=ev;
+#if S5_HANDLING_DEBUG
+    if(++n>=50U)
+    {
+        int32_t pj,pm;
+        n=0U;hl_peaks_take(&hl,&pj,&pm);
+        tm_printf((UB *)"handling: last 1 s peak jolt %d mg (collision at %d), moved %d mg (%d), line raw L=%u C=%u R=%u (no floor: L,C >= %u and R >= %u)\n",
+            (int)pj,(int)HL_JOLT_MG,(int)pm,(int)HL_MOVE_MG,(unsigned)raw[0],(unsigned)raw[1],(unsigned)raw[2],
+            (unsigned)HL_LC_DARK,(unsigned)HL_R_DARK);
+    }
+#endif
+}
 #if S4_HEIGHT_WHEELBASE_MM >= S4_HEIGHT_TRACK_LEN
 #error S4_HEIGHT_WHEELBASE_MM must be below S4_HEIGHT_TRACK_LEN
 #endif
@@ -87,6 +133,7 @@ EXPORT void imu_terrain_task(INT stacd, void *exinf)
         if(fresh)
         {
             last_accel=work_start;map_sample(&sample);
+            handling_sample(&sample,work_start);
             (void)s4_process(&processor,&sample,work_start,&orientation);
             (void)s4_process_reference(&reference_processor,&sample,work_start,&reference_orientation);
         }

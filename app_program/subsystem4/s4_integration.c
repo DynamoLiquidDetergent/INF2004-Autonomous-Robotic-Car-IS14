@@ -7,6 +7,8 @@ static ID fault_group_id;
 static UINT fault_pattern;
 static volatile INT highest_hump_mm=-1;
 static volatile UW completed_hump_count;
+static volatile UW handling_count;
+static volatile UINT handling_kind;
 
 static bool read_motion(s4_odometry_t *out)
 {
@@ -56,3 +58,6 @@ EXPORT ER s4_integration_publish(const s4_height_t *height,BOOL failed,UW comple
 }
 EXPORT INT subsystem4_highest_hump_mm(void){return highest_hump_mm;}
 EXPORT UW subsystem4_completed_humps(void){return completed_hump_count;}
+/* Only the IMU task writes these; the kind is written before the count. */
+EXPORT void s4_handling_publish(UINT kind){handling_kind=kind;handling_count=handling_count+1U;}
+EXPORT UINT subsystem4_handling(UW *count){UW c=handling_count;*count=c;return handling_kind;}
