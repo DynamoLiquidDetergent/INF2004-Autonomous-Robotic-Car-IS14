@@ -1,0 +1,46 @@
+S5-M42 run 10 -- barcode A mapped to U-TURN, U-turn at the junction, line followed on (commit 9240c6c, S5_PHASE 7, WiFi + MQTT,
+VC_AUTO_START 0). Tester: Min Han, 2026-11-22. Dashboard map Forward B, U-turn A, Left C, Right D.
+Excerpt (obstacle readings 83..184 cm, nothing close, S4 lines (no impact all run) and repeated READY / PAUSED lines cut).
+
+BARCODE: mapping B A C D -- only these letters are read
+vc: command from the dashboard: RESUME
+vc: mission state RUNNING
+vc: t= 5576 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  83 R=  84  dist=   24
+GP28: min= 176 max=1625   (dark above 840, light below 610)
+vc: t= 6076 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  81 R=  88  dist=   67
+handling: last 1 s moved 58 mg (lift needs 150), lowest up axis 878 mg (overturned below 400), line raw L=195 C=2488 R=235 (no floor: L,C >= 2000 and R >= 1000)
+vc: t= 6576 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  89 R=  94  dist=  113
+GP28: min= 174 max=2171   (dark above 840, light below 610)
+vc: t= 7096 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  92 R=  95  dist=  163
+handling: last 1 s moved 38 mg (lift needs 150), lowest up axis 852 mg (overturned below 400), line raw L=294 C=2675 R=511 (no floor: L,C >= 2000 and R >= 1000)
+BARCODE: ch=A cmd=2   (wide bars, forward, fit 0.08, ratio 2.75)
+vc: barcode command U-TURN (letter A)
+vc: t= 7616 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  98 R=  84  dist=  210
+GP28: min= 173 max=2297   (dark above 840, light below 610)
+vc: t= 8135 zone=5 lost=0 jn=0 cmd   80 mm/s steer   30  wheels L=  93 R=  97  dist=  258
+vc: t= 8635 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  98 R=  97  dist=  307
+vc: t= 9135 zone=4 lost=0 jn=0 cmd  100 mm/s steer   20  wheels L=  74 R=  95  dist=  349
+vc: t= 9636 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 102 R=  99  dist=  399
+vc: t=10155 zone=3 lost=0 jn=0 cmd   80 mm/s steer  -50  wheels L=  95 R=  97  dist=  449
+vc: t=10655 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 102 R= 107  dist=  491
+vc: junction -> U-TURN (epoch 2)
+vc: mission state TURNING
+GP28: min= 178 max=3248   (dark above 840, light below 610)
+vc: motion state 2
+vc: t=11157 zone=1 lost=0 jn=0 cmd  100 mm/s steer  180  wheels L=  76 R= -50  dist=  530
+vc: t=11676 zone=2 lost=0 jn=0 cmd  100 mm/s steer  180  wheels L=  92 R= -60  dist=  538
+vc: t=12177 zone=1 lost=1 jn=0 cmd  100 mm/s steer  180  wheels L=  98 R= -76  dist=  544
+vc: t=12696 zone=1 lost=1 jn=0 cmd  100 mm/s steer  180  wheels L= 105 R= -79  dist=  548
+vc: t=13216 zone=7 lost=0 jn=0 cmd  100 mm/s steer  180  wheels L= 115 R=-101  dist=  552
+vc: junction done, turned about 182 degrees
+vc: mission state RUNNING
+vc: motion state 0
+vc: motion state 1
+vc: t=13736 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  68 R=   5  dist=  570
+handling: last 1 s moved 64 mg (lift needs 150), lowest up axis 866 mg (overturned below 400), line raw L=196 C=3075 R=196 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=14236 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  87 R=  95  dist=  610
+vc: t=14737 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  97 R=  91  dist=  657
+handling: last 1 s moved 56 mg (lift needs 150), lowest up axis 874 mg (overturned below 400), line raw L=225 C=3149 R=200 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=15257 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  98 R= 100  dist=  708
+vc: command from the dashboard: PAUSE
+vc: mission state PAUSED
