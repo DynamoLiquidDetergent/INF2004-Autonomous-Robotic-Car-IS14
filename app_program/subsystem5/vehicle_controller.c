@@ -208,6 +208,8 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 	int height_bench_announced = 0;
 #endif
 	int		last_hold = 0;
+	int		jn_msg, jn_last = 0;	/* S3 junction flag: in this batch of line messages, in the last */
+	UW		jn_count = 0;		/* junctions passed without a barcode command (console) */
 #if S5_HANDLING_STOP
 	UW		hl_seen = 0;
 	int		hl_stopped = 0;
@@ -264,9 +266,20 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 
 		in.dt_ms = 0;
 		if (rc == (INT)sizeof(m)) {
+			jn_msg = line_data_junction(m) ? 1 : 0;
 			while (tk_rcv_mbf(q_line_data, &newer, TMO_POL) == (INT)sizeof(newer)) {
 				m = newer;		/* fell behind: use the newest */
+				jn_msg |= line_data_junction(newer) ? 1 : 0;	/* console only */
 			}
+			/* Console evidence for every junction S3 flags. With a barcode command
+			   waiting, the manoeuvre prints its own "vc: junction -> ..." line. */
+			if (jn_msg && !jn_last && v.started && v.bc_pending == VC_BC_NONE &&
+			    v.jn_state == 0u) {
+				jn_count++;
+				tm_printf((UB*)"vc: JUNCTION %d passed at %d mm (no barcode command: straight on)\n",
+					  (INT)jn_count, (INT)s2_odo_dist_mm(s2_get_odometry()));
+			}
+			jn_last = jn_msg;
 			in.zone       = line_data_zone(m);
 			in.lost       = line_data_lost(m) ? 1 : 0;
 			in.junction   = line_data_junction(m) ? 1 : 0;
