@@ -20,11 +20,11 @@
 #include "../subsystem1/subsystem1.h"	/* IF-13 */
 #include "../subsystem4/s4_integration.h"
 #include "../subsystem4/s4_bench_stop.h"
-#include "handling_logic.h"				/* HL_COLLISION, HL_PICKED_UP */
+#include "handling_logic.h"				/* HL_PICKED_UP, HL_OVERTURNED */
 
-/* Demo rubric: stop the motors when the car hits something or is picked up; that ends the
-   run (ABORTED, motors off until reset). The check itself runs in subsystem 4's IMU task
-   (handling_logic.c); a motor stall reported by subsystem 2 also counts as a collision.
+/* Demo rubric: stop the motors when the car is lifted or overturned; lifting it ends the
+   demonstration run (ABORTED, motors off until reset). The check itself runs in subsystem 4's
+   IMU task (handling_logic.c). Collision detection was removed from the requirement (11 Nov).
    Only while the run is under way: being put on the line before the start is not an event. */
 #ifndef S5_HANDLING_STOP
 #define S5_HANDLING_STOP	1
@@ -374,12 +374,11 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 
 			if (!active) {
 				hl_seen = hl_n;		/* anything before the start does not count */
-			} else if (!hl_stopped && (hl_n != hl_seen || in.motion_state == S2_STATE_STALLED)) {
+			} else if (!hl_stopped && hl_n != hl_seen) {
 				hl_stopped = 1;
 				in.sup_cmd = VC_SUP_ABORT;
 				tm_printf((UB*)"vc: %s: motors stopped, run over (reset to start again)\n",
-					  (hl_n == hl_seen) ? "COLLISION (wheels stalled)" :
-					  (hl_kind == HL_PICKED_UP) ? "PICKED UP" : "COLLISION");
+					  (hl_kind == HL_OVERTURNED) ? "OVERTURNED" : "PICKED UP");
 			}
 		}
 #endif

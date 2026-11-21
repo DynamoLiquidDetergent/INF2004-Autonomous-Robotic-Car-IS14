@@ -1,4 +1,5 @@
-/* Host tests for handling_logic.c: collision and pick-up (demo rubric item 10). */
+/* Host tests for handling_logic.c: lifted / overturned (demo rubric item 10; IMU collision
+   detection was removed from the requirement on 11 Nov, see S5-H140). */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -27,13 +28,13 @@ typedef struct {
 	uint32_t t;
 	unsigned first;		/* first event */
 	uint32_t first_t;
-	unsigned n_coll, n_pick;
+	unsigned n_over, n_pick;
 } RUN;
 
 static void run_init(RUN *r)
 {
 	hl_init(&r->h);
-	r->t = 0; r->first = HL_NONE; r->first_t = 0; r->n_coll = 0; r->n_pick = 0;
+	r->t = 0; r->first = HL_NONE; r->first_t = 0; r->n_over = 0; r->n_pick = 0;
 }
 
 /* n samples (20 ms each) with this acceleration (+ noise) and these line sensors */
@@ -50,7 +51,7 @@ static void feed(RUN *r, int n, int ax, int ay, int az, int amp, uint32_t l, uin
 		raw[0] = l; raw[1] = c; raw[2] = g;
 		ev = hl_step(&r->h, a, raw, r->t);
 		if (ev != HL_NONE && r->first == HL_NONE) { r->first = ev; r->first_t = r->t; }
-		if (ev == HL_COLLISION) r->n_coll++;
+		if (ev == HL_OVERTURNED) r->n_over++;
 		if (ev == HL_PICKED_UP) r->n_pick++;
 		r->t += 20;
 	}
@@ -131,19 +132,57 @@ int main(void)
 	feed(&r, 40, REST_X, REST_Y, REST_Z, 20, 3000, 3000, 2500);
 	CHECK("S5-H139f", r.first == HL_NONE, "a bump 3 s before a junction bar: no event");
 
-	/* g: hits a box: 0.6 g backwards for one sample */
+	/* H140a (was H139g): a knock no longer ends the run (collision detection removed) */
 	run_init(&r);
 	feed(&r, 100, REST_X, REST_Y, REST_Z, 60, ON_LINE);
 	feed(&r, 20, REST_X, REST_Y, REST_Z, 60, ON_LINE);
 	feed(&r, 1, REST_X - 600, REST_Y, REST_Z, 0, ON_LINE);
-	feed(&r, 10, REST_X, REST_Y, REST_Z, 60, ON_LINE);
-	CHECK("S5-H139g", r.first == HL_COLLISION, "a knock of 0.6 g along the floor for one sample: COLLISION");
-
-	/* h: hit from the side */
-	run_init(&r);
-	feed(&r, 100, REST_X, REST_Y, REST_Z, 60, ON_LINE);
 	feed(&r, 1, REST_X + 200, REST_Y + 450, REST_Z, 0, ON_LINE);
-	CHECK("S5-H139h", r.first == HL_COLLISION, "a knock from the side (0.49 g): COLLISION");
+	feed(&r, 50, REST_X, REST_Y, REST_Z, 60, ON_LINE);
+	CHECK("S5-H140a", r.first == HL_NONE, "knocks of 0.6 g (front) and 0.49 g (side), sensors on the floor: no event");
+
+	/* H140b: M39 run 1, the motors' start shook the car with 1039 mg for one sample */
+	run_init(&r);
+	feed(&r, 100, REST_X, REST_Y, REST_Z, 20, ON_LINE);
+	feed(&r, 1, REST_X + 1000, REST_Y + 280, REST_Z, 0, ON_LINE);
+	feed(&r, 1, REST_X - 700, REST_Y, REST_Z + 300, 0, ON_LINE);
+	feed(&r, 100, REST_X, REST_Y, REST_Z, 80, ON_LINE);
+	CHECK("S5-H140b", r.first == HL_NONE, "the motor start jolt from M39 run 1 (1039 mg): no event");
+
+	/* H140c: overturned: rolls onto its side (up axis to ~0) and stays there */
+	run_init(&r);
+	feed(&r, 100, REST_X, REST_Y, REST_Z, 20, ON_LINE);
+	feed(&r, 5, REST_X, REST_Y + 500, 600, 60, ON_LINE);
+	{
+		uint32_t over_t = r.t;
+		feed(&r, 50, REST_X, 916, 20, 40, 300, 300, 300);
+		CHECK("S5-H140c", r.first == HL_OVERTURNED && r.first_t - over_t >= 500 && r.first_t - over_t <= 600,
+		      "rolled onto its side, sensors see light: OVERTURNED 0.5 s later");
+	}
+
+	/* H140d: upside down (up axis -916) */
+	run_init(&r);
+	feed(&r, 100, REST_X, REST_Y, REST_Z, 20, ON_LINE);
+	feed(&r, 40, REST_X, REST_Y, -916, 40, 300, 300, 300);
+	CHECK("S5-H140d", r.first == HL_OVERTURNED, "upside down: OVERTURNED");
+
+	/* H140e: a steep 40 degree tilt for 2 s (a hump is 15-20) is not overturned */
+	run_init(&r);
+	feed(&r, 100, REST_X, REST_Y, REST_Z, 20, ON_LINE);
+	feed(&r, 100, (int)(REST_X + 916 * sin(0.698)), REST_Y, (int)(916 * cos(0.698)), 40, ON_LINE);
+	CHECK("S5-H140e", r.n_over == 0u, "tilted 40 degrees for 2 s: not OVERTURNED");
+
+	/* H140f: M39 run 1: handled in the first second (resting vector learnt wrong), then put
+	   down; driving later with 100 mg vibration over junction bars must not read as a lift */
+	run_init(&r);
+	feed(&r, 50, REST_X + 150, REST_Y, REST_Z - 250, 30, ON_LINE);
+	feed(&r, 150, REST_X, REST_Y, REST_Z, 20, ON_LINE);
+	for (k = 0; k < 5; k++) {
+		feed(&r, 50, REST_X, REST_Y, REST_Z, 100, ON_LINE);
+		feed(&r, 20, REST_X, REST_Y, REST_Z, 100, 3000, 3000, 2500);
+	}
+	CHECK("S5-H140f", r.first == HL_NONE,
+	      "resting vector learnt while handled, then put down: it recovers, junction bars while driving: no event");
 
 	/* i: nothing in the first second (the car is put down on the line) */
 	run_init(&r);
