@@ -107,7 +107,7 @@ IMPORT volatile H	s5_approach_mm;
    done (bench tests, no dashboard). 0 = it waits in READY for RESUME from
    subsystem 1 (IF-14). Set to 0 for the integrated demo. */
 #ifndef VC_AUTO_START
-#define VC_AUTO_START		1
+#define VC_AUTO_START		0
 #endif
 /* 1 = print every reading and scan result on the console (bench bring-up) */
 #ifndef S5_VERBOSE
