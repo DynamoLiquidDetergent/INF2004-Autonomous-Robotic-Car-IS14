@@ -91,7 +91,7 @@
    reported, with the element widths.  Fewer = a speck, the floor edge, or
    the track print (only its 6 wide bars show, giving 11 elements -- the
    wide-bar decoder reads those), not worth printing. */
-#define BC_DEBUG_MIN_ELEMS    12u
+#define BC_DEBUG_MIN_ELEMS    3u     /* was 12; 3 while finding why the new print is not read (S5-M42) */
 
 /* 1 = record the raw GP28 readings of the first barcode pass (from the
    first reading above BC_CAP_TRIGGER, BC_CAP_LEN samples = 3 s) so

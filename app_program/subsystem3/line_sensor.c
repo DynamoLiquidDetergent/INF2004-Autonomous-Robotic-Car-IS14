@@ -90,8 +90,11 @@
 /* 1 = every second, print the lowest and highest GP28 reading of that
    second, and the raw levels a reading must cross to count as dark / light.
    Catches bars that S3_LINE_DEBUG (every 200 ms) would miss.
-   On with the drive demo; MUST be 0 when committing. */
-#define S3_GP28_DEBUG           S3_BC_DRIVE_DEMO
+   On in the integration build (2026-11-22, S5-M42: barcodes on the new
+   print were not read and the console showed nothing about GP28). */
+#ifndef S3_GP28_DEBUG
+#define S3_GP28_DEBUG           1
+#endif
 #define S3_GP28_DEBUG_MS        1000
 
 /* The 2 ms sub-cycle needs a 1 ms system tick (config.h CNF_TIMER_PERIOD).
