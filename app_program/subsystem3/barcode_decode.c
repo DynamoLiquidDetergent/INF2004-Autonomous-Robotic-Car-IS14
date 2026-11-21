@@ -91,7 +91,7 @@
    reported, with the element widths.  Fewer = a speck, the floor edge, or
    the track print (only its 6 wide bars show, giving 11 elements -- the
    wide-bar decoder reads those), not worth printing. */
-#define BC_DEBUG_MIN_ELEMS    3u     /* was 12; 3 while finding why the new print is not read (S5-M42) */
+#define BC_DEBUG_MIN_ELEMS    12u
 
 /* 1 = record the raw GP28 readings of the first barcode pass (from the
    first reading above BC_CAP_TRIGGER, BC_CAP_LEN samples = 3 s) so
@@ -100,7 +100,7 @@
    On in the integration build (2026-11-22, S5-M42): the decode task prints
    each capture itself ("CAP" lines), up to BC_CAP_PRINTS per boot. */
 #ifndef S3_BC_CAPTURE
-#define S3_BC_CAPTURE         1
+#define S3_BC_CAPTURE         0   /* 1 = print raw GP28 of the first 3 barcodes (CAP lines) */
 #endif
 #define BC_CAP_PRINTS         3u      /* captures printed per boot           */
 #define BC_CAP_PER_LINE       25u     /* samples per CAP line                */

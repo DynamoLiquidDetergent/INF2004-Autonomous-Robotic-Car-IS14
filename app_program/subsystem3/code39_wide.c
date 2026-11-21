@@ -463,15 +463,54 @@ bool c39w_feed(C39W_STATE *st, uint16_t adc, bool dark, C39W_RESULT *res)
     if (w < C39W_MIN_PULSE) {
         return false;                            /* speck */
     }
-    if (w > C39W_MAX_PULSE) {
-        st->n = 0;                               /* floor / line, not a bar */
-        return false;
-    }
     if (st->n > 0u && (st->start - st->last_end) > C39W_MAX_GAP) {
         st->n = 0;                               /* too far apart: new symbol */
     }
-    st->cx2[st->n] = st->start + cur;
-    st->pw[st->n]  = (uint16_t)w;
+    /* Centre and width from the top of the hump (readings >= C39W_TOP_PCT %
+       of its peak), not from where it crossed the dark level: with a blurred
+       spot the dark level is crossed early on the way up and, after a split,
+       late on the way down, which moves the midpoint off the bar's centre. */
+    {
+        uint32_t thr = ((uint32_t)st->peak * C39W_TOP_PCT) / 100u;
+        uint32_t first = st->start, last = st->start, j;
+        bool     seen = false;
+
+        for (j = st->start; j < cur; j++) {
+            if ((uint32_t)st->buf[j & (C39W_BUF_LEN - 1u)] >= thr) {
+                if (!seen) { first = j; seen = true; }
+                last = j;
+            }
+        }
+        if ((last - first + 1u) > C39W_MAX_PULSE) {
+            st->n = 0;                           /* floor / line, not a bar */
+            return false;
+        }
+        /* not a wide bar if clearly lower than the others; earlier pulses
+           clearly lower than this one were not wide bars either */
+        {
+            uint32_t pmax = 0u;
+            unsigned i, keep = 0u;
+
+            for (k = 0; k < st->n; k++) {
+                if (st->pk[k] > pmax) pmax = st->pk[k];
+            }
+            if ((uint32_t)st->peak * 100u < pmax * C39W_PEAK_PCT) {
+                return false;                    /* narrow-bar group: skip it */
+            }
+            for (i = 0; i < st->n; i++) {
+                if ((uint32_t)st->pk[i] * 100u >= (uint32_t)st->peak * C39W_PEAK_PCT) {
+                    st->cx2[keep] = st->cx2[i];
+                    st->pw[keep]  = st->pw[i];
+                    st->pk[keep]  = st->pk[i];
+                    keep++;
+                }
+            }
+            st->n = (uint8_t)keep;
+        }
+        st->cx2[st->n] = first + last;
+        st->pw[st->n]  = (uint16_t)(last - first + 1u);
+        st->pk[st->n]  = st->peak;
+    }
     st->n++;
     st->last_end   = cur;
 
@@ -490,6 +529,7 @@ bool c39w_feed(C39W_STATE *st, uint16_t adc, bool dark, C39W_RESULT *res)
             for (k = 1; k < C39W_NWIDE; k++) {   /* not a wide-only symbol */
                 st->cx2[k - 1u] = st->cx2[k];
                 st->pw[k - 1u]  = st->pw[k];
+                st->pk[k - 1u]  = st->pk[k];
             }
             st->n = C39W_NWIDE - 1u;
             return false;
@@ -512,6 +552,7 @@ bool c39w_feed(C39W_STATE *st, uint16_t adc, bool dark, C39W_RESULT *res)
         for (k = 1; k < C39W_NWIDE; k++) {       /* slide by one bar */
             st->cx2[k - 1u] = st->cx2[k];
             st->pw[k - 1u]  = st->pw[k];
+            st->pk[k - 1u]  = st->pk[k];
         }
         st->n = C39W_NWIDE - 1u;
     }

@@ -1,0 +1,45 @@
+S5-M42 run 4 -- driven over barcode A with the raw GP28 capture on (commit 9321710, S5_PHASE 7, WiFi + MQTT,
+VC_AUTO_START 0, S3_BC_DEBUG 1, S3_GP28_DEBUG 1, S3_BC_CAPTURE 1). Tester: Min Han, 2026-11-22.
+Excerpt: obstacle readings (90 deg, 82..202 cm, nothing close) and S4 status lines cut. The raw capture (CAP 1,
+1500 samples) is kept in testing/subsystem3/host/cap_2026-11-22_A_118mms.txt (samples 0..599; the other 900
+were white, 178..332) and is the S3-H01 host test input.
+
+S3 calib: timed out, seen L 3276..3347  C 856..948 -- range kept
+vc: calibration not done, default range kept
+vc: ready, waiting for START (RESUME from the dashboard)
+vc: dashboard link up
+vc: mission state READY
+BARCODE: mapping C D A B -- only these letters are read
+GP28: min= 179 max= 318   (dark above 840, light below 610)
+vc: command from the dashboard: RESUME
+vc: mission state RUNNING
+GP28: min= 215 max= 315   (dark above 840, light below 610)
+vc: t= 3080 zone=3 lost=0 jn=0 cmd   80 mm/s steer  -30  wheels L=  66 R=  89  dist=    8
+vc: t= 3580 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  90 R=  95  dist=   53
+GP28: min= 197 max= 282   (dark above 840, light below 610)
+vc: t= 4080 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  97 R=  93  dist=   99
+vc: t= 4581 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 100 R=  95  dist=  146
+GP28: min= 197 max=2528   (dark above 840, light below 610)
+vc: t= 5099 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 106 R=  99  dist=  196
+handling: last 1 s moved 135 mg (lift needs 150), lowest up axis 668 mg (overturned below 400), line raw L=288 C=3084 R=2410 (no floor: L,C >= 2000 and R >= 1000)
+vc: t= 5600 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  92 R= 102  dist=  246
+GP28: min= 210 max=2559   (dark above 840, light below 610)
+vc: t= 6120 zone=6 lost=0 jn=0 cmd   60 mm/s steer   80  wheels L=  89 R=  85  dist=  295
+BARCODE: gave up after 5 of 29 elements (long white gap, BC_QUIET_SAMPLES)
+BARCODE:   widths: 207 64 61 72 110
+vc: t= 6620 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  88 R= 102  dist=  340
+GP28: min= 178 max=2550   (dark above 840, light below 610)
+vc: t= 7140 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 101 R= 102  dist=  392
+vc: t= 7640 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 103 R=  95  dist=  443
+GP28: min= 211 max= 280   (dark above 840, light below 610)
+vc: t= 8142 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 102 R=  95  dist=  493
+vc: command from the dashboard: PAUSE
+vc: mission state PAUSED
+CAP 1: 1500 GP28 samples, 2 ms apart, from 25 before the first reading >= 400
+[... 1500 samples, see testing/subsystem3/host/cap_2026-11-22_A_118mms.txt ...]
+CAP 1 end
+
+Reading of the capture: exactly 6 humps (peaks 2484..2559 at samples 59, 108, 186, 329, 461, 516), spacing
+49, 78, 143, 132, 55 samples = *A*'s wide-bar spacing 4, 6, 12, 10, 4 narrow units at 12.7 samples per unit
+(about 118 mm/s). Narrow bars give no hump of their own. Dips between humps: 1916 (75 % of the peak, two wide bars
+with one narrow space) and 861 (34 %, a narrow bar between), so bars 1-3 merged into one dark run of 207 samples.

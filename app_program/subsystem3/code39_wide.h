@@ -72,9 +72,24 @@
    (measured on the track print: peaks ~2200-2400, dip between them only
    ~650-760).  A pulse ends below C39W_SPLIT_PCT % of its peak; the next
    starts once the reading is C39W_SPLIT_RISE above the dip.  Inside a
-   single wide bar the reading stays above ~45 % of its peak. */
-#define C39W_SPLIT_PCT     40u
+   single wide bar the reading stays above ~45 % of its peak.
+   2026-11-22 (S5-M42 run 4, real capture of the printed *A*): GP28 is now
+   much blurrier (an edge takes ~8 mm), so the dip between two wide bars
+   with one narrow space is only down to ~75 % of the peak, and to ~34 %
+   with a narrow bar between them.  Split at 85 %; a single bar's hump is
+   smooth (noise ~+/-30), so it does not dip 15 % and rise 150 again.
+   The centre and width of a pulse are taken from its top (readings
+   >= C39W_TOP_PCT % of its peak).  Tested on the PC with the real capture
+   and blurred and sharp synthetic traces (testing/subsystem3/host). */
+#define C39W_SPLIT_PCT     85u
 #define C39W_SPLIT_RISE    150u
+#define C39W_TOP_PCT       85u
+/* A wide bar's hump reaches (nearly) full black; on the printed sheet a
+   group of solid narrow bars (n bar, n space, n bar ...) blurs into a lower
+   hump (~60 % of black) that can still cross the dark level.  So a pulse
+   whose peak is below C39W_PEAK_PCT % of the highest one collected is not a
+   wide bar (the real *A* capture: all 6 peaks within 3 %). */
+#define C39W_PEAK_PCT      80u
 #define C39W_MAX_ERR_X100  35      /* fit error limit, 1/100 narrow unit   */
 #define C39W_TIE_ERR_X100  35      /* letters this close in fit are all
                                       compared by the tie-break (blur moves
@@ -131,6 +146,7 @@ typedef struct {
     uint32_t last_end;
     uint32_t cx2[C39W_NWIDE];     /* pulse centres x 2 (start + end)       */
     uint16_t pw[C39W_NWIDE];      /* pulse widths, samples                 */
+    uint16_t pk[C39W_NWIDE];      /* pulse peaks, raw ADC                  */
     uint8_t  n;
     uint16_t peak;                /* highest reading of the current pulse  */
     uint16_t valley;              /* lowest reading since the last pulse   */
