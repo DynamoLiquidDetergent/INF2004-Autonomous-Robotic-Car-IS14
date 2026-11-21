@@ -8,13 +8,13 @@
 #include "s4_clock_check.h"
 #include "s4_integration.h"
 #include "../subsystem3/subsystem3.h"          /* s3_raw_lcr */
-#include "../subsystem5/handling_logic.h"      /* hit or picked up (demo rubric) */
-/* 1: print the handling peaks once a second (for tuning HL_JOLT_MG / HL_MOVE_MG) */
+#include "../subsystem5/handling_logic.h"      /* lifted or overturned (demo rubric) */
+/* 1: print the handling peaks once a second (for tuning HL_MOVE_MG / HL_OVER_Z_MG) */
 #ifndef S5_HANDLING_DEBUG
 #define S5_HANDLING_DEBUG 1
 #endif
 
-/* One IMU sample into the hit / picked-up check. Mapped axes: x forward, y left, z up. */
+/* One IMU sample into the lifted / overturned check. Mapped axes: x forward, y left, z up. */
 static void handling_sample(const s4_sample_t *s, uint32_t now_us)
 {
     static HL_STATE hl;
@@ -37,18 +37,18 @@ static void handling_sample(const s4_sample_t *s, uint32_t now_us)
     if(ev!=HL_NONE&&ev!=prev)
     {
         s4_handling_publish(ev);
-        tm_printf((UB *)"handling: %s (jolt %d mg, moved %d mg, floor lost %u ms; line raw L=%u C=%u R=%u)\n",
-            (ev==HL_COLLISION)?"COLLISION":"PICKED UP",(int)hl.ev_jolt,(int)hl.ev_move,
+        tm_printf((UB *)"handling: %s (moved %d mg, up axis %d mg, floor lost %u ms; line raw L=%u C=%u R=%u)\n",
+            (ev==HL_OVERTURNED)?"OVERTURNED":"PICKED UP",(int)hl.ev_move,(int)hl.ev_z,
             (unsigned)hl.ev_nofloor_ms,(unsigned)raw[0],(unsigned)raw[1],(unsigned)raw[2]);
     }
     prev=ev;
 #if S5_HANDLING_DEBUG
     if(++n>=50U)
     {
-        int32_t pj,pm;
-        n=0U;hl_peaks_take(&hl,&pj,&pm);
-        tm_printf((UB *)"handling: last 1 s peak jolt %d mg (collision at %d), moved %d mg (%d), line raw L=%u C=%u R=%u (no floor: L,C >= %u and R >= %u)\n",
-            (int)pj,(int)HL_JOLT_MG,(int)pm,(int)HL_MOVE_MG,(unsigned)raw[0],(unsigned)raw[1],(unsigned)raw[2],
+        int32_t pm,lz;
+        n=0U;hl_peaks_take(&hl,&pm,&lz);
+        tm_printf((UB *)"handling: last 1 s moved %d mg (lift needs %d), lowest up axis %d mg (overturned below %d), line raw L=%u C=%u R=%u (no floor: L,C >= %u and R >= %u)\n",
+            (int)pm,(int)HL_MOVE_MG,(int)lz,(int)HL_OVER_Z_MG,(unsigned)raw[0],(unsigned)raw[1],(unsigned)raw[2],
             (unsigned)HL_LC_DARK,(unsigned)HL_R_DARK);
     }
 #endif

@@ -11,9 +11,9 @@ IMPORT ER s4_integration_publish(const s4_height_t *height,BOOL failed,UW comple
  * This getter is a local API, not a new message/wire representation. */
 IMPORT INT subsystem4_highest_hump_mm(void);
 IMPORT UW subsystem4_completed_humps(void);
-/* Demo rubric "stop when picked up / collision": subsystem 5's handling_logic runs in the
- * IMU task on every sample. Returns the kind of the last event (HL_COLLISION or
- * HL_PICKED_UP, 0 none yet) and the number of events so far in *count. */
+/* Demo rubric "stop when lifted / overturned": subsystem 5's handling_logic runs in the
+ * IMU task on every sample. Returns the kind of the last event (HL_PICKED_UP or
+ * HL_OVERTURNED, 0 none yet) and the number of events so far in *count. */
 IMPORT UINT subsystem4_handling(UW *count);
 IMPORT void s4_handling_publish(UINT kind);
 #endif
