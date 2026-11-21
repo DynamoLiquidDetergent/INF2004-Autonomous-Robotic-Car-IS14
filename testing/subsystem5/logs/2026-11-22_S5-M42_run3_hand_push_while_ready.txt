@@ -1,0 +1,43 @@
+S5-M42 run 3 -- barcode A pushed over by hand while READY (commit 60ea933, S5_PHASE 7, WiFi + MQTT, VC_AUTO_START 0,
+S3_BC_DEBUG 1, S3_GP28_DEBUG 1, BC_DEBUG_MIN_ELEMS 3). Tester: Min Han, 2026-11-22. Motors off (READY), map sent.
+Excerpt: S4 status lines, obstacle background scan and identical READY lines cut; every GP28:, BARCODE:, vc: and
+handling: line from the map on is kept. "dist" is wheel odometry while pushed: ~40 mm/s.
+
+wifi: link up, ip=<car ip>
+mqtt: connected to <laptop ip>
+S3 calib: timed out, seen L 191..261  C 865..995 -- range kept
+vc: ready, waiting for START (RESUME from the dashboard)
+vc: dashboard link up
+vc: mission state READY
+GP28: min= 204 max= 265   (dark above 840, light below 610)
+[... READY, GP28 max 264..288 every second ...]
+BARCODE: mapping C D A B -- only these letters are read
+GP28: min= 189 max= 264   (dark above 840, light below 610)
+handling: last 1 s moved 73 mg (lift needs 150), lowest up axis 870 mg (overturned below 400), line raw L=225 C=973 R=224 (no floor: L,C >= 2000 and R >= 1000)
+GP28: min= 203 max= 265   (dark above 840, light below 610)
+vc: t=14677 zone=2 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=  43 R=  34  dist=   10
+GP28: min= 200 max= 285   (dark above 840, light below 610)
+vc: t=15197 zone=2 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=  25 R=  31  dist=   29
+handling: last 1 s moved 23 mg (lift needs 150), lowest up axis 896 mg (overturned below 400), line raw L=221 C=1505 R=267 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=15697 zone=2 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=  40 R=  28  dist=   46
+GP28: min= 204 max=2468   (dark above 840, light below 610)
+vc: t=16197 zone=2 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=  42 R=  37  dist=   66
+handling: last 1 s moved 19 mg (lift needs 150), lowest up axis 890 mg (overturned below 400), line raw L=218 C=1094 R=1334 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=16698 zone=1 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=  46 R=  42  dist=   88
+BARCODE: gave up after 3 of 29 elements (long white gap, BC_QUIET_SAMPLES)
+BARCODE:   widths: 262 23 134
+GP28: min= 214 max=2492   (dark above 840, light below 610)
+vc: t=17218 zone=1 lost=1 jn=0 cmd    0 mm/s steer    0  wheels L=  37 R=  31  dist=  108
+handling: last 1 s moved 17 mg (lift needs 150), lowest up axis 882 mg (overturned below 400), line raw L=218 C=289 R=1172 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=17737 zone=1 lost=1 jn=0 cmd    0 mm/s steer    0  wheels L=  35 R=  40  dist=  126
+GP28: min= 205 max=2449   (dark above 840, light below 610)
+vc: t=18237 zone=1 lost=1 jn=0 cmd    0 mm/s steer    0  wheels L=  42 R=  44  dist=  145
+handling: last 1 s moved 21 mg (lift needs 150), lowest up axis 862 mg (overturned below 400), line raw L=226 C=262 R=1903 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=18737 zone=1 lost=1 jn=0 cmd    0 mm/s steer    0  wheels L=  33 R=  36  dist=  166
+GP28: min= 180 max=2494   (dark above 840, light below 610)
+vc: t=19257 zone=1 lost=1 jn=0 cmd    0 mm/s steer    0  wheels L=  41 R=  39  dist=  185
+handling: last 1 s moved 16 mg (lift needs 150), lowest up axis 892 mg (overturned below 400), line raw L=187 C=224 R=200 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=19777 zone=1 lost=1 jn=0 cmd    0 mm/s steer    0  wheels L=  14 R=  16  dist=  205
+GP28: min= 172 max= 272   (dark above 840, light below 610)
+vc: t=20297 zone=1 lost=1 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  205
+[... standing still, GP28 max 258..304, no further BARCODE: line ...]

@@ -96,8 +96,14 @@
 /* 1 = record the raw GP28 readings of the first barcode pass (from the
    first reading above BC_CAP_TRIGGER, BC_CAP_LEN samples = 3 s) so
    the drive demo can print them ("CAP" lines) for tuning.
-   Set to S3_BC_DRIVE_DEMO to switch it on with the drive demo. */
-#define S3_BC_CAPTURE         0
+   Set to S3_BC_DRIVE_DEMO to switch it on with the drive demo.
+   On in the integration build (2026-11-22, S5-M42): the decode task prints
+   each capture itself ("CAP" lines), up to BC_CAP_PRINTS per boot. */
+#ifndef S3_BC_CAPTURE
+#define S3_BC_CAPTURE         1
+#endif
+#define BC_CAP_PRINTS         3u      /* captures printed per boot           */
+#define BC_CAP_PER_LINE       25u     /* samples per CAP line                */
 #define BC_CAP_LEN            1500u   /* 3 s: the 141 mm barcode at >= 50 mm/s */
 #define BC_CAP_TRIGGER        400u    /* raw ADC: clearly above white      */
 #define BC_CAP_PRE            25u     /* samples kept from before trigger  */
@@ -154,6 +160,29 @@ LOCAL void capture_feed(uint16_t adc)
     if (s_cap_n >= BC_CAP_LEN) {
         s_cap_done = true;
     }
+}
+
+/* Print a finished capture once, then arm for the next barcode.  Runs in the
+   decode task after the 3 s capture, so the barcode it shows has passed. */
+LOCAL void capture_print(void)
+{
+    static UW n_printed = 0;
+    UW i;
+
+    if (!s_cap_done || (n_printed >= BC_CAP_PRINTS)) return;
+    n_printed++;
+    tm_printf((UB *)"CAP %u: %u GP28 samples, 2 ms apart, from %u before the first reading >= %u\n",
+              (unsigned)n_printed, (unsigned)s_cap_n, (unsigned)BC_CAP_PRE, (unsigned)BC_CAP_TRIGGER);
+    for (i = 0; i < s_cap_n; i++) {
+        if ((i % BC_CAP_PER_LINE) == 0u) tm_printf((UB *)"CAP");
+        tm_printf((UB *)" %u", (unsigned)s_cap[i]);
+        if (((i + 1u) % BC_CAP_PER_LINE) == 0u || (i + 1u) == s_cap_n) tm_printf((UB *)"\n");
+    }
+    tm_printf((UB *)"CAP %u end\n", (unsigned)n_printed);
+    s_cap_n    = 0;                              /* arm for the next one */
+    s_pre_i    = 0;
+    s_cap_on   = false;
+    s_cap_done = false;
 }
 #endif
 
@@ -516,6 +545,9 @@ LOCAL void barcode_decode_task(INT stacd, void *exinf)
 #endif
             process_sample(&st, s);
         }
+#if S3_BC_CAPTURE
+        capture_print();
+#endif
 
         /* From the first bar until the read ends or is abandoned
            (long white gap, too long, dropped sample).  A crossbar of a
