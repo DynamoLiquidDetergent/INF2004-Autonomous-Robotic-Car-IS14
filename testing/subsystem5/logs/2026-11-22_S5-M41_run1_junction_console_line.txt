@@ -1,4 +1,4 @@
-S5-M41 run 1 -- junction console line without a barcode (commit 1f336f2, S5_PHASE 7, WiFi + MQTT image)
+S5-M41 run 1 -- junction console line without a barcode (commit 980df87, S5_PHASE 7, WiFi + MQTT image)
 Tester: Min Han, 2026-11-22. Excerpt: the long S4 status lines and the obstacle background scan are cut;
 every vc:, handling: and junction line is kept as printed. The serial port closed (USB disconnected) at about 417 mm.
 

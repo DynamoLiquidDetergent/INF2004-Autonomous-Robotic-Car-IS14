@@ -1,4 +1,4 @@
-S5-M40 run 1, 2026-11-21, image built from ffbc5f8 (S5_PHASE 7, WIFI=none). Tester: Min Han.
+S5-M40 run 1, 2026-11-21, image built from d6249b1 (S5_PHASE 7, WIFI=none). Tester: Min Han.
 A normal line-following run of about 32 s (2.8 m), then lifted while driving. No knock (not required any more).
 What he saw: it drove normally and stopped when he lifted it.
 

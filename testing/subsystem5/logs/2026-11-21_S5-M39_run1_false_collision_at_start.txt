@@ -1,4 +1,4 @@
-S5-M39 run 1, 2026-11-21, image from 10a7f60 (S5_PHASE 7, WIFI=none), on paper on the floor at home (not the tiles).
+S5-M39 run 1, 2026-11-21, image from 78dbaef (S5_PHASE 7, WIFI=none), on paper on the floor at home (not the tiles).
 Tester: Min Han. What he saw: the car only moved for about 0.2 s, nothing touched it, then it stopped.
 Happens sometimes on the real tiles too; other times the start works.
 
