@@ -1,0 +1,155 @@
+S5-M40 run 1, 2026-11-21, image built from ffbc5f8 (S5_PHASE 7, WIFI=none). Tester: Min Han.
+A normal line-following run of about 32 s (2.8 m), then lifted while driving. No knock (not required any more).
+What he saw: it drove normally and stopped when he lifted it.
+
+EXCERPT: the full console had ~600 lines; kept here are every `handling:` and `vc:` line, the start-up, and the
+S4 lines that show the IMU vibration. Removed: the 90 deg `obstacle:` readings while driving (nothing closer than
+60 cm), the `s1: pub` lines, and the other S4 status lines.
+
+---- Opened the serial port COM3 ----
+microT-Kernel Version 3.00
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+dual-core (SMP) build, usermain on core 0
+safety: monitor running (hold 3000 ms after a fault, 500 ms after a scan)
+all subsystems started
+vc: calibrating the line sensor for 5 s -- sweep the robot slowly side to side across the black line (or leave it: defaults kept)
+obstacle: ready (servo GP12, trig GP16, echo GP17)
+obstacle: taking background scan, keep the path ahead CLEAR
+handling: last 1 s moved 418 mg (lift needs 150), lowest up axis 458 mg (overturned below 400), line raw L=2827 C=2093 R=285 (no floor: L,C >= 2000 and R >= 1000)
+handling: last 1 s moved 109 mg (lift needs 150), lowest up axis 908 mg (overturned below 400), line raw L=2841 C=2093 R=288 (no floor: L,C >= 2000 and R >= 1000)
+handling: last 1 s moved 56 mg (lift needs 150), lowest up axis 904 mg (overturned below 400), line raw L=2822 C=2096 R=304 (no floor: L,C >= 2000 and R >= 1000)
+handling: last 1 s moved 22 mg (lift needs 150), lowest up axis 912 mg (overturned below 400), line raw L=2843 C=2088 R=289 (no floor: L,C >= 2000 and R >= 1000)
+S3 calib: timed out, seen L 2818..2889  C 2042..2110 -- range kept
+vc: calibration not done, default range kept
+vc: put the robot on the line, centre sensor over it -- starting in 3 s
+handling: last 1 s moved 6 mg (lift needs 150), lowest up axis 914 mg (overturned below 400), line raw L=2820 C=2100 R=276 (no floor: L,C >= 2000 and R >= 1000)
+handling: last 1 s moved 7 mg (lift needs 150), lowest up axis 914 mg (overturned below 400), line raw L=2828 C=2098 R=300 (no floor: L,C >= 2000 and R >= 1000)
+handling: last 1 s moved 6 mg (lift needs 150), lowest up axis 914 mg (overturned below 400), line raw L=2834 C=2101 R=292 (no floor: L,C >= 2000 and R >= 1000)
+vc: following the line at up to 100 mm/s (starts by itself; VC_AUTO_START 0 waits for RESUME)
+vc: dashboard link up
+vc: mission state RUNNING
+vc: motion state 0
+vc: motion state 1
+handling: last 1 s moved 5 mg (lift needs 150), lowest up axis 916 mg (overturned below 400), line raw L=2835 C=2091 R=282 (no floor: L,C >= 2000 and R >= 1000)
+S4 t_us=8483087 state=LEVEL ... imu_status=OK dynamic_mg=134 ... accel_x_mg=554 accel_y_mg=30 accel_z_mg=990
+vc: t=  518 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 105 R=  97  dist=   29
+vc: t= 1038 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  99 R=  96  dist=   79
+handling: last 1 s moved 314 mg (lift needs 150), lowest up axis 668 mg (overturned below 400), line raw L=235 C=2702 R=307 (no floor: L,C >= 2000 and R >= 1000)
+vc: t= 1557 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 100 R=  89  dist=  128
+vc: t= 2057 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  94 R=  93  dist=  175
+handling: last 1 s moved 72 mg (lift needs 150), lowest up axis 864 mg (overturned below 400), line raw L=310 C=3033 R=275 (no floor: L,C >= 2000 and R >= 1000)
+vc: t= 2559 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 100 R=  94  dist=  225
+vc: t= 3078 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  97 R=  90  dist=  272
+handling: last 1 s moved 64 mg (lift needs 150), lowest up axis 862 mg (overturned below 400), line raw L=243 C=2456 R=284 (no floor: L,C >= 2000 and R >= 1000)
+vc: t= 3597 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 105 R=  92  dist=  319
+vc: t= 4099 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  66 R=  73  dist=  361
+handling: last 1 s moved 314 mg (lift needs 150), lowest up axis 606 mg (overturned below 400), line raw L=385 C=2954 R=660 (no floor: L,C >= 2000 and R >= 1000)
+S4 t_us=12369114 state=LEVEL ... imu_status=IMPACT dynamic_mg=1363 ... impacts=1 ... accel_x_mg=1608 accel_y_mg=-92 accel_z_mg=1730
+vc: t= 4617 zone=7 lost=0 jn=0 cmd   40 mm/s steer   90  wheels L=  89 R=  -2  dist=  398
+vc: t= 5117 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  89 R=  24  dist=  424
+handling: last 1 s moved 780 mg (lift needs 150), lowest up axis 402 mg (overturned below 400), line raw L=2953 C=2875 R=597 (no floor: L,C >= 2000 and R >= 1000)
+S4 t_us=13794517 state=DESCENDING ... imu_status=IMPACT dynamic_mg=1821 ... accel_x_mg=-2738 accel_y_mg=396 accel_z_mg=552
+vc: t= 5618 zone=5 lost=0 jn=0 cmd   80 mm/s steer    8  wheels L= 111 R= -25  dist=  461
+vc: t= 6119 zone=4 lost=0 jn=0 cmd  100 mm/s steer    8  wheels L=  75 R=  74  dist=  501
+handling: last 1 s moved 706 mg (lift needs 150), lowest up axis 490 mg (overturned below 400), line raw L=278 C=2778 R=348 (no floor: L,C >= 2000 and R >= 1000)
+vc: t= 6637 zone=5 lost=0 jn=0 cmd   80 mm/s steer    8  wheels L=  98 R=  96  dist=  543
+vc: t= 7137 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  97 R= 104  dist=  587
+handling: last 1 s moved 608 mg (lift needs 150), lowest up axis 402 mg (overturned below 400), line raw L=558 C=3072 R=358 (no floor: L,C >= 2000 and R >= 1000)
+vc: t= 7637 zone=4 lost=0 jn=0 cmd  100 mm/s steer  -20  wheels L= 109 R=  72  dist=  635
+vc: t= 8137 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  96 R=  88  dist=  681
+handling: last 1 s moved 169 mg (lift needs 150), lowest up axis 870 mg (overturned below 400), line raw L=1192 C=3038 R=302 (no floor: L,C >= 2000 and R >= 1000)
+vc: t= 8637 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  81 R=  97  dist=  719
+vc: t= 9137 zone=6 lost=0 jn=0 cmd   60 mm/s steer   60  wheels L=  98 R=  -7  dist=  752
+handling: last 1 s moved 410 mg (lift needs 150), lowest up axis 368 mg (overturned below 400), line raw L=3054 C=2751 R=511 (no floor: L,C >= 2000 and R >= 1000)
+vc: t= 9638 zone=7 lost=0 jn=0 cmd   40 mm/s steer   90  wheels L=  94 R=   8  dist=  781
+vc: t=10138 zone=7 lost=0 jn=0 cmd   40 mm/s steer   90  wheels L= 157 R= -15  dist=  819
+handling: last 1 s moved 705 mg (lift needs 150), lowest up axis 418 mg (overturned below 400), line raw L=661 C=253 R=769 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=10638 zone=4 lost=0 jn=0 cmd  100 mm/s steer   20  wheels L= 126 R= 106  dist=  858
+vc: t=11138 zone=4 lost=0 jn=0 cmd  100 mm/s steer    8  wheels L=   7 R=  99  dist=  905
+handling: last 1 s moved 740 mg (lift needs 150), lowest up axis 96 mg (overturned below 400), line raw L=1600 C=3051 R=445 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=11638 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  59 R=  74  dist=  932
+vc: t=12158 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 103 R=  69  dist=  980
+handling: last 1 s moved 693 mg (lift needs 150), lowest up axis 142 mg (overturned below 400), line raw L=693 C=3064 R=426 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=12658 zone=5 lost=0 jn=0 cmd   80 mm/s steer   50  wheels L=  99 R=  95  dist= 1026
+vc: t=13158 zone=5 lost=0 jn=0 cmd   80 mm/s steer   30  wheels L= 108 R=  95  dist= 1073
+handling: last 1 s moved 92 mg (lift needs 150), lowest up axis 894 mg (overturned below 400), line raw L=352 C=3022 R=471 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=13658 zone=5 lost=0 jn=0 cmd   80 mm/s steer   50  wheels L= 102 R=  95  dist= 1120
+vc: t=14178 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 100 R= 100  dist= 1171
+handling: last 1 s moved 78 mg (lift needs 150), lowest up axis 860 mg (overturned below 400), line raw L=1028 C=3149 R=448 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=14678 zone=5 lost=0 jn=0 cmd   80 mm/s steer   30  wheels L=  95 R=  84  dist= 1218
+vc: t=15178 zone=4 lost=0 jn=1 cmd  100 mm/s steer    0  wheels L=  95 R= 101  dist= 1266
+handling: last 1 s moved 66 mg (lift needs 150), lowest up axis 870 mg (overturned below 400), line raw L=1140 C=3170 R=402 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=15697 zone=5 lost=0 jn=0 cmd   80 mm/s steer   30  wheels L=  99 R= 102  dist= 1313
+vc: t=16199 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 105 R= 101  dist= 1365
+handling: last 1 s moved 73 mg (lift needs 150), lowest up axis 858 mg (overturned below 400), line raw L=251 C=2464 R=259 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=16717 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 100 R=  95  dist= 1414
+vc: t=17219 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 100 R= 102  dist= 1463
+handling: last 1 s moved 73 mg (lift needs 150), lowest up axis 838 mg (overturned below 400), line raw L=269 C=2900 R=313 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=17737 zone=6 lost=0 jn=0 cmd   60 mm/s steer   80  wheels L=  98 R=  92  dist= 1512
+vc: t=18237 zone=4 lost=0 jn=1 cmd  100 mm/s steer    0  wheels L=  93 R=  98  dist= 1552
+handling: last 1 s moved 94 mg (lift needs 150), lowest up axis 830 mg (overturned below 400), line raw L=1899 C=1141 R=737 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=18739 zone=5 lost=0 jn=0 cmd   80 mm/s steer   30  wheels L=  81 R=   6  dist= 1588
+vc: t=19259 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 108 R=  97  dist= 1635
+handling: last 1 s moved 1082 mg (lift needs 150), lowest up axis 456 mg (overturned below 400), line raw L=249 C=2682 R=298 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=19777 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 104 R=  96  dist= 1685
+vc: t=20277 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 101 R= 100  dist= 1734
+handling: last 1 s moved 116 mg (lift needs 150), lowest up axis 868 mg (overturned below 400), line raw L=458 C=3057 R=365 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=20777 zone=6 lost=0 jn=0 cmd   60 mm/s steer   60  wheels L= 106 R=  53  dist= 1780
+vc: t=21277 zone=4 lost=0 jn=0 cmd  100 mm/s steer  -40  wheels L=  91 R=  95  dist= 1811
+handling: last 1 s moved 462 mg (lift needs 150), lowest up axis 54 mg (overturned below 400), line raw L=2870 C=3024 R=484 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=21778 zone=6 lost=0 jn=0 cmd   60 mm/s steer   60  wheels L=  91 R=  29  dist= 1847
+vc: t=22297 zone=6 lost=0 jn=0 cmd   60 mm/s steer   60  wheels L= 101 R= 107  dist= 1881
+handling: last 1 s moved 633 mg (lift needs 150), lowest up axis 406 mg (overturned below 400), line raw L=3224 C=2128 R=278 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=22797 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  73 R=  63  dist= 1917
+vc: t=23298 zone=3 lost=0 jn=0 cmd   80 mm/s steer   -8  wheels L= 102 R=  93  dist= 1965
+handling: last 1 s moved 1017 mg (lift needs 150), lowest up axis 310 mg (overturned below 400), line raw L=274 C=2577 R=398 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=23798 zone=2 lost=0 jn=0 cmd   60 mm/s steer  -60  wheels L= -38 R=  68  dist= 2013
+vc: t=24298 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  98 R= 103  dist= 2047
+handling: last 1 s moved 1361 mg (lift needs 150), lowest up axis 338 mg (overturned below 400), line raw L=780 C=3101 R=400 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=24798 zone=5 lost=0 jn=0 cmd   80 mm/s steer   30  wheels L= 107 R=  91  dist= 2092
+vc: t=25298 zone=6 lost=0 jn=0 cmd   60 mm/s steer   60  wheels L= 103 R=  86  dist= 2138
+handling: last 1 s moved 51 mg (lift needs 150), lowest up axis 864 mg (overturned below 400), line raw L=1179 C=3106 R=361 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=25798 zone=6 lost=0 jn=0 cmd   60 mm/s steer   60  wheels L=  99 R= -33  dist= 2180
+vc: t=26298 zone=6 lost=0 jn=0 cmd   60 mm/s steer  100  wheels L=  84 R=  80  dist= 2211
+handling: last 1 s moved 420 mg (lift needs 150), lowest up axis 710 mg (overturned below 400), line raw L=3306 C=930 R=396 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=26817 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  91 R=  65  dist= 2242
+vc: t=27317 zone=6 lost=0 jn=0 cmd   60 mm/s steer   60  wheels L= 112 R=  13  dist= 2276
+handling: last 1 s moved 1138 mg (lift needs 150), lowest up axis 382 mg (overturned below 400), line raw L=451 C=2976 R=274 (no floor: L,C >= 2000 and R >= 1000)
+S4 t_us=36210404 state=DESCENDING ... imu_status=IMPACT dynamic_mg=1122 impacts=25 ... accel_x_mg=-2058 accel_y_mg=-214 accel_z_mg=472
+vc: t=27817 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 111 R= 110  dist= 2319
+vc: t=28318 zone=6 lost=0 jn=0 cmd   60 mm/s steer   60  wheels L= 120 R=  11  dist= 2368
+handling: last 1 s moved 1352 mg (lift needs 150), lowest up axis -74 mg (overturned below 400), line raw L=251 C=2649 R=550 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=28818 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 103 R=  90  dist= 2412
+vc: t=29318 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 105 R=  97  dist= 2460
+handling: last 1 s moved 491 mg (lift needs 150), lowest up axis 262 mg (overturned below 400), line raw L=490 C=3034 R=291 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=29818 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 110 R=  90  dist= 2507
+vc: t=30339 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 104 R=  99  dist= 2557
+handling: last 1 s moved 162 mg (lift needs 150), lowest up axis 794 mg (overturned below 400), line raw L=832 C=3037 R=264 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=30857 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  96 R=  95  dist= 2605
+vc: t=31357 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 101 R= 101  dist= 2652
+handling: last 1 s moved 790 mg (lift needs 150), lowest up axis 350 mg (overturned below 400), line raw L=273 C=2753 R=274 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=31857 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 104 R= 101  dist= 2703
+vc: t=32358 zone=3 lost=0 jn=0 cmd   80 mm/s steer  -30  wheels L=  90 R= 113  dist= 2762
+handling: last 1 s moved 238 mg (lift needs 150), lowest up axis 848 mg (overturned below 400), line raw L=904 C=2429 R=1112 (no floor: L,C >= 2000 and R >= 1000)
+handling: PICKED UP (moved 265 mg, up axis 816 mg, floor lost 260 ms; line raw L=3732 C=3781 R=3781)
+vc: PICKED UP: motors stopped, run over (reset to start again)
+vc: mission state ABORTED
+vc: HOLD (obstacle state 0, motion state 1, epoch 2)
+vc: motion state 0
+vc: t=32877 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=  10 R=   6  dist= 2803
+vc: t=33377 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 2803
+handling: last 1 s moved 353 mg (lift needs 150), lowest up axis 752 mg (overturned below 400), line raw L=3856 C=3879 R=3910 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=33877 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 2803
+vc: t=34377 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 2803
+handling: last 1 s moved 421 mg (lift needs 150), lowest up axis 696 mg (overturned below 400), line raw L=3950 C=3978 R=4008 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=34878 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 2803
+vc: t=35378 zone=7 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 2803
+handling: last 1 s moved 413 mg (lift needs 150), lowest up axis 710 mg (overturned below 400), line raw L=2613 C=1172 R=291 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=35898 zone=7 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 2803
+vc: t=36398 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 2803
+handling: last 1 s moved 273 mg (lift needs 150), lowest up axis 774 mg (overturned below 400), line raw L=721 C=3044 R=276 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=36898 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 2803
+vc: t=37419 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 2803
+handling: last 1 s moved 63 mg (lift needs 150), lowest up axis 918 mg (overturned below 400), line raw L=725 C=3048 R=289 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=37919 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 2803
+---- Closed serial port COM3 due to disconnection from the machine ----
