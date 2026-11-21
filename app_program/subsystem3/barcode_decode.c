@@ -79,9 +79,13 @@
    when committing. */
 #define S3_BC_TEST_MAP        S3_BC_DRIVE_DEMO   /* on with the drive demo */
 
-/* 1 = print every decode attempt (Commit 4 Part B).  MUST be 0 when
-   committing. */
-#define S3_BC_DEBUG           S3_BC_DRIVE_DEMO   /* on with the drive demo */
+/* 1 = print every decode attempt (Commit 4 Part B): the accepted map, each
+   letter read, "unsure" and "gave up" reads.  On in the integration build
+   (2026-11-22): a few lines per barcode, and the console is the evidence
+   that a barcode was read (demo items 1, 2) and why one was not. */
+#ifndef S3_BC_DEBUG
+#define S3_BC_DEBUG           1
+#endif
 
 /* With S3_BC_DEBUG: a read abandoned after at least this many elements is
    reported, with the element widths.  Fewer = a speck, the floor edge, or

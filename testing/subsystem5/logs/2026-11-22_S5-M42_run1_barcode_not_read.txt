@@ -1,0 +1,69 @@
+S5-M42 run 1 -- barcode then junction, barcode not read (commit 780cbfb, S5_PHASE 7, WiFi + MQTT, VC_AUTO_START 0)
+Tester: Min Han, 2026-11-22. Map sent on the dashboard while READY, then RESUME; dashboard barcode count stayed 0.
+Excerpt: the obstacle readings (90 deg, 58..165 cm, nothing close) and most S4 status lines are cut, S4 lines are
+shortened to the fields that matter; every vc: and handling: line is kept. Part of the console was lost in the
+capture itself (it jumps from the background scan to t=5098 ms, so READY / RESUME lines are missing).
+
+---- Opened the serial port COM3 ----
+microT-Kernel Version 3.00
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+dual-core (SMP) build, usermain on core 0
+safety: monitor running (hold 3000 ms after a fault, 500 ms after a scan)
+all subsystems started
+vc: calibrating the line sensor for 5 s -- sweep the robot slowly side to side across the black line (or leave it: defaults kept)
+wifi: cyw43_utk_task starting (proc 1)
+wifi: cyw43_init() ...
+wifi: cyw43_init() returned, bringing interface up ...
+obstacle: ready (servo GP12, trig GP16, echo GP17)
+obstacle: taking background scan, keep the path ahead CLEAR
+wifi: joining "<hotspot>" ...
+wifi: link status -> joined AP, waiting for IP (1)
+handling: last 1 s moved 404 mg (lift needs 150), lowest up axis 460 mg (overturned below 400), line raw L=2488 C=222 R=285 (no floor: L,C >= 2000 and R >= 1000)
+handling: last 1 s moved 109 mg (lift needs 150), lowest up axis 904 mg (overturned below 400), line raw L=2468 C=221 R=277 (no floor: L,C >= 2000 and R >= 1000)
+obstacle: 120 deg  echo  4488 [capture lost here]
+vc: t= 5098 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  93 R=  79  dist=  144
+handling: last 1 s moved 53 mg (lift needs 150), lowest up axis 868 mg (overturned below 400), line raw L=272 C=3064 R=270 (no floor: L,C >= 2000 and R >= 1000)
+S4 t_us=13290401 state=LEVEL ... humps=1 impacts=1 ... odo_mm=148
+vc: t= 5618 zone=3 lost=0 jn=0 cmd   80 mm/s steer  -30  wheels L=  62 R= 100  dist=  189
+S4 t_us=13972087 state=LEVEL ... imu_status=NOT_GRAVITY_DOMINANT dynamic_mg=170 ... odo_mm=205 accel_x_mg=-372 accel_y_mg=172 accel_z_mg=1096
+vc: t= 6137 zone=2 lost=0 jn=0 cmd   60 mm/s steer  -80  wheels L=  80 R= 106  dist=  227
+handling: last 1 s moved 618 mg (lift needs 150), lowest up axis 132 mg (overturned below 400), line raw L=221 C=1162 R=301 (no floor: L,C >= 2000 and R >= 1000)
+S4 t_us=14394107 state=LEVEL ... impact=1 impacts=2 ... imu_status=IMPACT dynamic_mg=1687 odo_mm=234 accel_x_mg=2030 accel_y_mg=446 accel_z_mg=1704
+vc: t= 6637 zone=3 lost=0 jn=0 cmd   80 mm/s steer  -30  wheels L=   9 R= 102  dist=  258
+S4 t_us=14975389 state=CLIMBING motion=CLIMBING ... impacts=3 ... odo_mm=271
+S4 t_us=15095278 state=CLIMBING ... impact=1 impacts=4 ... dynamic_mg=1300 odo_mm=278 accel_x_mg=-2076
+S4 t_us=15257382 state=DESCENDING motion=DESCENDING ... impacts=5 ... odo_mm=291
+vc: t= 7138 zone=3 lost=0 jn=0 cmd   80 mm/s steer  -50  wheels L=  86 R= 114  dist=  295
+handling: last 1 s moved 780 mg (lift needs 150), lowest up axis 572 mg (overturned below 400), line raw L=237 C=2182 R=323 (no floor: L,C >= 2000 and R >= 1000)
+S4 t_us=15317984 state=DESCENDING ... impact=1 impacts=6 ... odo_mm=297 accel_z_mg=1504
+vc: t= 7638 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  74 R= 100  dist=  339
+S4 t_us=16100591 state=DESCENDING ... impact=1 impacts=7 ... dynamic_mg=1784 odo_mm=367 accel_x_mg=-2726 accel_y_mg=414 accel_z_mg=392
+S4 t_us=16241306 state=DESCENDING ... impacts=9 ... odo_mm=380
+handling: last 1 s moved 1105 mg (lift needs 150), lowest up axis 392 mg (overturned below 400), line raw L=237 C=2786 R=2457 (no floor: L,C >= 2000 and R >= 1000)
+vc: t= 8157 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  99 R= 109  dist=  388
+S4 t_us=16363409 state=DESCENDING ... impacts=10 ... odo_mm=392
+S4 t_us=16785077 state=LEVEL ... hump=1 humps=2 impacts=10 ... odo_mm=428
+vc: t= 8658 zone=3 lost=0 jn=0 cmd   80 mm/s steer   -8  wheels L=  80 R=  95  dist=  431
+handling: last 1 s moved 373 mg (lift needs 150), lowest up axis 602 mg (overturned below 400), line raw L=224 C=2458 R=272 (no floor: L,C >= 2000 and R >= 1000)
+vc: t= 9158 zone=3 lost=0 jn=0 cmd   80 mm/s steer   -8  wheels L= 103 R= 107  dist=  478
+vc: t= 9658 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  97 R= 102  dist=  528
+handling: last 1 s moved 88 mg (lift needs 150), lowest up axis 850 mg (overturned below 400), line raw L=217 C=2633 R=252 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=10158 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  96 R=  96  dist=  576
+vc: t=10677 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  96 R= 103  dist=  628
+handling: last 1 s moved 157 mg (lift needs 150), lowest up axis 866 mg (overturned below 400), line raw L=241 C=2818 R=285 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=11177 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  98 R=  95  dist=  677
+vc: t=11696 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  96 R=  97  dist=  728
+handling: last 1 s moved 40 mg (lift needs 150), lowest up axis 850 mg (overturned below 400), line raw L=236 C=2710 R=259 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=12198 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  98 R=  97  dist=  779
+vc: t=12718 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  93 R= 100  dist=  831
+handling: last 1 s moved 51 mg (lift needs 150), lowest up axis 860 mg (overturned below 400), line raw L=550 C=3067 R=236 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=13238 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  92 R=  89  dist=  881
+vc: command from the dashboard: PAUSE
+vc: mission state PAUSED
+vc: HOLD (obstacle state 0, motion state 1, epoch 3)
+vc: motion state 0
+vc: t=13738 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=  59 R=  67  dist=  929
+handling: last 1 s moved 59 mg (lift needs 150), lowest up axis 828 mg (overturned below 400), line raw L=283 C=3025 R=265 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=14257 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  931
+vc: t=16758 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  931
+---- Closed the serial port COM3 ----
