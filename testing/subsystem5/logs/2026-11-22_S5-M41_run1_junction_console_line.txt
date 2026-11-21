@@ -1,0 +1,54 @@
+S5-M41 run 1 -- junction console line without a barcode (commit 1f336f2, S5_PHASE 7, WiFi + MQTT image)
+Tester: Min Han, 2026-11-22. Excerpt: the long S4 status lines and the obstacle background scan are cut;
+every vc:, handling: and junction line is kept as printed. The serial port closed (USB disconnected) at about 417 mm.
+
+---- Opened the serial port COM3 ----
+microT-Kernel Version 3.00
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+dual-core (SMP) build, usermain on core 0
+safety: monitor running (hold 3000 ms after a fault, 500 ms after a scan)
+all subsystems started
+
+vc: calibrating the line sensor for 5 s -- sweep the robot slowly side to side across the black line (or leave it: defaults kept)
+obstacle: ready (servo GP12, trig GP16, echo GP17)
+obstacle: taking background scan, keep the path ahead CLEAR
+handling: last 1 s moved 420 mg (lift needs 150), lowest up axis 454 mg (overturned below 400), line raw L=216 C=2842 R=242 (no floor: L,C >= 2000 and R >= 1000)
+handling: last 1 s moved 112 mg (lift needs 150), lowest up axis 912 mg (overturned below 400), line raw L=225 C=2832 R=240 (no floor: L,C >= 2000 and R >= 10
+handling: last 1 s moved 14 mg (lift needs 150), lowest up axis 910 mg (overturned below 400), line raw L=230 C=2839 R=234 (no floor: L,C >= 2000 and R >= 1000)
+handling: last 1 s moved 8 mg (lift needs 150), lowest up axis 912 mg (overturned below 400), line raw L=227 C=2842 R=245 (no floor: L,C >= 2000 and R >= 1000)
+S3 calib: timed out, seen L 203..235  C 2814..2872 -- range kept
+vc: calibration not done, default range kept
+vc: put the robot on the line, centre sensor over it -- starting in 3 s
+handling: last 1 s moved 5 mg (lift needs 150), lowest up axis 916 mg (overturned below 400), line raw L=232 C=2850 R=238 (no floor: L,C >= 2000 and R >= 1000)
+handling: last 1 s moved 6 mg (lift needs 150), lowest up axis 908 mg (overturned below 400), line raw L=229 C=2840 R=240 (no floor: L,C >= 2000 and R >= 1000)
+vc: following the line at up to 100 mm/s (starts by itself; VC_AUTO_START 0 waits for RESUME)
+vc: dashboard link up
+vc: mission state RUNNING
+vc: motion state 0
+handling: last 1 s moved 5 mg (lift needs 150), lowest up axis 912 mg (overturned below 400), line raw L=230 C=2851 R=240 (no floor: L,C >= 2000 and R >= 1000)
+vc: motion state 1
+s1: pub evt   t=3355777958 - 11 96 07
+s1: pub telem t=3355778358 - 01 00 00 02 00 02 08 00 80 F3 01 FF FE F3 03
+vc: t=  517 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  87 R=  92  dist=   32
+vc: JUNCTION 1 passed at 65 mm (no barcode command: straight on)
+s1: pub telem t=3355778858 - 01 05 00 02 00 02 08 00 80 F3 01 FF FE F3 03
+vc: t= 1018 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  97 R= 102  dist=   78
+handling: last 1 s moved 146 mg (lift needs 150), lowest up axis 596 mg (overturned below 400), line raw L=257 C=3205 R=235 (no floor: L,C >= 2000 and R >= 1000)
+vc: t= 1539 zone=6 lost=0 jn=0 cmd   60 mm/s steer   60  wheels L=  60 R=   9  dist=  122
+handling: last 1 s moved 242 mg (lift needs 150), lowest up axis 676 mg (overturned below 400), line raw L=200 C=1763 R=243 (no floor: L,C >= 2000 and R >= 1000)
+vc: t= 2058 zone=3 lost=0 jn=0 cmd   80 mm/s steer  -30  wheels L=  88 R=  93  dist=  151
+vc: t= 2558 zone=3 lost=0 jn=0 cmd   80 mm/s steer  -30  wheels L= 126 R= 105  dist=  203
+handling: last 1 s moved 290 mg (lift needs 150), lowest up axis 856 mg (overturned below 400), line raw L=218 C=2208 R=233 (no floor: L,C >= 2000 and R >= 1000)
+vc: t= 3058 zone=3 lost=0 jn=0 cmd   80 mm/s steer  -30  wheels L=  59 R=  87  dist=  240
+vc: t= 3558 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  75 R=  81  dist=  278
+handling: last 1 s moved 498 mg (lift needs 150), lowest up axis 552 mg (overturned below 400), line raw L=695 C=3312 R=241 (no floor: L,C >= 2000 and R >= 1000)
+vc: t= 4078 zone=6 lost=0 jn=0 cmd   60 mm/s steer   80  wheels L=  97 R=  90  dist=  324
+S4 t_us=12742415 state=LEVEL ... impact=1 ... impacts=1 ... imu_status=IMPACT dynamic_mg=1066 ... accel_x_mg=1652 accel_y_mg=458 accel_z_mg=1154
+vc: t= 4597 zone=6 lost=0 jn=0 cmd   60 mm/s steer   60  wheels L=  73 R=   0  dist=  355
+handling: last 1 s moved 409 mg (lift needs 150), lowest up axis 464 mg (overturned below 400), line raw L=218 C=205 R=246 (no floor: L,C >= 2000 and R >= 1000)
+vc: t= 5098 zone=1 lost=1 jn=0 cmd   40 mm/s steer -100  wheels L= -14 R= 120  dist=  380
+vc: t= 5598 zone=5 lost=0 jn=0 cmd   80 mm/s steer   50  wheels L=  44 R=  86  dist=  402
+S4 t_us=14125369 state=LEVEL ... odo_mm=417 ... impacts=1 ...
+s1: pub telem t=3355783859 - 01 37 00 02 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355783859 - 09 0D 02 00
+---- Closed serial port COM3 due to disconnection from the machine ----
