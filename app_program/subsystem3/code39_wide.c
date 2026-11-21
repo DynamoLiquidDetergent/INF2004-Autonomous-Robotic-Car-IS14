@@ -23,7 +23,11 @@ static const uint16_t k_pat[26] = {
    it was cut off at 3.4 before).  The ratio is measured ONCE per symbol
    from the 4 wide bars of the start and stop '*' (identical for every
    letter), so a wrong letter cannot "fit" by choosing its own ratio. */
-#define RATIO_MIN   1.8f
+#define RATIO_MIN   1.4f    /* was 1.8: with today's blurred GP28 two wide bars
+                                with one narrow space pull each other's centres
+                                in, and the measured ratio of the 2.6..3 print
+                                came out 1.8..1.95 -- stuck at the old floor,
+                                so every read was "unsure" (S3-H06b) */
 #define RATIO_MAX   4.4f
 #define RATIO_STEP  0.02f
 
@@ -417,6 +421,52 @@ void c39w_reset(C39W_STATE *st)
     st->n    = 0;
 }
 
+/* Decode 6 of the collected pulses: with st->n == 6 all of them (skip =
+   C39W_NWIDE), with st->n == 7 all but pulse 'skip'.  The pulse arrays are
+   put back as they were.  Returns false if the 6 are not of similar width
+   (not a wide-only symbol: no decode tried, res->ch = C39W_NONE). */
+static bool try_six(C39W_STATE *st, uint32_t cur, unsigned skip, C39W_RESULT *res)
+{
+    uint32_t cx2[C39W_NWIDE + 1u];
+    uint16_t pw[C39W_NWIDE + 1u], pk[C39W_NWIDE + 1u];
+    uint16_t wmin = 0xFFFFu, wmax = 0u;
+    unsigned n = st->n, i, m = 0u;
+    bool     tried = true;
+
+    for (i = 0; i < n; i++) {
+        cx2[i] = st->cx2[i];
+        pw[i]  = st->pw[i];
+        pk[i]  = st->pk[i];
+    }
+    for (i = 0; i < n; i++) {
+        if (i == skip && n > C39W_NWIDE) continue;
+        st->cx2[m] = cx2[i];
+        st->pw[m]  = pw[i];
+        st->pk[m]  = pk[i];
+        m++;
+    }
+    for (i = 0; i < C39W_NWIDE; i++) {           /* all six must be wide bars of similar width */
+        if (st->pw[i] < wmin) wmin = st->pw[i];
+        if (st->pw[i] > wmax) wmax = st->pw[i];
+    }
+    memset(res, 0, sizeof(*res));
+    res->ch  = C39W_NONE;
+    res->ch2 = C39W_NONE;
+    if ((uint32_t)wmin * C39W_WIDTH_SPREAD < wmax) {
+        tried = false;                           /* not a wide-only symbol */
+    } else if ((cur - st->cx2[0] / 2u) > (C39W_BUF_LEN - 64u)) {
+        res->err_x100 = 9999u;                   /* the whole symbol must still be in the buffer */
+    } else {
+        c39w_decode(st, res);
+    }
+    for (i = 0; i < n; i++) {
+        st->cx2[i] = cx2[i];
+        st->pw[i]  = pw[i];
+        st->pk[i]  = pk[i];
+    }
+    return tried;
+}
+
 bool c39w_feed(C39W_STATE *st, uint16_t adc, bool dark, C39W_RESULT *res)
 {
     uint32_t cur = st->idx;
@@ -485,27 +535,13 @@ bool c39w_feed(C39W_STATE *st, uint16_t adc, bool dark, C39W_RESULT *res)
             st->n = 0;                           /* floor / line, not a bar */
             return false;
         }
-        /* not a wide bar if clearly lower than the others; earlier pulses
-           clearly lower than this one were not wide bars either */
-        {
-            uint32_t pmax = 0u;
-            unsigned i, keep = 0u;
-
-            for (k = 0; k < st->n; k++) {
-                if (st->pk[k] > pmax) pmax = st->pk[k];
+        if (st->n > C39W_NWIDE) {                 /* keep the last 7 */
+            for (k = 1; k <= C39W_NWIDE; k++) {
+                st->cx2[k - 1u] = st->cx2[k];
+                st->pw[k - 1u]  = st->pw[k];
+                st->pk[k - 1u]  = st->pk[k];
             }
-            if ((uint32_t)st->peak * 100u < pmax * C39W_PEAK_PCT) {
-                return false;                    /* narrow-bar group: skip it */
-            }
-            for (i = 0; i < st->n; i++) {
-                if ((uint32_t)st->pk[i] * 100u >= (uint32_t)st->peak * C39W_PEAK_PCT) {
-                    st->cx2[keep] = st->cx2[i];
-                    st->pw[keep]  = st->pw[i];
-                    st->pk[keep]  = st->pk[i];
-                    keep++;
-                }
-            }
-            st->n = (uint8_t)keep;
+            st->n = C39W_NWIDE;
         }
         st->cx2[st->n] = first + last;
         st->pw[st->n]  = (uint16_t)(last - first + 1u);
@@ -518,43 +554,46 @@ bool c39w_feed(C39W_STATE *st, uint16_t adc, bool dark, C39W_RESULT *res)
         return false;
     }
 
-    /* all six must be wide bars of similar width */
+    /* 6 pulses: try them.  7 pulses (the first 6 did not fit): try the last
+       6, then the 7 without the lowest one -- on a print with solid narrow
+       bars, a group of them can blur into an extra, lower hump between two
+       wide bars (S3-H03/H04).  A lower hump is only dropped when the rest
+       then fits a letter, so wide bars of uneven darkness (the track print:
+       ~1450..2800) are never thrown away (S3-H06). */
     {
-        uint16_t wmin = 0xFFFFu, wmax = 0u;
-        for (k = 0; k < C39W_NWIDE; k++) {
-            if (st->pw[k] < wmin) wmin = st->pw[k];
-            if (st->pw[k] > wmax) wmax = st->pw[k];
-        }
-        if ((uint32_t)wmin * C39W_WIDTH_SPREAD < wmax) {
-            for (k = 1; k < C39W_NWIDE; k++) {   /* not a wide-only symbol */
-                st->cx2[k - 1u] = st->cx2[k];
-                st->pw[k - 1u]  = st->pw[k];
-                st->pk[k - 1u]  = st->pk[k];
+        bool tried, any = false;
+
+        if (st->n == C39W_NWIDE) {
+            tried = try_six(st, cur, C39W_NWIDE, res);
+            if (tried && res->ch != C39W_NONE) {
+                st->n = 0;                       /* done with this symbol */
+                return true;
             }
-            st->n = C39W_NWIDE - 1u;
-            return false;
+            return tried;                        /* wait for one more pulse */
         }
-    }
-
-    /* the whole symbol must still be in the buffer */
-    if ((cur - st->cx2[0] / 2u) > (C39W_BUF_LEN - 64u)) {
-        memset(res, 0, sizeof(*res));
-        res->ch = C39W_NONE;
-        res->ch2 = C39W_NONE;
-        res->err_x100 = 9999u;
-    } else {
-        c39w_decode(st, res);
-    }
-
-    if (res->ch != C39W_NONE) {
-        st->n = 0;                               /* done with this symbol */
-    } else {
-        for (k = 1; k < C39W_NWIDE; k++) {       /* slide by one bar */
+        tried = try_six(st, cur, 0u, res);       /* the last 6 */
+        any = tried;
+        if (!(tried && res->ch != C39W_NONE)) {
+            unsigned low = 1u;
+            for (k = 2; k < C39W_NWIDE; k++) {   /* lowest of the middle 5 */
+                if (st->pk[k] < st->pk[low]) low = k;
+            }
+            tried = try_six(st, cur, low, res);
+            any = any || tried;
+        }
+        if (tried && res->ch != C39W_NONE) {
+            st->n = 0;
+            return true;
+        }
+        for (k = 1; k <= C39W_NWIDE; k++) {      /* slide by one pulse */
             st->cx2[k - 1u] = st->cx2[k];
             st->pw[k - 1u]  = st->pw[k];
             st->pk[k - 1u]  = st->pk[k];
         }
-        st->n = C39W_NWIDE - 1u;
+        st->n = C39W_NWIDE;
+        if (any && res->ch == C39W_NONE) {
+            return true;
+        }
+        return any;
     }
-    return true;
 }

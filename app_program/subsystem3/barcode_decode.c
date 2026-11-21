@@ -379,8 +379,10 @@ LOCAL void wide_sample(uint16_t adc)
                   r.rms2_x10 / 10u, r.rms2_x10 % 10u, (unsigned)r.evidence,
                   (int)r.narrow, (unsigned)r.nsamp);
     } else if (r.ch != C39W_NONE) {
-        tm_printf((UB *)"BARCODE: unsure, %c (narrow-bar shape not usable) -- not sent\n",
-                  (char)r.ch);
+        tm_printf((UB *)"BARCODE: unsure, %c (narrow-bar shape not usable or ratio at the end of its range; "
+                        "fit %u.%02u, ratio %u.%02u, %u letters) -- not sent\n",
+                  (char)r.ch, r.err_x100 / 100u, r.err_x100 % 100u,
+                  r.ratio_x100 / 100u, r.ratio_x100 % 100u, (unsigned)r.ntied);
     } else {
         tm_printf((UB *)"BARCODE: 6 wide bars, no letter fits (error %u.%02u)\n",
                   r.err_x100 / 100u, r.err_x100 % 100u);

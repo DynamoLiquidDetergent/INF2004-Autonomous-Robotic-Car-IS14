@@ -84,12 +84,6 @@
 #define C39W_SPLIT_PCT     85u
 #define C39W_SPLIT_RISE    150u
 #define C39W_TOP_PCT       85u
-/* A wide bar's hump reaches (nearly) full black; on the printed sheet a
-   group of solid narrow bars (n bar, n space, n bar ...) blurs into a lower
-   hump (~60 % of black) that can still cross the dark level.  So a pulse
-   whose peak is below C39W_PEAK_PCT % of the highest one collected is not a
-   wide bar (the real *A* capture: all 6 peaks within 3 %). */
-#define C39W_PEAK_PCT      80u
 #define C39W_MAX_ERR_X100  35      /* fit error limit, 1/100 narrow unit   */
 #define C39W_TIE_ERR_X100  35      /* letters this close in fit are all
                                       compared by the tie-break (blur moves
@@ -144,9 +138,9 @@ typedef struct {
     bool     dark;
     uint32_t start;               /* first sample of the current pulse     */
     uint32_t last_end;
-    uint32_t cx2[C39W_NWIDE];     /* pulse centres x 2 (start + end)       */
-    uint16_t pw[C39W_NWIDE];      /* pulse widths, samples                 */
-    uint16_t pk[C39W_NWIDE];      /* pulse peaks, raw ADC                  */
+    uint32_t cx2[C39W_NWIDE + 1u]; /* pulse centres x 2 (top of the hump)  */
+    uint16_t pw[C39W_NWIDE + 1u]; /* pulse widths (top of the hump)        */
+    uint16_t pk[C39W_NWIDE + 1u]; /* pulse peaks, raw ADC                  */
     uint8_t  n;
     uint16_t peak;                /* highest reading of the current pulse  */
     uint16_t valley;              /* lowest reading since the last pulse   */

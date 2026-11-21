@@ -15,6 +15,9 @@
  *	S3-H03  synthetic, blurred spot (as measured in S3-H01: an 8 mm edge) and
  *	        solid narrow bars (the printed test sheet): same cases
  *	S3-H04  the 4 mapped letters only (C D A B), as on the car, blurred spot
+ *	S3-H06  wide bars of uneven darkness (each bar 0..x lighter): a: sharp, x = 45 %;
+ *	        b: today's blur, faint narrow bars, x = 20 %; c: today's blur, solid
+ *	        narrow bars, x = 20 %: every letter read; d: blur and x = 45 %: never wrong
  *	S3-H05  no false letter: white floor, a junction crossbar, the black line
  *
  *	Build and run (WSL):  sh testing/subsystem3/host/run.sh
@@ -76,6 +79,7 @@ static const unsigned short k_pat[26] = {
 #define RES_MM   0.05
 
 static unsigned long rng = 12345u;
+static double g_wide_var = 0.0;   /* wide bars: darkness 1 - g_wide_var*rand(0..1) */
 static double noise(double amp)
 {
 	rng = rng * 1103515245u + 12345u;
@@ -95,7 +99,7 @@ static int profile(int letter, int rev, double narrow_mm, double wide_mm, double
 		for (k = 0; k < 9; k++) {
 			int wide = (pats[c] >> (8 - k)) & 1;
 			el[nel] = wide ? wide_mm : narrow_mm;
-			darkn[nel] = (k % 2 == 0) ? (wide ? 1.0 : narrow_dark) : 0.0;
+			darkn[nel] = (k % 2 == 0) ? (wide ? 1.0 - g_wide_var * (noise(0.5) + 0.5) : narrow_dark) : 0.0;
 			nel++;
 		}
 		if (c < 2) { el[nel] = narrow_mm; darkn[nel] = 0.0; nel++; }
@@ -228,6 +232,16 @@ int main(void)
 	run_family("S3-H02b", 1.2, 0.15, 3.3, 8.5, mapped, "CDAB", 1);
 	run_family("S3-H03", 3.1, 1.00, 3.0, 9.0, 0, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1);
 	run_family("S3-H04", 3.1, 1.00, 3.0, 9.0, mapped, "CDAB", 1);
+	/* S3-H06: wide bars of uneven darkness (the track print's wide bars peak
+	   anywhere from ~1450 to ~2800), sharp and blurred, map C D A B */
+	g_wide_var = 0.45;
+	run_family("S3-H06a", 1.2, 0.15, 3.3, 8.5, mapped, "CDAB", 1);   /* track print, sharp, very uneven */
+	g_wide_var = 0.20;
+	run_family("S3-H06b", 3.1, 0.15, 3.3, 8.5, mapped, "CDAB", 1);   /* track print, today's blur */
+	run_family("S3-H06c", 3.1, 1.00, 3.0, 9.0, mapped, "CDAB", 1);   /* printed sheet, today's blur */
+	g_wide_var = 0.45;
+	run_family("S3-H06d", 3.1, 0.15, 3.3, 8.5, mapped, "CDAB", 0);   /* blur AND very uneven: never wrong */
+	g_wide_var = 0.0;
 	no_false_letter();
 
 	printf("[HOST] code39_wide SUMMARY %d passed, %d failed\n", n_pass, n_fail);
