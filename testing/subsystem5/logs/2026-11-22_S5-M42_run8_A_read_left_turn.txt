@@ -1,0 +1,36 @@
+S5-M42 run 8 -- barcode A read, LEFT command, left turn at the junction (commit 9240c6c, S5_PHASE 7, WiFi + MQTT, VC_AUTO_START 0)
+Tester: Min Han, 2026-11-22. Excerpt (obstacle readings while driving, 127..177 cm, S4 lines and repeated READY lines cut).
+
+BARCODE: mapping C D A B -- only these letters are read
+vc: command from the dashboard: RESUME
+vc: mission state RUNNING
+vc: t= 4540 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  93 R=  98  dist=   34
+vc: t= 5059 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  92 R= 100  dist=   82
+vc: t= 5559 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 100 R=  87  dist=  128
+GP28: min= 206 max=2629   (dark above 840, light below 610)
+vc: t= 6060 zone=3 lost=0 jn=0 cmd   80 mm/s steer   -8  wheels L=  85 R=  89  dist=  174
+vc: t= 6560 zone=5 lost=0 jn=0 cmd   80 mm/s steer    8  wheels L=  85 R=  89  dist=  221
+BARCODE: ch=A cmd=3   (wide bars, forward, fit 0.30, ratio 1.71)
+vc: barcode command LEFT (letter A)
+GP28: min= 222 max=2636   (dark above 840, light below 610)
+vc: t= 7080 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  95 R=  99  dist=  261
+vc: t= 7600 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  93 R= 101  dist=  312
+vc: t= 8100 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 100 R=  97  dist=  362
+vc: t= 8600 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  96 R=  27  dist=  409
+vc: junction -> LEFT (epoch 2)
+vc: mission state TURNING
+GP28: min= 254 max=3547   (dark above 840, light below 610)
+vc: t= 9100 zone=3 lost=0 jn=0 cmd   60 mm/s steer    0  wheels L=  59 R=  72  dist=  450
+vc: motion state 2
+vc: t= 9600 zone=7 lost=0 jn=0 cmd  100 mm/s steer  -90  wheels L= -51 R=  81  dist=  474
+vc: t=10119 zone=7 lost=1 jn=0 cmd  100 mm/s steer  -90  wheels L= -72 R=  87  dist=  480
+obstacle:  90 deg  echo  4787 us  status 0  -> 83 cm
+obstacle:  90 deg  echo  1515 us  status 0  -> 26 cm
+obstacle:  90 deg  echo  1409 us  status 0  -> 24 cm
+safety: INHIBIT set (faults 0x0, obstacle state 1)
+vc: mission state AVOIDING
+vc: HOLD (obstacle state 1, motion state 5, epoch 3)
+vc: command from the dashboard: PAUSE
+vc: mission state PAUSED
+obstacle: PROFILE seq 1 detected 1 closest 25 cm @105 deg, width 22 cm (+/-7), planned 46 cm, left 42 cm, right 28 cm, action 1, objects 1, scan 2702 ms
+[... paused, scanning ...]
