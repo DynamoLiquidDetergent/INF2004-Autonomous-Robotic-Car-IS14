@@ -1,0 +1,47 @@
+S5-M43 run 1 -- dashboard RESUME / PAUSE, hotspot off (commands cannot arrive), hotspot on, RESUME / PAUSE again
+(commit 737713a image, S5_PHASE 7, WiFi + MQTT, VC_AUTO_START 0). Tester: Min Han, 2026-11-22. Filmed (link to be added).
+Excerpt: the console was opened mid-session (car PAUSED at 577 mm). Obstacle readings (131..155 cm, nothing close), the
+once-a-second GP28 / handling / S4 lines and repeated PAUSED lines are cut; every vc:, s1:, mqtt: and wifi: line is kept.
+
+--- Opened the serial port COM3 ----
+vc: t=304917 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  577
+[... PAUSED ...]
+vc: command from the dashboard: RESUME
+vc: mission state RUNNING
+vc: driving on (obstacle state 0, motion state 0, epoch 6)
+vc: motion state 1
+vc: t=308439 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=   0 R=   0  dist=  577
+vc: t=308957 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  89 R=  94  dist=  617
+vc: t=309458 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  94 R=  98  dist=  665
+vc: command from the dashboard: PAUSE
+vc: mission state PAUSED
+vc: HOLD (obstacle state 0, motion state 1, epoch 7)
+vc: motion state 0
+vc: t=309977 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  685
+[... PAUSED, hotspot switched off ...]
+mqtt: connection status 257, retrying in 3s
+vc: t=318098 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  685
+s1: link down, buffering telemetry
+vc: dashboard link down
+[... 12 s: RESUME pressed on the dashboard (video) but no command reaches the car; it stays PAUSED, wheels 0 / 0,
+     dist 685 throughout; no fault ...]
+mqtt: connected to 172.20.10.2
+s1: link up, 20 frame(s) to replay
+mqtt: subscribed
+vc: dashboard link up
+mqtt: subscribed
+vc: t=330258 zone=3 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  685
+[... PAUSED ...]
+vc: command from the dashboard: RESUME
+vc: mission state RUNNING
+vc: driving on (obstacle state 0, motion state 0, epoch 7)
+vc: motion state 1
+vc: t=334857 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  73 R=  69  dist=  696
+vc: t=335357 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  90 R=  73  dist=  738
+vc: t=335877 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  86 R=  72  dist=  784
+vc: command from the dashboard: PAUSE
+vc: mission state PAUSED
+vc: HOLD (obstacle state 0, motion state 1, epoch 8)
+vc: motion state 0
+vc: t=336377 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  790
+---- Closed the serial port COM3 ----
