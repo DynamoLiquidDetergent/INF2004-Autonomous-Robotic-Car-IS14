@@ -1,5 +1,5 @@
 S5-M43 run 1 -- dashboard RESUME / PAUSE, hotspot off (commands cannot arrive), hotspot on, RESUME / PAUSE again
-(commit 737713a image, S5_PHASE 7, WiFi + MQTT, VC_AUTO_START 0). Tester: Min Han, 2026-11-22. Filmed (link to be added).
+(commit 737713a image, S5_PHASE 7, WiFi + MQTT, VC_AUTO_START 0). Tester: Min Han, 2026-11-22. Video: https://youtu.be/0yQvYQC1reo
 Excerpt: the console was opened mid-session (car PAUSED at 577 mm). Obstacle readings (131..155 cm, nothing close), the
 once-a-second GP28 / handling / S4 lines and repeated PAUSED lines are cut; every vc:, s1:, mqtt: and wifi: line is kept.
 
