@@ -29,6 +29,7 @@
 #include "s1_topics.h"
 #include "cmd_parse.h"
 #include "../subsystem5/subsystem5.h"   /* IF-14: mbf_sup_cmd, SUP_* */
+#include "../subsystem2/subsystem2.h"   /* IF-16 motion status, IF-17 odometry */
 #include "telem_pack.h"
 #include "outage_buf.h"
 
@@ -302,23 +303,35 @@ static void s1_handle_rx(s1_telem_ctx_t *p_ctx)
 
 /*
  * Pack one telemetry frame.  Link up: send it now.  Link down, or TX
- * full: keep it for replay.  Fields with no source yet go out as their
+ * full: keep it for replay.  Line zone, junction and line lost have no
+ * source in S1 and go out as their
  * "no data" value.
  */
 static void s1_send_telem(s1_telem_ctx_t *p_ctx)
 {
+    static uint16_t s_odo_start_mm = 0U;   /* odometry when the run started */
     telem_status_t t;
     uint8_t        frame[TELEM_FRAME_LEN];
     uint8_t        len;
+    UW             motion = s2_get_status();     /* IF-16, one load */
+    uint16_t       odo_mm = (uint16_t)s2_odo_dist_mm(s2_get_odometry());   /* IF-17 */
+
+    /* Distance counts from the start of the run: hold the start point
+       while the car waits in READY (or before the first status). */
+    if ((p_ctx->status.mission_state == S1_MSTATE_READY) ||
+        (p_ctx->status.mission_state == S1_MSTATE_NONE))
+    {
+        s_odo_start_mm = odo_mm;
+    }
 
     t.time_ds       = p_ctx->status.mission_time_ds;
     t.mission_state = p_ctx->status.mission_state;
     t.fault_mask    = p_ctx->status.fault_mask;
-    t.speed_left    = (int16_t)TELEM_SPEED_NONE;     /* S2: IF-16 later */
-    t.speed_right   = (int16_t)TELEM_SPEED_NONE;
-    t.motion_state  = 0U;
-    t.dist_mm       = 0U;                            /* S2 odometry later */
-    t.line_zone     = (uint8_t)TELEM_ZONE_NONE;      /* S3 later */
+    t.speed_left    = (int16_t)s2_status_speed_l(motion);   /* mm/s, same 10-bit range */
+    t.speed_right   = (int16_t)s2_status_speed_r(motion);
+    t.motion_state  = (uint8_t)s2_status_state(motion);
+    t.dist_mm       = (uint16_t)(odo_mm - s_odo_start_mm);  /* uint16 wraps, difference is right */
+    t.line_zone     = (uint8_t)TELEM_ZONE_NONE;      /* no S3 source in S1: not sent */
     t.b_junction    = false;
     t.b_line_lost   = false;
     t.letter        = p_ctx->status.letter;

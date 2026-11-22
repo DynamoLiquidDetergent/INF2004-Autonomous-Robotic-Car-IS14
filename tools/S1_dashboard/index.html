@@ -203,17 +203,18 @@
   function withUnit(v, u) { return v === null ? null : v + " " + u; }
 
   /* ---- Field formatting ---- */
+  /* S2 motion states (IF-16, subsystem2.h S2_STATE_*) */
+  var MOTION_NAMES = ["IDLE", "DRIVING", "TURNING", "DRIVING_DIST", "HOLDING", "INHIBITED", "STALLED", "TIMEOUT"];
+  /* Line zone, junction and line lost are in the frame but S1 has no
+     source for them (always "no data"), so they are not shown. */
   var TELEM_ROWS = [
     ["Mission time", function (f) { return secs(f.time_ds); }],
     ["Mission state", function (f) { return f.mission_state === null ? null : C.stateName(f.mission_state); }],
     ["Fault mask", function (f) { return "0x" + f.fault_mask.toString(16); }],
     ["Speed left", function (f) { return withUnit(f.speed_left, "mm/s"); }],
     ["Speed right", function (f) { return withUnit(f.speed_right, "mm/s"); }],
-    ["Motion state", function (f) { return f.motion_state; }],
+    ["Motion state", function (f) { return f.motion_state === null ? null : MOTION_NAMES[f.motion_state]; }],
     ["Distance", function (f) { return withUnit(f.dist_mm, "mm"); }],
-    ["Line zone", function (f) { return f.line_zone; }],
-    ["Junction", function (f) { return yesNo(f.junction); }],
-    ["Line lost", function (f) { return yesNo(f.line_lost); }],
     ["Letter", function (f) { return f.letter === null ? null : C.letterName(f.letter); }],
     ["Last action", function (f) { return C.MOVE_NAMES[f.last_action]; }],
     ["Map OK", function (f) { return yesNo(f.map_ok); }],
