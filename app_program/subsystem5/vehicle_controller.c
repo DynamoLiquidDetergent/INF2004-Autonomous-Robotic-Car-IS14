@@ -284,6 +284,7 @@ EXPORT void vehicle_controller_task(INT stacd, void *exinf)
 			in.lost       = line_data_lost(m) ? 1 : 0;
 			in.junction   = line_data_junction(m) ? 1 : 0;
 			in.bc_busy    = barcode_decode_busy() ? 1 : 0;
+			in.hump_busy  = subsystem4_hump_active() ? 1 : 0;
 			in.line_fresh = 1;
 			in.dt_ms      = now - last_step;
 			last_step     = now;

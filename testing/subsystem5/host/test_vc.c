@@ -45,8 +45,12 @@ static VC_IN line_in(int zone, int lost)
 	in.wheel_r = 0;
 	in.motion_done = 0;
 	in.elapsed_ms = 20;
+	in.bc_busy = 0;
+	in.hump_busy = 0;
 	return in;
 }
+
+static int iabs_t(int x) { return x < 0 ? -x : x; }
 
 /* angle turned so far (tenths of a degree), same formula as the controller */
 static int turned_est_d10(const VC_STATE *st)
@@ -1102,6 +1106,37 @@ int main(void)
 		b = line_in(5, 0); b.bc_busy = 0;
 		bo = vc_step(&v, &b);
 		CHECK("S5-H120d", bo.steer == 30, "not in a barcode: zone 5 gives the normal 30 mm/s");
+	}
+
+	/* H141: right wheel on a hump (subsystem 4 tracking a height): no wheel may run backwards,
+	   or subsystem 4 drops the height as NOT_FORWARD (hump run 1, 2026-11-22: zone 7 gave
+	   40 mm/s with 90 mm/s steering, wheels L=115 R=-22) */
+	{
+		VC_IN b;
+		VC_OUT bo;
+		int z, ok = 1, ok_lost = 1;
+
+		for (z = 1; z <= 7; z++) {
+			vc_init(&v, 0);
+			b = line_in(z, 0); b.hump_busy = 1;
+			bo = vc_step(&v, &b);
+			if (bo.mode != VC_MODE_DRIVE || bo.speed - iabs_t(bo.steer) < 0 || bo.speed + iabs_t(bo.steer) > 220) ok = 0;
+		}
+		CHECK("S5-H141a", ok, "zones 1..7 on a hump: |steer| <= speed, both wheels >= 0");
+		vc_init(&v, 0);
+		b = line_in(4, 0); b.hump_busy = 1; (void)vc_step(&v, &b);
+		b = line_in(7, 1); b.hump_busy = 1;
+		bo = vc_step(&v, &b);
+		if (bo.speed - iabs_t(bo.steer) < 0) ok_lost = 0;
+		CHECK("S5-H141b", ok_lost, "line lost on a hump (search turn): both wheels >= 0");
+		vc_init(&v, 0);
+		b = line_in(7, 0); b.hump_busy = 1;
+		bo = vc_step(&v, &b);
+		CHECK("S5-H141c", bo.steer == bo.speed && bo.steer > 0, "zone 7 on a hump: still turns the right way, as hard as allowed");
+		vc_init(&v, 0);
+		b = line_in(7, 0);
+		bo = vc_step(&v, &b);
+		CHECK("S5-H141d", bo.steer > bo.speed, "zone 7 without a hump: the normal hard correction (unchanged)");
 	}
 
 	/* H100: the status shows the barcode count and the last action */

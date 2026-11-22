@@ -7,6 +7,7 @@ static ID fault_group_id;
 static UINT fault_pattern;
 static volatile INT highest_hump_mm=-1;
 static volatile UW completed_hump_count;
+static volatile BOOL hump_active=FALSE;   /* a hump candidate is being tracked */
 static volatile UW handling_count;
 static volatile UINT handling_kind;
 
@@ -46,6 +47,7 @@ EXPORT ER s4_integration_publish(const s4_height_t *height,BOOL failed,UW comple
      * historical maximum even if a subsequent traversal is invalid. */
     highest_hump_mm=height->highest_valid?(INT)(height->highest_mm+0.5F):-1;
     completed_hump_count=completed_humps;
+    hump_active=height->active?TRUE:FALSE;
     if(failed)
     {
         if(fault_group_id<=0){return E_NOEXS;}
@@ -58,6 +60,7 @@ EXPORT ER s4_integration_publish(const s4_height_t *height,BOOL failed,UW comple
 }
 EXPORT INT subsystem4_highest_hump_mm(void){return highest_hump_mm;}
 EXPORT UW subsystem4_completed_humps(void){return completed_hump_count;}
+EXPORT BOOL subsystem4_hump_active(void){return hump_active;}
 /* Only the IMU task writes these; the kind is written before the count. */
 EXPORT void s4_handling_publish(UINT kind){handling_kind=kind;handling_count=handling_count+1U;}
 EXPORT UINT subsystem4_handling(UW *count){UW c=handling_count;*count=c;return handling_kind;}

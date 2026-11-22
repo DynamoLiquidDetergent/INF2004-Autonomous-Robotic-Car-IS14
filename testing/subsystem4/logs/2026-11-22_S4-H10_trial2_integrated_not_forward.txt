@@ -1,0 +1,51 @@
+S4-H10 trial 2 -- integrated car on the school hump (Bryan's 23 mm reference), right wheel over it, line following at
+100 mm/s (commit 2f8fa45, S5_PHASE 7, WiFi + MQTT, VC_AUTO_START 0). Tester: Min Han, 2026-11-22.
+Excerpt: obstacle readings (124..181 cm, nothing close), GP28/handling lines and the READY / PAUSED repeats cut; S4 lines
+shortened to the fields that matter. All S4 lines from RESUME to PAUSE are kept.
+
+vc: command from the dashboard: RESUME
+vc: mission state RUNNING
+vc: t=21797 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  81 R=  77  dist=   15
+S4 state=LEVEL      pitch_md=1678  roll_md=485    humps=0 height_valid=0 height_reason=OK          odo_mm=31  odo_forward=1 imu_status=OK
+S4 state=CLIMBING   pitch_md=237   roll_md=-3658  humps=0 height_valid=0 height_reason=OK          odo_mm=57  odo_forward=1 imu_status=OK
+vc: t=22298 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  84 R=  86  dist=   60
+S4 state=CLIMBING   valid=0                       humps=0 height_valid=0 height_reason=IMU         odo_mm=64  odo_forward=1 imu_status=NOT_GRAVITY_DOMINANT dynamic_mg=206
+S4 state=DESCENDING pitch_md=-3642 roll_md=-1144  humps=0 height_valid=0 height_reason=IMU         odo_mm=71
+S4 state=LEVEL      pitch_md=-3517 roll_md=370    hump=1 humps=1 height_valid=0 height_reason=IMU  odo_mm=80
+vc: t=22817 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  86 R=  92  dist=  108
+S4 state=LEVEL      roll_md=-1332  humps=1 height_reason=IMU          odo_mm=123
+S4 state=LEVEL      roll_md=-1141  humps=1 height_reason=NOT_FORWARD  odo_mm=127 odo_forward=0
+vc: t=23337 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  99 R= 100  dist=  153
+S4 state=LEVEL      roll_md=-2390  humps=1 height_reason=OK           odo_mm=159
+S4 state=LEVEL      roll_md=-835   humps=1 height_reason=NOT_FORWARD  odo_mm=180 odo_forward=0
+vc: t=23837 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  96 R=  99  dist=  198
+S4 state=LEVEL      roll_md=173    humps=1 height_reason=NOT_FORWARD  odo_mm=212
+vc: t=24338 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  99 R=  97  dist=  248
+S4 state=LEVEL      roll_md=-1245  humps=1 height_reason=OK           odo_mm=256
+S4 state=CLIMBING   pitch_md=-700  roll_md=-3357  humps=1 height_reason=OK  odo_mm=277 odo_forward=1
+vc: t=24858 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  83 R=  84  dist=  291
+S4 state=CLIMBING   pitch_md=-6125 roll_md=-7395  humps=1 height_reason=OK  odo_mm=301 odo_forward=1
+vc: t=25378 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  87 R=  90  dist=  337
+S4 state=DESCENDING pitch_md=-8066 roll_md=-10032 humps=1 height_reason=OK  odo_mm=337 odo_forward=1
+S4 state=DESCENDING pitch_md=-8983 roll_md=-15035 humps=1 height_reason=NOT_FORWARD odo_mm=358 odo_forward=0
+vc: t=25878 zone=7 lost=0 jn=0 cmd   40 mm/s steer   90  wheels L= 115 R= -22  dist=  380
+S4 state=DESCENDING pitch_md=-4177 roll_md=-8065  humps=1 height_reason=NOT_FORWARD odo_mm=387
+vc: t=26378 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  83 R= 112  dist=  426
+S4 state=LEVEL      roll_md=-39    hump=1 humps=2 height_valid=0 highest_valid=0 height_reason=NOT_FORWARD odo_mm=472
+vc: t=26878 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 102 R=  98  dist=  477
+vc: JUNCTION 1 passed at 499 mm (no barcode command: straight on)
+vc: t=27397 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  65 R=  87  dist=  520
+S4 state=CLIMBING   pitch_md=-2084 roll_md=-4248  humps=2 height_reason=OK  odo_mm=521
+S4 state=CLIMBING   pitch_md=-1958 roll_md=-3166  humps=2 height_reason=OK  odo_mm=526
+S4 state=DESCENDING pitch_md=-1711 roll_md=-1722  humps=2 height_reason=OK  odo_mm=530
+S4 state=LEVEL      roll_md=-580   hump=1 humps=3 height_valid=1 height_mm=4 highest_valid=1 highest_mm=4 height_reason=OK odo_mm=554
+vc: t=27917 zone=5 lost=0 jn=0 cmd   80 mm/s steer   30  wheels L=  63 R=  89  dist=  566
+vc: command from the dashboard: PAUSE
+vc: mission state PAUSED
+S4 state=LEVEL ... humps=3 height_valid=1 height_mm=4 highest_valid=1 highest_mm=4 height_reason=OK odo_mm=574
+
+Reading: the school hump is hump 2 (277..472 mm): roll -3.4 -> -7.4 -> -10.0 -> -15.0 degrees (Bryan's 8 Nov trial peaked
+at -12.6). 120 mm x sin(15.0 deg) = 31 mm, minus the 5.5 mm bias = about 26 mm from this one sample (an estimate, not S4's
+output). At 358 mm the line follower was in zone 7 and steered 90 mm/s at 40 mm/s (right wheel -22 mm/s backwards), so
+S4's odometry input was "not forward" and the traversal was dropped (NOT_FORWARD). Humps 1 (57..80 mm, IMU jolt) and 3
+(521..554 mm, 4 mm, after the junction) were small rolls, not the reference hump.

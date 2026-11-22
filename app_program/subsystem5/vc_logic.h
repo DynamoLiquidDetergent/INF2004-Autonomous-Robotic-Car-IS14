@@ -341,6 +341,7 @@ typedef struct {
 	unsigned	fault_mask;	/* faults the Safety Monitor is handling now (IF-12 bits) */
 	int		junction;	/* junction flag of the newest line message */
 	int		bc_busy;	/* subsystem 3: GP28 is inside a possible barcode (keep the steering small) */
+	int		hump_busy;	/* subsystem 4: the right wheel is on a hump (no wheel may turn backwards) */
 	int		obst_present;	/* Obstacle Detection has an obstacle (no spinning near it) */
 	int		phase7;		/* the Vehicle Controller does the bypass (S5_STANDALONE 0) */
 	int		path_blocked;	/* s5_path_blocked: something close ahead during the bypass: wait */

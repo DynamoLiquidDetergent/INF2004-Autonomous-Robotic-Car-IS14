@@ -116,6 +116,9 @@ static int follow_line(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 			o->steer = v->post_dir * VC_LF_SEARCH_STEER;
 		}
 		v->have_prev = 0;		/* no D kick when the line comes back */
+		if (in->hump_busy) {
+			o->steer = clamp(o->steer, o->speed);	/* see below */
+		}
 		return 0;
 	}
 	v->lost_ms = 0;
@@ -134,6 +137,13 @@ static int follow_line(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 	o->speed = VC_LF_SPEED - VC_LF_SLOW_PER_ZONE * iabs(err);
 	if (o->speed < VC_LF_MIN_SPEED) {
 		o->speed = VC_LF_MIN_SPEED;
+	}
+	if (in->hump_busy) {
+		/* The right wheel is on a hump: the tilt moves the line across the sensors and the
+		   correction would run the inner wheel backwards (S2 wheels = speed +/- steer);
+		   subsystem 4 then drops the height (NOT_FORWARD, hump run 1, 2026-11-22).
+		   |steer| <= speed keeps both wheels at or above 0 for the few cm of the hump. */
+		o->steer = clamp(o->steer, o->speed);
 	}
 	return 0;
 }
