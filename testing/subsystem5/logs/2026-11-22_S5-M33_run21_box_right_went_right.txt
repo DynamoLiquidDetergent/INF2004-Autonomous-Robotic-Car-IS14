@@ -1,0 +1,513 @@
+S5-M33 run 21 -- obstacle in the path, box 10 cm wide placed about 3 cm to the right of the line; the car bypassed on the right.
+(commit 737713a image, S5_PHASE 7, WiFi + MQTT, VC_AUTO_START 0). Tester: Min Han, 2026-11-22.
+Excerpt: the once-a-second S4 / handling / GP28 lines and wifi lines are cut; S4 lines with impact=1 are kept (shortened);
+long runs of 90 deg echoes while driving are shortened. Every other obstacle:, vc: and safety: line is kept.
+
+---- Opened the serial port COM3 ----
+microT-Kernel Version 3.00
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+dual-core (SMP) build, usermain on core 0
+safety: monitor running (hold 3000 ms after a fault, 500 ms after a scan)
+all subsystems started
+vc: calibrating the line sensor for 5 s -- sweep the robot slowly side to side across the black line (or leave it: defaults kept)
+obstacle: ready (servo GP12, trig GP16, echo GP17)
+obstacle: taking background scan, keep the path ahead CLEAR
+obstacle:  30 deg  echo  4938 us  status 0  -> 85 cm
+obstacle:  30 deg  echo  4989 us  status 0  -> 86 cm
+obstacle:  30 deg  echo  4843 us  status 0  -> 84 cm
+obstacle:  45 deg  echo  5030 us  status 0  -> 87 cm
+obstacle:  45 deg  echo  5030 us  status 0  -> 87 cm
+obstacle:  45 deg  echo  5030 us  status 0  -> 87 cm
+obstacle:  60 deg  echo  2943 us  status 0  -> 51 cm
+obstacle:  60 deg  echo  2888 us  status 0  -> 50 cm
+obstacle:  60 deg  echo   371 us  status 0  -> 6 cm
+obstacle:  75 deg  echo  2852 us  status 0  -> 49 cm
+obstacle:  75 deg  echo  2852 us  status 0  -> 49 cm
+obstacle:  75 deg  echo  2852 us  status 0  -> 49 cm
+obstacle:  90 deg  echo  2827 us  status 0  -> 49 cm
+obstacle:  90 deg  echo  2802 us  status 0  -> 48 cm
+obstacle:  90 deg  echo  2802 us  status 0  -> 48 cm
+obstacle: 105 deg  echo  2807 us  status 0  -> 48 cm
+obstacle: 105 deg  echo  2857 us  status 0  -> 49 cm
+obstacle: 105 deg  echo  2857 us  status 0  -> 49 cm
+obstacle: 120 deg  evc: t=  519 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=    0
+vc: t= 1037 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=    0
+vc: t= 1537 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=    0
+vc: t= 2037 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=    0
+vc: t= 2557 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=    0
+vc: command from the dashboard: RESUME
+vc: mission state RUNNING
+vc: driving on (obstacle state 0, motion state 0, epoch 2)
+vc: motion state 1
+obstacle:  90 deg  echo  2827 us  status 0  -> 49 cm
+obstacle:  90 deg  echo  2827 us  status 0  -> 49 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo  2736 us  status 0  -> 47 cm
+vc: t= 3057 zone=3 lost=0 jn=0 cmd   80 mm/s steer  -30  wheels L=  83 R=  89  dist=   24
+obstacle:  90 deg  echo  2675 us  status 0  -> 46 cm
+obstacle:  90 deg  echo  2690 us  status 0  -> 46 cm
+[... 4 readings at 90 deg ...]
+obstacle:  90 deg  echo  2685 us  status 0  -> 46 cm
+vc: t= 3558 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 106 R=  99  dist=   73
+obstacle:  90 deg  echo  2462 us  status 0  -> 42 cm
+obstacle:  90 deg  echo  2402 us  status 0  -> 41 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo  2174 us  status 0  -> 37 cm
+vc: t= 4078 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  99 R= 103  dist=  125
+obstacle:  90 deg  echo  2133 us  status 0  -> 37 cm
+obstacle:  90 deg  echo  2093 us  status 0  -> 36 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo  1849 us  status 0  -> 32 cm
+vc: t= 4598 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  98 R= 101  dist=  176
+obstacle:  90 deg  echo  1839 us  status 0  -> 32 cm
+obstacle:  90 deg  echo  1799 us  status 0  -> 31 cm
+obstacle:  90 deg  echo  1763 us  status 0  -> 30 cm
+obstacle:  90 deg  echo  1723 us  status 0  -> 30 cm
+vc: mission state AVOIDING
+vc: HOLD (obstacle state 1, motion state 1, epoch 3)
+safety: INHIBIT set (faults 0x0, obstacle state 1)
+vc: motion state 5
+vc: t= 5116 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   1 R=   1  dist=  203
+obstacle:  30 deg  echo  4645 us  status 0  -> 80 cm
+obstacle:  30 deg  echo  4766 us  status 0  -> 82 cm
+obstacle:  30 deg  echo  4958 us  status 0  -> 85 cm
+obstacle:  60 deg  echo 12768 us  status 0  -> 220 cm
+obstacle:  60 deg  echo 13063 us  status 0  -> 225 cm
+obstacle:  60 deg  echo 12788 us  status 0  -> 220 cm
+vc: t= 5617 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  203
+obstacle:  90 deg  echo  1657 us  status 0  -> 29 cm
+obstacle:  90 deg  echo  1657 us  status 0  -> 29 cm
+obstacle:  90 deg  echo  1657 us  status 0  -> 29 cm
+obstacle: 120 deg  echo  4685 us  status 0  -> 81 cm
+vc: t= 6137 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  203
+obstacle: 120 deg  echo  4807 us  status 0  -> 83 cm
+obstacle: 120 deg  echo  1849 us  status 0  -> 32 cm
+obstacle: 150 deg  echo  4594 us  status 0  -> 79 cm
+obstacle: 150 deg  echo  4478 us  status 0  -> 77 cm
+obstacle: 150 deg  echo  4453 us  status 0  -> 77 cm
+vc: t= 6637 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  203
+obstacle: 105 deg  echo  1688 us  status 0  -> 29 cm
+obstacle: 105 deg  echo  1713 us  status 0  -> 30 cm
+obstacle: 105 deg  echo  1713 us  status 0  -> 30 cm
+obstacle:  75 deg  echo  1890 us  status 0  -> 33 cm
+vc: t= 7158 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  203
+obstacle:  75 deg  echo  1713 us  status 0  -> 30 cm
+obstacle:  75 deg  echo  1713 us  status 0  -> 30 cm
+obstacle: PROFILE seq 1 detected 1 closest 29 cm @90 deg, width 7 cm (+/-7), planned 32 cm, left 25 cm, right 31 cm, action 2, objects 1, scan 2524 ms
+obstacle:  72 deg  echo  1991 us  status 0  -> 34 cm
+obstacle:  72 deg  echo  1946 us  status 0  -> 34 cm
+obstacle:  72 deg  echo  1991 us  status 0  -> 34 cm
+vc: t= 7679 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  203
+obstacle:  69 deg  echo  1895 us  status 0  -> 33 cm
+obstacle:  69 deg  echo  1895 us  status 0  -> 33 cm
+obstacle:  69 deg  echo  1870 us  status 0  -> 32 cm
+obstacle:  66 deg  echo  1946 us  status 0  -> 34 cm
+obstacle:  66 deg  echo  1870 us  status 0  -> 32 cm
+obstacle:  66 deg  echo  1946 us  status 0  -> 34 cm
+obstacle:  63 deg  echo  2022 us  status 0  -> 35 cm
+vc: t= 8197 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  203
+obstacle:  63 deg  echo 10181 us  status 0  -> 176 cm
+obstacle:  63 deg  echo 10181 us  status 0  -> 176 cm
+obstacle: 108 deg  echo  1713 us  status 0  -> 30 cm
+obstacle: 108 deg  echo  1713 us  status 0  -> 30 cm
+vc: t= 8697 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  203
+obstacle: 108 deg  echo  1713 us  status 0  -> 30 cm
+obstacle: 111 deg  echo  1763 us  status 0  -> 30 cm
+obstacle: 111 deg  echo  1839 us  status 0  -> 32 cm
+obstacle: 111 deg  echo  1839 us  status 0  -> 32 cm
+obstacle: 114 deg  echo  1743 us  status 0  -> 30 cm
+obstacle: 114 deg  echo  1718 us  status 0  -> 30 cm
+obstacle: 114 deg  echo  1768 us  status 0  -> 30 cm
+vc: t= 9217 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  203
+obstacle: 117 deg  echo  1844 us  status 0  -> 32 cm
+obstacle: 117 deg  echo  1844 us  status 0  -> 32 cm
+obstacle: 117 deg  echo  1870 us  status 0  -> 32 cm
+obstacle: fine edges: 8 readings in 2038 ms, right edge 66 deg (34 cm), left edge 117 deg (32 cm) (0 = not refined)
+obstacle: fine edge at the limit of the view (left ), that side planned from the 15 degree scan
+obstacle: far plan after the fine edges: width 7 cm, left 25 cm, right 30 cm, action 2
+obstacle: creep forward 120 mm to a gap of about 17 cm (move 1 of 2)
+obstacle:  90 deg  echo  1682 us  status 0  -> 29 cm
+obstacle:  90 deg  echo  1657 us  status 0  -> 29 cm
+obstacle:  90 deg  echo  1657 us  status 0  -> 29 cm
+vc: t= 9737 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  203
+obstacle:  90 deg  echo  1657 us  status 0  -> 29 cm
+obstacle:  90 deg  echo  1657 us  status 0  -> 29 cm
+obstacle:  90 deg  echo  1682 us  status 0  -> 29 cm
+obstacle:  90 deg  echo  1657 us  status 0  -> 29 cm
+safety: inhibit released (a newer epoch is needed to move)
+obstacle:  90 deg  echo  1682 us  status 0  -> 29 cm
+vc: driving on (obstacle state 0, motion state 0, epoch 4)
+vc: creeping forward along the line 120 mm (epoch 4)
+vc: motion state 0
+vc: motion state 1
+obstacle:  90 deg  echo  1682 us  status 0  -> 29 cm
+obstacle:  90 deg  echo  1682 us  status 0  -> 29 cm
+obstacle:  90 deg  echo  1647 us  status 0  -> 28 cm
+vc: t=10237 zone=4 lost=0 jn=0 cmd   40 mm/s steer    0  wheels L=  51 R=  44  dist=  210
+obstacle:  90 deg  echo  1627 us  status 0  -> 28 cm
+obstacle:  90 deg  echo  1586 us  status 0  -> 27 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo  1525 us  status 0  -> 26 cm
+vc: t=10757 zone=4 lost=0 jn=0 cmd   40 mm/s steer    0  wheels L=  38 R=  43  dist=  235
+obstacle:  90 deg  echo  1485 us  status 0  -> 26 cm
+obstacle:  90 deg  echo  1470 us  status 0  -> 25 cm
+[... 4 readings at 90 deg ...]
+obstacle:  90 deg  echo  1384 us  status 0  -> 24 cm
+vc: t=11257 zone=4 lost=0 jn=0 cmd   40 mm/s steer   -8  wheels L=  50 R=  43  dist=  256
+obstacle:  90 deg  echo  1368 us  status 0  -> 24 cm
+obstacle:  90 deg  echo  1373 us  status 0  -> 24 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo  1252 us  status 0  -> 22 cm
+vc: t=11777 zone=5 lost=0 jn=0 cmd   40 mm/s steer   12  wheels L=  42 R=  35  dist=  279
+obstacle:  90 deg  echo  1237 us  status 0  -> 21 cm
+obstacle:  90 deg  echo  1222 us  status 0  -> 21 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo  1176 us  status 0  -> 20 cm
+vc: t=12277 zone=4 lost=0 jn=0 cmd   40 mm/s steer   -8  wheels L=  43 R=  41  dist=  299
+obstacle:  90 deg  echo  1115 us  status 0  -> 19 cm
+obstacle:  90 deg  echo  1120 us  status 0  -> 19 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo  1004 us  status 0  -> 17 cm
+vc: t=12797 zone=4 lost=0 jn=0 cmd   40 mm/s steer    0  wheels L=  42 R=  38  dist=  321
+vc: creep done, odometry 323 mm
+vc: motion state 0
+obstacle:  90 deg  echo   984 us  status 0  -> 17 cm
+obstacle: creep over (distance done), 17 cm ahead, motion state 0, scanning again
+safety: INHIBIT set (faults 0x0, obstacle state 1)
+vc: HOLD (obstacle state 1, motion state 5, epoch 5)
+vc: motion state 5
+obstacle:  30 deg  echo  4894 us  status 0  -> 84 cm
+obstacle:  30 deg  echo  4939 us  status 0  -> 85 cm
+vc: t=13298 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  325
+obstacle:  30 deg  echo  4965 us  status 0  -> 86 cm
+obstacle:  60 deg  echo  7446 us  status 0  -> 128 cm
+obstacle:  60 deg  echo  7400 us  status 0  -> 128 cm
+obstacle:  60 deg  echo  7471 us  status 0  -> 129 cm
+vc: t=13798 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  325
+obstacle:  90 deg  echo   968 us  status 0  -> 17 cm
+obstacle:  90 deg  echo   968 us  status 0  -> 17 cm
+obstacle:  90 deg  echo   994 us  status 0  -> 17 cm
+obstacle: 120 deg  echo  1080 us  status 0  -> 19 cm
+obstacle: 120 deg  echo  1080 us  status 0  -> 19 cm
+obstacle: 120 deg  echo  1080 us  status 0  -> 19 cm
+vc: t=14317 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  325
+obstacle: 150 deg  echo  3987 us  status 0  -> 69 cm
+obstacle: 150 deg  echo  4007 us  status 0  -> 69 cm
+obstacle: 150 deg  echo  4129 us  status 0  -> 71 cm
+obstacle: 135 deg  echo  4063 us  status 0  -> 70 cm
+obstacle: 135 deg  echo  4088 us  status 0  -> 70 cm
+vc: t=14817 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  325
+obstacle: 135 deg  echo  4017 us  status 0  -> 69 cm
+obstacle: 105 deg  echo   994 us  status 0  -> 17 cm
+obstacle: 105 deg  echo   994 us  status 0  -> 17 cm
+obstacle: 105 deg  echo   994 us  status 0  -> 17 cm
+vc: t=15318 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  325
+obstacle:  75 deg  echo  1019 us  status 0  -> 18 cm
+obstacle:  75 deg  echo  1019 us  status 0  -> 18 cm
+obstacle:  75 deg  echo   994 us  status 0  -> 17 cm
+obstacle: the car moved 122 mm, background forgotten (everything within 50 cm counts)
+obstacle:  72 deg  echo  1019 us  status 0  -> 18 cm
+obstacle:  72 deg  echo  1044 us  status 0  -> 18 cm
+obstacle:  72 deg  echo  1044 us  status 0  -> 18 cm
+obstacle:  69 deg  echo  1100 us  status 0  -> 19 cm
+vc: t=15836 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  325
+obstacle:  69 deg  echo  1024 us  status 0  -> 18 cm
+obstacle:  69 deg  echo  1049 us  status 0  -> 18 cm
+obstacle:  66 deg  echo  1075 us  status 0  -> 19 cm
+obstacle:  66 deg  echo  1049 us  status 0  -> 18 cm
+obstacle:  66 deg  echo  1049 us  status 0  -> 18 cm
+obstacle:  63 deg  echo  1100 us  status 0  -> 19 cm
+obstacle:  63 deg  echo  9502 us  status 0  -> 164 cm
+vc: t=16336 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  325
+obstacle:  63 deg  echo  9527 us  status 0  -> 164 cm
+obstacle: 123 deg  echo  1105 us  status 0  -> 19 cm
+obstacle: 123 deg  echo  1206 us  status 0  -> 21 cm
+vc: t=16836 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  325
+obstacle: 123 deg  echo  1206 us  status 0  -> 21 cm
+obstacle: 126 deg  echo  1136 us  status 0  -> 20 cm
+obstacle: 126 deg  echo  1186 us  status 0  -> 20 cm
+obstacle: 126 deg  echo  1212 us  status 0  -> 21 cm
+obstacle: 129 deg  echo  4068 us  status 0  -> 70 cm
+obstacle: 129 deg  echo  4043 us  status 0  -> 70 cm
+obstacle: 129 deg  echo  4068 us  status 0  -> 70 cm
+vc: t=17336 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  325
+obstacle: 132 deg  echo  4144 us  status 0  -> 71 cm
+obstacle: 132 deg  echo  4043 us  status 0  -> 70 cm
+obstacle: 132 deg  echo  4042 us  status 0  -> 70 cm
+obstacle: fine edges: 8 readings in 2037 ms, right edge 66 deg (18 cm), left edge 126 deg (20 cm) (0 = not refined)
+obstacle: edge at the limit of the close view (left ), kept the first scan: left 25 cm, right 22 cm
+obstacle: PROFILE seq 2 detected 1 closest 17 cm @90 deg, width 9 cm (+/-4), planned 20 cm, left 25 cm, right 22 cm, action 1, objects 1, scan 4876 ms
+obstacle:  90 deg  echo   968 us  status 0  -> 17 cm
+vc: t=17836 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  325
+obstacle:  90 deg  echo   969 us  status 0  -> 17 cm
+obstacle:  90 deg  echo   968 us  status 0  -> 17 cm
+obstacle:  90 deg  echo   968 us  status 0  -> 17 cm
+obstacle:  90 deg  echo   994 us  status 0  -> 17 cm
+safety: inhibit released (a newer epoch is needed to move)
+vc: smooth bypass round the right, 21 cm over, gap 17 cm: back 112 mm, curve 342 mm at up to 60 deg, straight 300 mm (line zone 4 at the stop, 4 = centred)
+vc: driving on (obstacle state 4, motion state 0, epoch 5)
+vc: motion state 0
+vc: motion state 1
+obstacle:  90 deg  echo   968 us  status 0  -> 17 cm
+vc: t=18338 zone=4 lost=0 jn=0 cmd  -50 mm/s steer    1  wheels L= -69 R= -30  dist=  322
+obstacle:  90 deg  echo   973 us  status 0  -> 17 cm
+obstacle:  90 deg  echo  1004 us  status 0  -> 17 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo  1100 us  status 0  -> 19 cm
+vc: t=18856 zone=4 lost=0 jn=0 cmd  -50 mm/s steer    1  wheels L= -55 R= -56  dist=  295
+obstacle:  90 deg  echo  1130 us  status 0  -> 19 cm
+obstacle:  90 deg  echo  1186 us  status 0  -> 20 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo  1252 us  status 0  -> 22 cm
+vc: t=19356 zone=4 lost=0 jn=0 cmd  -50 mm/s steer    1  wheels L= -55 R= -53  dist=  268
+obstacle:  90 deg  echo  1328 us  status 0  -> 23 cm
+obstacle:  90 deg  echo  1333 us  status 0  -> 23 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo  1368 us  status 0  -> 24 cm
+vc: t=19857 zone=4 lost=0 jn=0 cmd  -50 mm/s steer    1  wheels L= -47 R= -51  dist=  242
+obstacle:  90 deg  echo  1419 us  status 0  -> 24 cm
+obstacle:  90 deg  echo  1450 us  status 0  -> 25 cm
+[... 3 readings at 90 deg ...]
+obstacle:  90 deg  echo  1576 us  status 0  -> 27 cm
+vc: t=20357 zone=4 lost=0 jn=0 cmd  -50 mm/s steer    1  wheels L= -42 R= -47  dist=  218
+obstacle:  90 deg  echo  1581 us  status 0  -> 27 cm
+obstacle:  90 deg  echo  1606 us  status 0  -> 28 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo  1536 us  status 0  -> 26 cm
+vc: t=20857 zone=1 lost=0 jn=0 cmd   75 mm/s steer   59  wheels L= 123 R=  42  dist=  236
+obstacle:  90 deg  echo  1495 us  status 0  -> 26 cm
+obstacle:  90 deg  echo  1460 us  status 0  -> 25 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo  1647 us  status 0  -> 28 cm
+vc: t=21357 zone=1 lost=1 jn=0 cmd   75 mm/s steer   50  wheels L= 115 R=  36  dist=  276
+obstacle:  90 deg  echo  1601 us  status 0  -> 28 cm
+obstacle:  90 deg  echo  5358 us  status 0  -> 92 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo  4397 us  status 0  -> 76 cm
+vc: t=21878 zone=1 lost=1 jn=0 cmd   75 mm/s steer   31  wheels L= 103 R=  48  dist=  316
+obstacle:  90 deg  echo  4544 us  status 0  -> 78 cm
+S4 impact=1 impacts=1 odo_mm=324 accel_x_mg=-1960 accel_y_mg=204 accel_z_mg=240
+obstacle:  90 deg  echo  4422 us  status 0  -> 76 cm
+obstacle:  90 deg  echo  4002 us  status 0  -> 69 cm
+obstacle:  90 deg  echo  3976 us  status 0  -> 69 cm
+obstacle:  90 deg  echo  3982 us  status 0  -> 69 cm
+S4 impact=1 impacts=2 odo_mm=347 accel_x_mg=-1358 accel_y_mg=-166 accel_z_mg=1186
+vc: t=22378 zone=1 lost=1 jn=0 cmd   75 mm/s steer    8  wheels L=  97 R=  50  dist=  353
+obstacle:  90 deg  echo  3835 us  status 0  -> 66 cm
+obstacle:  90 deg  echo  3814 us  status 0  -> 66 cm
+[... 3 readings at 90 deg ...]
+obstacle:  90 deg  echo  3587 us  status 0  -> 62 cm
+vc: t=22897 zone=1 lost=1 jn=0 cmd   75 mm/s steer  -13  wheels L=  86 R=  61  dist=  393
+obstacle:  90 deg  echo  3520 us  status 0  -> 61 cm
+obstacle:  90 deg  echo  3531 us  status 0  -> 61 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo  3541 us  status 0  -> 61 cm
+vc: t=23397 zone=1 lost=1 jn=0 cmd   75 mm/s steer  -30  wheels L=  56 R=  88  dist=  429
+obstacle:  90 deg  echo  3384 us  status 0  -> 58 cm
+obstacle:  90 deg  echo  3425 us  status 0  -> 59 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo  3551 us  status 0  -> 61 cm
+vc: t=23916 zone=1 lost=1 jn=0 cmd   75 mm/s steer  -41  wheels L=  47 R= 107  dist=  467
+obstacle:  90 deg  echo  3718 us  status 0  -> 64 cm
+obstacle:  90 deg  echo  3764 us  status 0  -> 65 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo  3835 us  status 0  -> 66 cm
+vc: t=24418 zone=1 lost=1 jn=0 cmd   75 mm/s steer  -52  wheels L=  28 R= 111  dist=  505
+obstacle:  90 deg  echo  3865 us  status 0  -> 67 cm
+obstacle:  90 deg  echo  3931 us  status 0  -> 68 cm
+[... 3 readings at 90 deg ...]
+obstacle:  90 deg  echo  8814 us  status 0  -> 152 cm
+vc: t=24937 zone=1 lost=1 jn=0 cmd   75 mm/s steer  -56  wheels L=  25 R= 131  dist=  544
+obstacle:  90 deg  echo  8758 us  status 0  -> 151 cm
+obstacle:  90 deg  echo  8581 us  status 0  -> 148 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo  8454 us  status 0  -> 146 cm
+vc: t=25458 zone=1 lost=1 jn=0 cmd   90 mm/s steer    3  wheels L=  76 R= 102  dist=  588
+obstacle:  90 deg  echo  8352 us  status 0  -> 144 cm
+obstacle:  90 deg  echo  8307 us  status 0  -> 143 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo  8155 us  status 0  -> 141 cm
+vc: t=25978 zone=1 lost=1 jn=0 cmd   90 mm/s steer    9  wheels L=  89 R=  94  dist=  634
+obstacle:  90 deg  echo  8104 us  status 0  -> 140 cm
+obstacle:  90 deg  echo  8103 us  status 0  -> 140 cm
+[... 3 readings at 90 deg ...]
+obstacle:  90 deg  echo  7851 us  status 0  -> 135 cm
+vc: t=26498 zone=1 lost=1 jn=0 cmd   90 mm/s steer    7  wheels L=  91 R=  81  dist=  682
+obstacle:  90 deg  echo  7896 us  status 0  -> 136 cm
+obstacle:  90 deg  echo  7775 us  status 0  -> 134 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo  7618 us  status 0  -> 131 cm
+vc: t=27016 zone=1 lost=1 jn=0 cmd   90 mm/s steer    2  wheels L= 100 R=  91  dist=  728
+obstacle:  90 deg  echo  7567 us  status 0  -> 130 cm
+obstacle:  90 deg  echo  7482 us  status 0  -> 129 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo  7309 us  status 0  -> 126 cm
+vc: t=27517 zone=1 lost=1 jn=0 cmd   90 mm/s steer    2  wheels L=  85 R=  96  dist=  775
+obstacle:  90 deg  echo  7294 us  status 0  -> 126 cm
+obstacle:  90 deg  echo  7238 us  status 0  -> 125 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo  7116 us  status 0  -> 123 cm
+vc: t=28018 zone=1 lost=1 jn=0 cmd   90 mm/s steer    3  wheels L=  91 R=  89  dist=  820
+obstacle:  90 deg  echo  7035 us  status 0  -> 121 cm
+obstacle:  90 deg  echo  6964 us  status 0  -> 120 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo  6818 us  status 0  -> 118 cm
+vc: obstacle passed, curving back towards the line
+vc: curving back to the line (then up to 150 mm straight)
+obstacle:  90 deg  echo  6803 us  status 0  -> 117 cm
+vc: t=28536 zone=1 lost=1 jn=0 cmd   75 mm/s steer  -43  wheels L=  69 R=  88  dist=  864
+obstacle:  90 deg  echo  6757 us  status 0  -> 117 cm
+obstacle:  90 deg  echo  6716 us  status 0  -> 116 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo  6615 us  status 0  -> 114 cm
+vc: t=29038 zone=1 lost=1 jn=0 cmd   75 mm/s steer  -55  wheels L=  25 R= 121  dist=  904
+obstacle:  90 deg  echo  6438 us  status 0  -> 111 cm
+obstacle:  90 deg  echo  6413 us  status 0  -> 111 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo  6285 us  status 0  -> 108 cm
+vc: t=29558 zone=1 lost=1 jn=0 cmd   75 mm/s steer  -36  wheels L=  43 R= 102  dist=  943
+obstacle:  90 deg  echo  6199 us  status 0  -> 107 cm
+obstacle:  90 deg  echo  6190 us  status 0  -> 107 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo  6073 us  status 0  -> 105 cm
+vc: t=30076 zone=1 lost=1 jn=0 cmd   75 mm/s steer  -16  wheels L=  53 R=  98  dist=  979
+obstacle:  90 deg  echo  6119 us  status 0  -> 106 cm
+obstacle:  90 deg  echo  6083 us  status 0  -> 105 cm
+[... 3 readings at 90 deg ...]
+obstacle:  90 deg  echo  6179 us  status 0  -> 107 cm
+vc: t=30577 zone=4 lost=0 jn=0 cmd   60 mm/s steer   65  wheels L=  94 R=  -1  dist= 1010
+obstacle:  90 deg  echo  5946 us  status 0  -> 103 cm
+obstacle:  90 deg  echo  5810 us  status 0  -> 100 cm
+S4 impact=1 impacts=3 odo_mm=1020 accel_x_mg=-1870 accel_y_mg=-320 accel_z_mg=908
+obstacle:  90 deg  echo  5774 us  status 0  -> 100 cm
+obstacle:  90 deg  echo  5911 us  status 0  -> 102 cm
+obstacle:  90 deg  echo  5759 us  status 0  -> 99 cm
+vc: t=31077 zone=3 lost=0 jn=0 cmd   60 mm/s steer   65  wheels L= 116 R=   0  dist= 1035
+obstacle:  90 deg  echo  5760 us  status 0  -> 99 cm
+obstacle:  90 deg  echo  5740 us  status 0  -> 99 cm
+obstacle:  90 deg  echo  5957 us  status 0  -> 103 cm
+obstacle:  90 deg  echo  5982 us  status 0  -> 103 cm
+vc: back on the line
+obstacle: bypass done in 13720 ms
+vc: mission state RUNNING
+obstacle:  90 deg  echo  5936 us  status 0  -> 102 cm
+obstacle:  90 deg  echo  5866 us  status 0  -> 101 cm
+vc: t=31578 zone=6 lost=0 jn=0 cmd   60 mm/s steer   60  wheels L= 115 R=  11  dist= 1065
+obstacle:  90 deg  echo  5836 us  status 0  -> 101 cm
+obstacle:  90 deg  echo  5815 us  status 0  -> 100 cm
+[... 4 readings at 90 deg ...]
+obstacle:  90 deg  echo  5901 us  status 0  -> 102 cm
+vc: t=32097 zone=4 lost=0 jn=0 cmd  100 mm/s steer  -40  wheels L= 119 R=  31  dist= 1089
+obstacle:  90 deg  echo  6798 us  status 0  -> 117 cm
+obstacle:  90 deg  echo  6165 us  status 0  -> 106 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo  4853 us  status 0  -> 84 cm
+vc: t=32598 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  92 R=  72  dist= 1124
+obstacle:  90 deg  echo  4757 us  status 0  -> 82 cm
+obstacle:  90 deg  echo  4843 us  status 0  -> 84 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo  5035 us  status 0  -> 87 cm
+vc: t=33098 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  81 R=  83  dist= 1165
+obstacle:  90 deg  echo  4554 us  status 0  -> 79 cm
+obstacle:  90 deg  echo  4524 us  status 0  -> 78 cm
+[... 4 readings at 90 deg ...]
+obstacle:  90 deg  echo  4336 us  status 0  -> 75 cm
+vc: t=33618 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  96 R=  92  dist= 1210
+obstacle:  90 deg  echo  4280 us  status 0  -> 74 cm
+obstacle:  90 deg  echo  4321 us  status 0  -> 75 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo  4017 us  status 0  -> 69 cm
+vc: t=34136 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 102 R=  94  dist= 1255
+obstacle:  90 deg  echo  3961 us  status 0  -> 68 cm
+obstacle:  90 deg  echo  3951 us  status 0  -> 68 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo  3820 us  status 0  -> 66 cm
+vc: t=34637 zone=5 lost=0 jn=0 cmd   80 mm/s steer   50  wheels L= 112 R=  89  dist= 1304
+obstacle:  90 deg  echo  3784 us  status 0  -> 65 cm
+obstacle:  90 deg  echo  3723 us  status 0  -> 64 cm
+[... 4 readings at 90 deg ...]
+obstacle:  90 deg  echo  4174 us  status 0  -> 72 cm
+vc: t=35137 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  91 R=  73  dist= 1343
+obstacle:  90 deg  echo  4093 us  status 0  -> 71 cm
+obstacle:  90 deg  echo  4012 us  status 0  -> 69 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo  3799 us  status 0  -> 66 cm
+vc: t=35638 zone=6 lost=0 jn=0 cmd   60 mm/s steer   60  wheels L=  98 R=  58  dist= 1378
+obstacle:  90 deg  echo  3865 us  status 0  -> 67 cm
+obstacle:  90 deg  echo  3885 us  status 0  -> 67 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo  3546 us  status 0  -> 61 cm
+vc: t=36158 zone=6 lost=0 jn=0 cmd   60 mm/s steer   60  wheels L= 104 R=  13  dist= 1410
+obstacle:  90 deg  echo  3369 us  status 0  -> 58 cm
+obstacle:  90 deg  echo  3389 us  status 0  -> 58 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo  3389 us  status 0  -> 58 cm
+vc: t=36677 zone=5 lost=0 jn=0 cmd   80 mm/s steer   30  wheels L= 111 R=   8  dist= 1443
+obstacle:  90 deg  echo  3460 us  status 0  -> 60 cm
+obstacle:  90 deg  echo  3364 us  status 0  -> 58 cm
+obstacle:  90 deg  echo  3308 us  status 0  -> 57 cm
+vc: command from the dashboard: PAUSE
+vc: mission state PAUSED
+vc: HOLD (obstacle state 0, motion state 1, epoch 6)
+obstacle:  90 deg  echo  3369 us  status 0  -> 58 cm
+vc: motion state 0
+obstacle:  90 deg  echo  3258 us  status 0  -> 56 cm
+obstacle:  90 deg  echo  3369 us  status 0  -> 58 cm
+obstacle:  90 deg  echo  3394 us  status 0  -> 59 cm
+vc: t=37178 zone=6 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   1 R=   1  dist= 1468
+obstacle:  90 deg  echo  3369 us  status 0  -> 58 cm
+obstacle:  90 deg  echo  3121 us  status 0  -> 54 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo  3121 us  status 0  -> 54 cm
+vc: t=37698 zone=6 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 1468
+obstacle:  90 deg  echo  3121 us  status 0  -> 54 cm
+obstacle:  90 deg  echo  3420 us  status 0  -> 59 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo  3318 us  status 0  -> 57 cm
+vc: t=38216 zone=6 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 1468
+obstacle:  90 deg  echo  3247 us  status 0  -> 56 cm
+obstacle:  90 deg  echo  3121 us  status 0  -> 54 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo  3420 us  status 0  -> 59 cm
+vc: t=38717 zone=6 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 1468
+obstacle:  90 deg  echo  3248 us  status 0  -> 56 cm
+obstacle:  90 deg  echo  3171 us  status 0  -> 55 cm
+[... 4 readings at 90 deg ...]
+obstacle:  90 deg  echo  3171 us  status 0  -> 55 cm
+vc: t=39217 zone=6 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 1468
+obstacle:  90 deg  echo  3420 us  status 0  -> 59 cm
+obstacle:  90 deg  echo  3369 us  status 0  -> 58 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo  3318 us  status 0  -> 57 cm
+vc: t=39718 zone=6 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 1468
+obstacle:  90 deg  echo  3470 us  status 0  -> 60 cm
+obstacle:  90 deg  echo  3318 us  status 0  -> 57 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo  3222 us  status 0  -> 56 cm
+vc: t=40237 zone=6 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 1468
+obstacle:  90 deg  echo  3247 us  status 0  -> 56 cm
+obstacle:  90 deg  echo  3121 us  status 0  -> 54 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo  3060 us  status 0  -> 53 cm
+vc: t=40757 zone=6 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 1468
+obstacle:  90 deg  echo  3799 us  status 0  -> 66 cm
+obstacle:  90 deg  echo  4017 us  status 0  -> 69 cm
+obstacle:  90 deg  echo  3531 us  status 0  -> 61 cm
+obstacle:  90 deg  echo  3992 us  status 0  -> 69 cm
+handling: PICKED UP (moved 381 mg, up axis 940 mg, floor lost 263 ms; line raw L=4003 C=4036 R=4056)
+vc: PICKED UP: motors stopped, run over (reset to start again)
+vc: mission state ABORTED
+obstacle:  90 deg  echo  5197 us  status 0  -> 90 cm
+vc: t=41257 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 1468
+vc: t=41757 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 1468
+vc: t=42257 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 1468
+vc: t=42757 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 1468
+vc: t=43257 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 1468
+vc: t=43776 zone=6 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 1468
+vc: t=44276 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   3 R=   0  dist= 1468
+vc: t=44777 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 1468
+vc: t=45297 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 1468
+vc: t=45817 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 1468
+vc: t=46336 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 1468
+vc: t=46836 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist= 1468
+---- Closed the serial port COM3 ----
