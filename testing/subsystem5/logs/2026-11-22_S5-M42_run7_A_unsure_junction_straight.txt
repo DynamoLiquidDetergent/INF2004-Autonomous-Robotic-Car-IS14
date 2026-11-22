@@ -1,0 +1,22 @@
+S5-M42 run 7 -- barcode A read but "unsure", junction passed straight on (commit 6494e22, S5_PHASE 7, WiFi + MQTT, VC_AUTO_START 0)
+Tester: Min Han, 2026-11-22. Excerpt (obstacle readings 119..177 cm, nothing close, S4 lines and repeated READY lines cut).
+
+BARCODE: mapping C D A B -- only these letters are read
+vc: command from the dashboard: RESUME
+vc: mission state RUNNING
+vc: t= 4099 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  97 R=  96  dist=  129
+vc: t= 4618 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  93 R= 100  dist=  180
+GP28: min= 225 max=2618   (dark above 840, light below 610)
+handling: last 1 s moved 53 mg (lift needs 150), lowest up axis 858 mg (overturned below 400), line raw L=321 C=3036 R=1218 (no floor: L,C >= 2000 and R >= 1000)
+vc: t= 5138 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 101 R= 100  dist=  233
+BARCODE: unsure, A (narrow-bar shape not usable) -- not sent
+vc: t= 5639 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  98 R=  99  dist=  283
+GP28: min= 200 max=2632   (dark above 840, light below 610)
+vc: t= 6158 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  99 R=  99  dist=  335
+GP28: min= 250 max=3540   (dark above 840, light below 610)
+handling: last 1 s moved 41 mg (lift needs 150), lowest up axis 866 mg (overturned below 400), line raw L=3347 C=3524 R=408 (no floor: L,C >= 2000 and R >= 1000)
+vc: JUNCTION 1 passed at 428 mm (no barcode command: straight on)
+vc: t= 7178 zone=4 lost=0 jn=1 cmd  100 mm/s steer    0  wheels L= 102 R=  98  dist=  432
+vc: t= 7678 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 104 R=  95  dist=  478
+vc: command from the dashboard: PAUSE
+vc: mission state PAUSED

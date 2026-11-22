@@ -40,6 +40,10 @@ if the row is empty, fill it in and commit. If two people claim the same
 pin, they agree between themselves who moves. Only the *reserved* rows are
 fixed.
 
+**Left / right always means the car's own left / right, as if sitting in it
+facing forward** (not "as seen from the front"). All S2 maths depends on this:
+DRIVE steering + = turn right, TURN + = clockwise.
+
 | Pin | Owner | Used for |
 |---|---|---|
 | GP23, GP24, GP25, GP29 | *reserved* | Pico W radio |
@@ -47,34 +51,82 @@ fixed.
 | GP1 | | (taken whenever the team builds with `CRASH_REPORT=1`) |
 | GP2 | S4 | IMU SDA, I2C1 (Grove 2) |
 | GP3 | S4 | IMU SCL, I2C1 (Grove 2) |
-| GP4 | S2 | right encoder A (Grove 3) |
-| GP5 | S2 | right encoder B (Grove 3) |
-| GP6 | | free (jumper wire only, Grove 5 shares GP26) |
-| GP7 | | free (jumper wire only, Grove 7 shares GP28) |
-| GP8 | S2 | left motor M1A (PWM4 A) |
-| GP9 | S2 | left motor M1B (PWM4 B) |
-| GP10 | S2 | right motor M2A (PWM5 A) |
-| GP11 | S2 | right motor M2B (PWM5 B) |
+| GP4 | S2 | LEFT encoder A (Grove 3) |
+| GP5 | S2 | LEFT encoder B (Grove 3) |
+| GP6 | | free (Grove 5's other wire; keep unconnected while Grove 5 carries the GP26 IR sensor) |
+| GP7 | | free (Grove 7's other wire; keep unconnected while Grove 7 carries the GP28 barcode sensor) |
+| GP8 | S2 | RIGHT motor, M1A (PWM4 A) |
+| GP9 | S2 | RIGHT motor, M1B (PWM4 B) |
+| GP10 | S2 | LEFT motor, M2A (PWM5 A) |
+| GP11 | S2 | LEFT motor, M2B (PWM5 B) |
 | GP12 | S5 | servo, servo port 1 (PWM6 A) |
 | GP13 | | free (servo port 2) |
-| GP14 | S2 | left encoder A (breakout header) |
-| GP15 | S2 | left encoder B (breakout header) |
-| GP16 | S5 | HC-SR04 TRIG (Grove 4). UNVERIFIED: Grove ports are 3.3 V per the Robo Pico datasheet, so the 5 V supply source is still open. Do not use servo V+ (battery voltage, 3.6-6 V) until its voltage is measured |
-| GP17 | S5 | HC-SR04 ECHO (Grove 4). UNVERIFIED, do not wire until the echo level is measured with a multimeter. Needs a divider (1k/2k) whenever the module is supplied above 3.3 V. GP17 is also PWM0 channel B |
+| GP14 | S2 | RIGHT encoder A (breakout header; also servo port 3 signal, so servo port 3 stays empty) |
+| GP15 | S2 | RIGHT encoder B (breakout header; also servo port 4 signal, so servo port 4 stays empty) |
+| GP16 | S5 | HC-SR04+ TRIG (Grove 4). 3.3 V module, powered from Grove 4 3V3 |
+| GP17 | S5 | HC-SR04+ ECHO (Grove 4). 3.3 V output at 3V3 supply, no divider needed. GP17 is also PWM0 channel B |
 | GP18 | | free (on-board RGB LED) |
 | GP19 | | free |
 | GP20 | S5 | START button (on board, user button; enable the internal pull-up, to verify on the board) |
 | GP21 | S5 | STOP / reset button (on board, user button; enable the internal pull-up, to verify on the board) |
 | GP22 | | free (on-board buzzer) |
-| GP26 | S3 | IR left AOUT, ADC0 (Grove 6) |
-| GP27 | S3 | IR centre AOUT, ADC1 (Grove 6) |
-| GP28 | S3 | IR right / barcode AOUT, ADC2 (Grove 7). VBAT jumper left open (default) |
+| GP26 | S3 | IR line sensor "left" (S3 code name) AOUT, ADC0. **Grove 5, the GP26 wire.** Physical side to confirm with the `DEMO_LF_STEER_SIGN` bench check |
+| GP27 | S3 | IR line sensor centre AOUT, ADC1. **Grove 6, the GP27 wire.** Grove 6's GP26 wire stays unconnected (same pin as the left sensor) |
+| GP28 | S3 | Barcode IR sensor AOUT, ADC2 (Grove 7). Mounted on the car's LEFT. VBAT jumper left open (default) |
 
-Last Updated: 24/10, 2350 hrs by Saad. S5 rows, priorities, IF-10 to IF-12 and the S5 object counts edited 26/10, 0350 hrs by Min Han. S2 rows (member, PWM slices 4/5, GPIO IRQ handler, priority, IF-10, IF-11, IF-16, IF-17, S2 object counts) edited 26/10 by Aaron.
+Last Updated: 24/10, 2350 hrs by Saad. S5 rows, priorities, IF-10 to IF-12 and the S5 object counts edited 26/10, 0350 hrs by Min Han. S2 rows (member, PWM slices 4/5, GPIO IRQ handler, priority, IF-10, IF-11, IF-16, IF-17, S2 object counts) edited 26/10 by Aaron. Left/right convention, S2 motor/encoder sides, GP16/GP17, GP26–GP28 and wiring notes edited 03/11 by Saad.
 
 **Changes from Week 6:** Left encoder moved from GP0/GP1 to GP14/GP15 to keep
 the UART console free. GP20/GP21 added as START and STOP/reset buttons.
-GP16/GP17 stay unverified until a 5 V source and ECHO divider are fully figured out.
+
+**Changes 03/11 (rewire + integration testing):**
+- Left/right defined as the car's own sides. The physical wiring puts the
+  car's RIGHT wheel on M1 (GP8/GP9) with its encoder on GP14/GP15, and the
+  LEFT wheel on M2 (GP10/GP11) with its encoder on GP4/GP5. The S2 pin
+  defines in `subsystem2.h` were swapped to match (no rewiring), together
+  with `S2_ENC_L_INVERT` / `S2_ENC_R_INVERT`.
+- HC-SR04 replaced to HC-SR04+ (3.3 V): runs from Grove 4's 3V3, no 5 V
+  source or ECHO divider needed.
+- IR line sensors moved to one Grove cable each (Grove 5 / Grove 6 / Grove 7)
+  so each sensor has its own 3V3 and GND.
+- Encoder speed after a reset fixed: the kernel never configured the WATCHDOG
+  TICK that clocks the 1 MHz TIMER, so after RST the encoder periods were
+  wrong (TICK=0xeae00 after RST vs 0x4e0c after a UF2 flash). `encoder_init()`
+  now sets it (ENABLE, CYCLES=12). S5's echo timing uses the same timer.
+
+### Wiring notes
+
+**Motors (6-wire PH2.0 encoder motors).** Wire colours on our cables, by
+connector pin:
+
+| Pin | Colour | Function | Goes to |
+|---|---|---|---|
+| 1 | Blue | Encoder GND | GND |
+| 2 | Red | Encoder A | GP4 (left) / GP14 (right) |
+| 3 | Orange | Encoder B | GP5 (left) / GP15 (right) |
+| 4 | White | Encoder power | **3V3 only** (never VIN, battery or servo V+) |
+| 5 | Black | Motor + | MxA / MxB, whichever way round makes the MxA test button drive that wheel forward |
+| 6 | Yellow | Motor − | the other of MxA / MxB |
+
+Both wheels drive forward with their MxA test button (so `S2_MOTOR_x_INVERT` stay FALSE). If a motor is ever
+re-plugged, re-check with the test buttons and keep the motor and its own
+encoder together (M1 ↔ GP14/GP15, M2 ↔ GP4/GP5).
+
+**Grove ports.** Red = 3V3, black = GND. Check the board silkscreen for which
+of the white/yellow wires carries which GPIO. Tape off unused signal wires.
+
+| Grove | Device | Signal wire(s) used |
+|---|---|---|
+| 2 | IMU (I2C1) | GP2 SDA, GP3 SCL. Maker Port stays empty (shares GP2/GP3) |
+| 3 | Left wheel encoder | GP4 A, GP5 B |
+| 4 | HC-SR04+ | GP16 TRIG, GP17 ECHO |
+| 5 | IR line sensor "left" | GP26 only |
+| 6 | IR line sensor centre | GP27 only |
+| 7 | Barcode IR sensor | GP28 only |
+
+IR modules: AO to the signal wire, DO left unconnected. The right wheel
+encoder uses jumper wires on the breakout header: 3V3 from the single 3V3
+header pin (or a spare Grove port's red wire), GND from any GND.
 
 ## 3. Peripherals
 
@@ -114,7 +166,7 @@ the drivers have no locking to stop it.
 | ADC | S3 | Line Sensor Task (line_sensor.c) | GP26–GP28 |
 | PWM slices (list) | | | |
 | PWM slice 6 (servo) | S5 | Obstacle Detection Task (obstacle_detect.c) | GP12 (servo port 1); GP13 kept unused |
-| PWM slices 4, 5 (motors) | S2 | Motion Control task (motion_control.c, drv_motor.c) | GP8, GP9 (slice 4 A/B, left), GP10, GP11 (slice 5 A/B, right). 20 kHz. drv_motor.c also takes the PWM block out of reset (config.h USE_PTMR is 0) using the atomic clear alias only, so S5's servo slice is never reset |
+| PWM slices 4, 5 (motors) | S2 | Motion Control task (motion_control.c, drv_motor.c) | GP8, GP9 (slice 4 A/B, RIGHT motor, M1), GP10, GP11 (slice 5 A/B, LEFT motor, M2). 20 kHz. drv_motor.c also takes the PWM block out of reset (config.h USE_PTMR is 0) using the atomic clear alias only, so S5's servo slice is never reset |
 | GPIO interrupt (IO_IRQ_BANK0) | S2 + S5 (to agree) | one shared handler, owner to be agreed. S2 encoders (GP4/GP5, GP14/GP15) and S5 HC-SR04 echo (GP17) both need it, and a kernel interrupt number takes one handler. Alternative for S5: time the echo in hardware on PWM slice 0 channel B (GP17), untested. **S2 has implemented the shared handler** in `subsystem2/drv_encoder.c` (enabled on the Motion Control core). S5 can take GP17 edges with `s2_gpio_hook_register(17, S2_GPIO_EDGE_RISE \| S2_GPIO_EDGE_FALL, hook)` from `subsystem5_init()`; the hook runs in interrupt context and gets a 1 MHz timestamp. Proposed by S2, S5 to confirm | GP4, GP5, GP14, GP15, GP17 |
 | WiFi radio, TCP/IP, MQTT | *kernel* | `cyw43_utk_task` (built in). S1 code runs inside it via `mqtt_utk.c` (IF-15) | GP23–25, GP29 |
 
@@ -150,7 +202,7 @@ change it only by team agreement. Write down every task you create.
 
 | Subsystem | Priority band | Tasks (name – priority – core) |
 |---|---|---|
-| 1 | 22 (moved from 12–13) | telemetry_task – 22 – any (Low priority; 500 ms telemetry, 1 s heartbeat). Lowest application task so WiFi load never delays driving (Week 6, NFR4). |
+| 1 | 22 (moved from 12–13) | telemetry_task – 22 – any (Low priority; 500 ms telemetry, 1 s heartbeat). Lowest application task so WiFi load never delays driving (Week 6, NFR1). |
 | 2 | 6 (agreed at Tribunal 1: Safety Monitor 5, Motion Control 6, Vehicle Controller 7) and 14 | motion_task – 6 – core 1 (`TP_PRC2`; the encoder IRQ is enabled on the same core). Woken every 20 ms by cyclic handler `cyc_motion` (50 Hz PID, NFR9). producer_task – 14 – core 1: template example, kept running until S3/S4 stop using IF-01/IF-02 (set `S2_KEEP_EXAMPLE 0` in subsystem2.h to stop it) |
 | 3 | 16–17 | line_sensor_task - 16 - any (High priority; 20 ms line cycle, 2 ms GP28 sub-cycle). barcode_decode_task - 17 - any (Medium priority; event-driven on i16 queue) |
 | 4 | 18–19 | imu_terrain_task – 18 – any (Medium priority; 20 ms / 50 Hz IMU cycle) |
@@ -172,17 +224,18 @@ sends to it or waits on it. Agree on the data format before coding.
 | IF-04 | S4 → S3 | shared data under a mutex (owned by S3) | `app_stats`, `mtx_stats` | `APP_STATS`, read only while locked | *example* |
 | IF-05 | S3 → S5 | message buffer (owned by S3) | q_line_data | 	LINE_DATA_MSG (uint8_t): bits[7:5] pos_zone (0–7, 4=centre), bit[4] junction, bit[3] line_lost; sent every 20 ms | S3 + S5 (Teams, W8) |
 | IF-06 | S3 → S3 (internal) | message buffer (owned by barcode_decode_task) | q_gp28_samples | GP28_SAMPLE_MSG (uint16_t): bits[15:4] 12-bit ADC value, bits[3:0] rolling slot index (gap in slot → reject decode); sent every 2 ms, drop-newest on full | S3 internal |
-| IF-07 | S3 → S5 | message buffer (owned by S3) | q_barcode_cmd | BARCODE_CMD (uint8_t): 0=NONE, 1=TURN_LEFT (A), 2=TURN_RIGHT (B), 3=STRAIGHT (C), 4=UTURN (D); sent on valid decode only | S3 + S5 - A–D mapping TBD, confirm with S5 owner |
-| IF-08 | S3 → S5 (Safety Monitor) | 	event flag bit (owned by Safety Monitor) | flg_fault_i14 | BS3 sets bit S3_FAULT_BIT (bit 1 proposed, from the Week 8 fault table: 0 Motion Control, 1 Line Sensor, 2 IMU, 3 Obstacle Detection; to confirm) on debounced LINE_LOST outside bypass; never cleared by S3 | S3 + S5 - bit 1 proposed, S5 to confirm |
-| IF-09 | S5 → S3 | function call / shared flag (owned by S3) | subsystem3_set_bypass(bool) | 	VC calls before leaving line during obstacle bypass; S3 suppresses LINE_LOST and fault-bit while active; VC clears on re-acquire or timeout | S3 + S5 |
+| IF-07 | S3 → S5 | message buffer (owned by S3) | q_barcode_cmd | BARCODE_CMD (uint8_t, `subsystem3.h`): 0 NONE, 1 FORWARD, 2 U-TURN, 3 TURN_LEFT, 4 TURN_RIGHT; sent on a valid decode only. The letter is turned into a command with the map from the dashboard (IF-18), so any letter A..Z can mean any command; no fixed A..D table | S3 + S5 (implemented; tested INT-07) |
+| IF-08 | S5 (Vehicle Controller) → S5 (Safety Monitor), on behalf of S3 | event flag bit (owned by Safety Monitor) | flg_fault_i14 | Line fault = bit 1 (`FLT_LINE_BIT` in `subsystem5.h`, equal to `S3_FAULT_BIT` in `subsystem3.h`, checked at compile time). S3 only reports `line_lost` in IF-05; the Vehicle Controller sets bit 1 when its line search gives up (`vc: line not found, stopped (line fault reported)`), because a lost line is often recovered by the search or is expected during a bypass. Never cleared by S3. Changed from the Week 8 plan (S3 setting the bit on a debounced LINE_LOST) | S3 + S5 (implemented; tested INT-08) |
+| IF-09 | S5 → S3 | function call / shared flag (owned by S3) | subsystem3_set_bypass(bool) | While set, S3 does not report `line_lost` (debounced LINE_LOST is suppressed). Set by the Vehicle Controller only for the older rectangle bypass, which leaves the line on purpose. The smooth curve bypass (the one used now) keeps it OFF, so S3 keeps reporting the line and the car can follow a line it meets during the detour (corner next to the box); no fault is raised during the detour because only the Vehicle Controller sets the line fault (IF-08). Cleared on re-acquire, give-up or timeout | S3 + S5 (implemented; tested INT-09) |
 | IF-10 | S5 → S2 | message buffer (owned by S2) | q_motion_cmd | Motion command packed in ONE `UW` (27 bits, minimum-bit rule): bits 0–2 mode (0 STOP, 1 DRIVE, 2 TURN, 3 DRIVE_DIST, 4 HOLD), bits 3–12 speed (signed mm/s), bits 13–22 param (DRIVE: signed steering mm/s; TURN: signed degrees; DRIVE_DIST: mm 0–1023), bits 23–26 epoch. Use `s2_cmd_pack()` in subsystem2.h. Send with `tk_snd_mbf(q_motion_cmd, &w, 4, TMO_POL)` at least every 100 ms while moving; silence for 100 ms stops the motors. Epoch rises on pause, fault and reset; older epochs are discarded | Implemented by S2 (subsystem2.h); S5 to confirm |
 | IF-11 | S5 → S2 | event flag / shared latched flag (owned by S5 Safety Monitor) | flg_inhibit (name TBD), passed to S2 with `subsystem2_bind_safety()` | Latched motor inhibit. Motion Control checks it before every PWM write and discards queued commands while it is set. Only the Safety Monitor clears it, after re-initialisation | Implemented by S2: S5 calls `subsystem2_bind_safety(flg_inhibit, ptn, flg_fault_i14, 0x1)` once in `subsystem5_init()`. Motion Control reads the flag with `tk_ref_flg` before every PWM write; after it clears, only a command with a newer epoch moves the robot. S5 to confirm |
 | IF-12 | S2 / S3 / S4 / S5 → S5 | event flag group (owned by S5 Safety Monitor) | flg_fault_i14 | One bit per owner, set with tk_set_flg. Safety Monitor clears only the bits it handled. Bits: 0 S2, 1 S3, 2 S4, 3 S5 Obstacle Detection (proposed). Wi-Fi loss is not a fault and is not in this group | PROPOSED by S5, all to confirm |
-| IF-13 | S5 (Vehicle Controller) → S1 | message buffer (owned by S1) | mbf_telem_status | TELEM_STATUS_MSG: mission state, fault mask, line/barcode/hump/obstacle summary, timestamp; sent every 500 ms (Week 6 i10) | S1 + S5 - fields TBD |
-| IF-14 | S1 → S5 (Vehicle Controller) | message buffer (owned by S5) | mbf_sup_cmd | SUP_CMD_MSG (uint8_t): bits[1:0] cmd (0 NONE, 1 PAUSE, 2 RESUME, 3 ABORT), bit[2] link_up, bits[7:3] unused; sent on a valid command or a link change. S1 validates before sending (FR7, FR8). Link loss is status only, not a Safety Monitor fault (see IF-12) (Week 6 i15) | S1 + S5 - proposed |
-| IF-15 | S1 ↔ kernel (`cyw43_utk_task`) | two message buffers (owned by S1); `mqtt_utk.c` reads TX with TMO_POL and copies RX in the callback without blocking | mbf_mqtt_tx, mbf_mqtt_rx | TX: topic ID + packed binary telemetry (Change Requirement 1, no JSON text; size set with IF-13). RX: 1-byte command code, checked by S1 (FR8). During an outage S1 keeps 20 messages (drop-oldest) and replays them at most 1 per 100 ms | S1 - needs team + instructor sign-off (changes `mqtt_utk.c`) |
+| IF-13 | S5 (Vehicle Controller) → S1 | message buffer (owned by S1) | mbf_telem_status | Two `UW` (8 B, 61 bits, Change Requirement 1). S5 fills an `s1_status_t` (mission time 0.1 s, mission state (VC_MS_*, READY = 1), fault mask, letter, last action, barcode count, obstacle flag, distance, side, width, hump peak for FR5) and calls `s1_status_send()`, which packs it and sends with TMO_POL, every 500 ms. S1 keeps only the newest. Layout in `subsystem1.h` (Week 6 i10) | Implemented (S1 + S5) |
+| IF-14 | S1 → S5 (Vehicle Controller) | message buffer (owned by S5) | mbf_sup_cmd | SUP_CMD_MSG (uint8_t): bits[1:0] cmd (0 NONE, 1 PAUSE, 2 RESUME, 3 ABORT), bit[2] link_up, bits[7:3] unused; sent on a valid command or a link change. S1 validates before sending (FR7, FR8). Link loss is status only, not a Safety Monitor fault (see IF-12) (Week 6 i15) | Implemented (S1 `telemetry.c`, S5 `vehicle_controller.c`) |
+| IF-15 | S1 ↔ kernel (`cyw43_utk_task`) | two message buffers (owned by S1); `mqtt_utk.c` reads TX with TMO_POL and copies RX in the callback without blocking | mbf_mqtt_tx, mbf_mqtt_rx | Every message is [topic ID][payload] (`s1_topics.h`). TX: 0 telem, 1 hb, 2 evt, each a packed binary frame (`telem_layout.h`, Change Requirement 1). RX: 0x80 cmd (1 B: 1 PAUSE, 2 RESUME, 3 ABORT), 0x81 map (3 B, IF-18). An oversized RX message is forwarded with an empty payload, so S1 rejects and counts it (FR8). During an outage S1 keeps 20 telemetry frames (drop-oldest) and replays at most 1 per 100 ms. `mqtt_utk.c` also publishes `is14/car/online` (1 on connect, 0 as the last will) | Approved by instructor. Implemented |
 | IF-16 | S2 → S5 (Vehicle Controller), S1 telemetry | shared word, written in one store (owned by S2) | `s2_get_status()` | MOTION_STATUS (`UW`, 28 bits): bits 0–9 left speed, 10–19 right speed (signed mm/s), 20–22 state (0 IDLE, 1 DRIVING, 2 TURNING, 3 DRIVING_DIST, 4 HOLDING, 5 INHIBITED, 6 STALLED, 7 TIMEOUT), 23 done (TURN / DRIVE_DIST finished), 24–27 newest accepted epoch. Week 6 i4 | PROPOSED by S2, S5 to confirm |
 | IF-17 | S2 → S4 (direct or via S5) | shared word, written in one store (owned by S2) | `s2_get_odometry()` | ODOMETRY (`UW`): bits 31–16 distance in mm (`uint16`, wraps, use differences), bits 15–0 timestamp in ms (low 16 bits of `tk_get_tim`, wraps). Updated every 20 ms. For hump height (Week 6 i19; Tribunal 1: timestamped distance + steady speed via HOLD mode) | PROPOSED by S2; resolution to agree with S4 |
+| IF-18 | S1 → S3 | shared word, written in one store (owned by S1) | `s1_get_nav_map()`, `s1_nav_lookup()` | NAV_MAP (`UW`): bits 0–4 FORWARD, 5–9 U-TURN, 10–14 LEFT, 15–19 RIGHT (letter codes 0 = A .. 25 = Z, `S1_NAV_SHIFT()`), bit 20 valid. 0 until a valid map arrives. Accepted only from the PC map topic while READY, so it never changes during a run. S3's barcode decoder reads it to turn letters into commands | Implemented (S1 + S3) |
 
 Each interface is tested by at least one integration test
 (`testing/integration/TEST_LOG.md`).

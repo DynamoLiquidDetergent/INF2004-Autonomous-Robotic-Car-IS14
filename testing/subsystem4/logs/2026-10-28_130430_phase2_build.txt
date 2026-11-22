@@ -1,0 +1,3 @@
+Code checkpoint: 4a779d0beb4ba857ca500ba0dde2940e52164c79
+Profile: SMP=1 USB CDC WiFi TEST=1
+mingw32-make: Nothing to be done for 'all'.

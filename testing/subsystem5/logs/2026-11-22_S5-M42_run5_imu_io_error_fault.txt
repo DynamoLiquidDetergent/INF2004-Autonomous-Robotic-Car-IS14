@@ -1,0 +1,22 @@
+S5-M42 run 5 -- IMU I2C error after a jolt at the start -> FAULT (commit 6494e22, S5_PHASE 7, WiFi + MQTT, VC_AUTO_START 0)
+Tester: Min Han, 2026-11-22. Excerpt (obstacle readings 117..145 cm, nothing close, and repeated READY / FAULT lines cut;
+S4 lines shortened to the fields that matter).
+
+BARCODE: mapping C D A B -- only these letters are read
+vc: command from the dashboard: RESUME
+vc: mission state RUNNING
+vc: t= 4538 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  71 R=  32  dist=    3
+S4 t_us=12682465 state=LEVEL ... valid=0 ... impact=1 impacts=1 ... imu_status=IMPACT dynamic_mg=1166 ... accel_x_mg=-2150 accel_y_mg=128 accel_z_mg=238
+handling: last 1 s moved 791 mg (lift needs 150), lowest up axis 238 mg (overturned below 400), line raw L=256 C=2900 R=417 (no floor: L,C >= 2000 and R >= 1000)
+GP28: min= 224 max=2766   (dark above 840, light below 610)
+handling: last 1 s moved 60 mg (lift needs 150), lowest up axis 868 mg (overturned below 400), line raw L=252 C=2698 R=2197 (no floor: L,C >= 2000 and R >= 1000)
+GP28: min= 304 max=2772   (dark above 840, light below 610)
+vc: t= 7080 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  89 R=  89  dist=  249
+safety: INHIBIT set (faults 0x4, obstacle state 0)
+S4 t_us=15226951 state=FAULT ... valid=0 fresh=0 rc=-1 ... odo_mm=249 ... imu_status=IO_ERROR ...
+vc: mission state FAULT
+vc: HOLD (obstacle state 0, motion state 5, epoch 3)
+vc: motion state 5
+vc: t= 7596 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  253
+S4 t_us=21130958 state=FAULT ... imu_status=IO_ERROR ... diag_rejected=304 diag_run=296 diag_longest=296 ...
+[... stays in FAULT, motors off, no BARCODE: line ...]

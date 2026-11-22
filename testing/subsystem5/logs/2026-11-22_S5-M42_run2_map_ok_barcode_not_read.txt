@@ -1,0 +1,55 @@
+S5-M42 run 2 -- map accepted, barcode still not read (commit ca79ab2, S5_PHASE 7, WiFi + MQTT, VC_AUTO_START 0, S3_BC_DEBUG 1)
+Tester: Min Han, 2026-11-22. Excerpt: the console was opened while READY (boot not captured); the READY wait
+lines repeat every 0.5 s with no change and are cut, as are the obstacle readings (90 deg, 93..177 cm, nothing
+close) and most S4 lines. Every BARCODE:, vc: and handling: line from the RESUME on is kept.
+
+---- Opened the serial port COM3 ----
+vc: t=27958 zone=3 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=    0
+handling: last 1 s moved 6 mg (lift needs 150), lowest up axis 914 mg (overturned below 400), line raw L=227 C=2042 R=249 (no floor: L,C >= 2000 and R >= 1000)
+[... READY, standing still, GP28 (R) 228..270 the whole time ...]
+handling: last 1 s moved 5 mg (lift needs 150), lowest up axis 918 mg (overturned below 400), line raw L=227 C=2036 R=270 (no floor: L,C >= 2000 and R >= 1000)
+BARCODE: mapping C D A B -- only these letters are read
+vc: t=43717 zone=3 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=    0
+[... READY until t=71577 ...]
+vc: command from the dashboard: RESUME
+vc: mission state RUNNING
+vc: driving on (obstacle state 0, motion state 0, epoch 2)
+vc: motion state 1
+handling: last 1 s moved 433 mg (lift needs 150), lowest up axis 906 mg (overturned below 400), line raw L=1272 C=2959 R=260 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=72097 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  80 R=  84  dist=   28
+vc: t=72597 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  82 R=  98  dist=   69
+handling: last 1 s moved 444 mg (lift needs 150), lowest up axis 876 mg (overturned below 400), line raw L=226 C=2350 R=1170 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=73097 zone=5 lost=0 jn=0 cmd   80 mm/s steer    8  wheels L=  65 R=  87  dist=  108
+vc: t=73617 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 100 R= 104  dist=  150
+handling: last 1 s moved 101 mg (lift needs 150), lowest up axis 874 mg (overturned below 400), line raw L=288 C=3099 R=235 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=74117 zone=5 lost=0 jn=0 cmd   80 mm/s steer    8  wheels L=  90 R=  94  dist=  200
+vc: t=74638 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  89 R=  78  dist=  244
+handling: last 1 s moved 74 mg (lift needs 150), lowest up axis 844 mg (overturned below 400), line raw L=265 C=2985 R=249 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=75138 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  92 R=  93  dist=  293
+vc: t=75638 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 102 R=  90  dist=  342
+handling: last 1 s moved 126 mg (lift needs 150), lowest up axis 848 mg (overturned below 400), line raw L=237 C=2887 R=267 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=76156 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  95 R= 102  dist=  392
+vc: t=76656 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 101 R=  78  dist=  441
+handling: last 1 s moved 74 mg (lift needs 150), lowest up axis 866 mg (overturned below 400), line raw L=249 C=2709 R=259 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=77157 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  97 R= 101  dist=  493
+vc: t=77657 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 107 R= 101  dist=  543
+handling: last 1 s moved 86 mg (lift needs 150), lowest up axis 878 mg (overturned below 400), line raw L=414 C=3057 R=236 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=78158 zone=5 lost=0 jn=0 cmd   80 mm/s steer   50  wheels L= 101 R=  95  dist=  593
+vc: command from the dashboard: PAUSE
+vc: mission state PAUSED
+vc: HOLD (obstacle state 0, motion state 1, epoch 3)
+vc: motion state 0
+vc: t=78658 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=  36 R=  33  dist=  639
+[... PAUSED, standing still, no BARCODE: line at any time ...]
+---- Closed the serial port COM3 ----
+
+Dashboard event log (newest first):
+02:24:17.012  evt  STATE_CHANGE: state 2 RUNNING -> 3 PAUSED   11 1e 01
+02:24:16.608  evt  CMD_ACK: PAUSE accepted                     11 2b 00
+02:24:16.508  cmd  sent to car (1 B)                           01
+02:24:09.774  evt  STATE_CHANGE: state 1 READY -> 2 RUNNING    11 96 00
+02:24:09.659  evt  CMD_ACK: RESUME accepted                    11 33 00
+02:24:09.546  cmd  sent to car (1 B)                           02
+02:23:41.675  evt  MAP_ACK: map accepted                       11 0a 00
+02:23:41.541  map  sent to car (3 B)                           62 80 00
+02:22:58.065  evt  STATE_CHANGE: state 15 -> 1 READY           11 8e 07

@@ -1,0 +1,281 @@
+/*
+ *	obstacle_profile.h
+ *	Subsystem 5 -- pure maths for the obstacle scan (no hardware, no RTOS).
+ *
+ *	Kept free of kernel and register code so it can be unit-tested on a PC
+ *	(testing/subsystem5/host/) as well as on the Pico.
+ *
+ *	Angle convention: scan index 0..12 = 0..180 degrees in 15 degree steps.
+ *	0 degrees is the robot's RIGHT, 90 degrees (index 6) is straight ahead,
+ *	180 degrees (index 12) is the robot's LEFT.
+ *
+ *	Minimum-bit data (Change Requirement 1): every field below is stored in
+ *	the fewest bits that holds its range, packed with explicit masks and
+ *	shifts (no C bit-fields on data that crosses a task boundary).
+ */
+
+#ifndef OBSTACLE_PROFILE_H
+#define OBSTACLE_PROFILE_H
+
+#include <stdint.h>
+
+#define OBS_NUM_ANGLES		13	/* 0..180 degrees at 15 degree steps */
+#define OBS_STEP_DEG		15
+#define OBS_IDX_AHEAD		6	/* 90 degrees */
+
+#define OBS_DIST_BITS		9	/* 0..400 cm needs 9 bits */
+#define OBS_DIST_NONE		0x1FF	/* spare 9-bit code: out of range, no echo within range */
+#define OBS_DIST_CAP		510	/* largest real value we ever store */
+
+/* Recommended action (3 bits, FR41) */
+typedef enum {
+	OBS_ACT_CONTINUE	= 0,	/* nothing to avoid */
+	OBS_ACT_TURN_RIGHT	= 1,	/* bypass on the right */
+	OBS_ACT_TURN_LEFT	= 2,	/* bypass on the left */
+	OBS_ACT_REVERSE_RETRY	= 3,	/* clearance too tight: back off, scan again */
+	OBS_ACT_STOP		= 4	/* too close to do anything: stop */
+} OBS_ACTION;
+
+/* Obstacle Detection state (3 bits for 8 states, statechart 6.3) */
+typedef enum {
+	OBS_ST_IDLE_MONITORING		= 0,
+	OBS_ST_COARSE_SCANNING		= 1,
+	OBS_ST_FINE_SCANNING		= 2,
+	OBS_ST_PROFILING_AND_PLANNING	= 3,
+	OBS_ST_BYPASSING		= 4,
+	OBS_ST_REACQUIRING_LINE		= 5,
+	OBS_ST_REVERSE_RETRY		= 6,
+	OBS_ST_FAULT			= 7
+} OBS_STATE;
+
+/* Tunable values. The defaults (obs_cfg_default) are the ones used in the car
+   tests (see testing/subsystem5/TEST_LOG.md). */
+typedef struct {
+	uint16_t detect_cm;		/* a reading at or below this is an obstacle */
+	uint16_t start_cm;		/* the watch straight ahead starts the first scan only when the
+					   obstacle is at most this close (detect_cm is for the scans) */
+	uint16_t stop_cm;		/* closer than this: STOP */
+	uint16_t robot_half_width_cm;	/* half the robot's width */
+	uint16_t margin_cm;		/* extra safety gap beside the obstacle */
+	uint16_t max_shift_cm;		/* most the robot can move sideways on this track */
+	uint8_t  beam_comp_deg;		/* beam spread removed from the edges: 0, 15 or 30 */
+	uint16_t plan_width_cm;		/* plan the bypass for AT LEAST this obstacle width
+					   (spec: obstacles are 10..20 cm wide, so 20). 0 = off */
+	uint16_t bg_enter_cm;		/* with a background: a reading starts an obstacle only
+					   when it is this much CLOSER than the background */
+	uint16_t bg_exit_cm;		/* ...and keeps an obstacle going while it is at least
+					   this much closer (smaller than bg_enter_cm = hysteresis) */
+	uint16_t detect_hyst_cm;	/* no background: enter at detect_cm, keep going up to
+					   detect_cm + this */
+	uint16_t cluster_jump_cm;	/* a neighbouring angle joins the obstacle only if it is at
+					   most this much FARTHER than the reading next to it (a far
+					   wall behind a box is not part of the box) */
+	uint16_t approach_cm;		/* after the first scan the car moves to this gap
+					   and scans again from there (the middle of the band) */
+	uint16_t approach_near_cm;	/* gap below this: back away (band lower end) */
+	uint16_t approach_far_cm;	/* gap above this: creep forward (band upper end) */
+	uint16_t approach_guard_cm;	/* while creeping forward, a reading at or below this cuts
+					   the creep short and starts the scan at once */
+	uint16_t approach_back_max_cm;	/* most the car backs away when it stopped too close
+					   (nothing watches behind it, so keep this short) */
+	uint16_t approach_min_cm;	/* closer than this the sensor reading is not trusted
+					   (HC-SR04 minimum range): no back-away, a fault instead */
+	uint16_t right_pad_pm;		/* the RIGHT edge is planned this many permille of the range further
+					   out. Measured on the car (M33 runs 4..8, boxes measured with a
+					   ruler): the scan put right edges up to 0.23 x range too far in,
+					   left edges were never too far in */
+	uint16_t view_deg;		/* a flat face sends no echo back once the beam is this far off its
+					   normal: an edge last seen this far off straight ahead may lie
+					   further out (M33 run 17: an edge 43 degrees out was seen only to 30) */
+} OBS_CFG;
+
+/* One scan: a distance per angle index, plus which indices were measured */
+typedef struct {
+	uint16_t dist_cm[OBS_NUM_ANGLES];	/* OBS_DIST_NONE = nothing in range */
+	uint16_t measured;			/* bit i set = index i was measured */
+	uint16_t bg_cm[OBS_NUM_ANGLES];		/* background distance per angle (empty track) */
+	uint16_t bg_known;			/* bit i set = background for index i was taken */
+	uint8_t  fine_deg[2];			/* finer edge: servo angle (degrees) of the OUTERMOST reading
+						   that still hit the obstacle, [0] right edge, [1] left edge;
+						   0 = this edge was not refined (obs_fine_edges) */
+	uint16_t fine_cm[2];			/* ...and the distance it read */
+} OBS_SCAN;
+
+/* Result of profiling (FR40) */
+typedef struct {
+	uint8_t  detected;
+	uint8_t  closest_idx;	/* scan index of the closest point */
+	uint16_t closest_cm;
+	uint16_t width_cm;	/* estimated obstacle width */
+	uint16_t left_cm;	/* sideways move needed to pass on the LEFT */
+	uint16_t right_cm;	/* sideways move needed to pass on the RIGHT */
+	uint8_t  action;	/* OBS_ACTION */
+	uint8_t  partial;	/* 1 = an edge was not found (single sample or scan limit) */
+	uint8_t  idx_right;	/* first and last index of the obstacle (right/left edge) */
+	uint8_t  idx_left;
+	uint16_t plan_width_cm;	/* width the left/right shifts were planned for (>= width_cm) */
+	uint16_t unc_cm;	/* +/- uncertainty of width_cm from the 15 degree step (not sent) */
+	uint8_t  clusters;	/* how many separate obstacles the scan saw (not sent) */
+	uint8_t  view_lim;	/* bit 0 right, bit 1 left: that edge was last seen at least view_deg off
+				   straight ahead, where a flat face stops sending echoes back, so it may
+				   lie further out than seen (not sent) */
+} OBS_PROFILE;
+
+void obs_cfg_default(OBS_CFG *cfg);
+
+void obs_scan_init(OBS_SCAN *s);	/* clears the readings AND the background */
+void obs_scan_clear(OBS_SCAN *s);	/* clears the readings, keeps the background */
+void obs_scan_set_bg(OBS_SCAN *s, unsigned idx, uint16_t cm);
+/* The path ahead must be empty when the background is taken. A background value
+   is forgotten (so a real obstacle can never be hidden as "background") when it
+   is within detect range and either at indices 5..7, or on any other angle
+   inside the car's path (sideways reach at most robot_half_width_cm + margin_cm).
+   Returns how many. */
+unsigned obs_bg_clear_ahead(OBS_SCAN *s, const OBS_CFG *cfg);
+/* The car has moved since the background was taken. A background distance cannot
+   be carried to the new place (the same ray hits a different part of the wall,
+   and a wall along the path reads the same everywhere), so forget all of it: from
+   now on everything within detect range counts, which is the safe direction. */
+void obs_bg_forget(OBS_SCAN *s);
+
+/* After a creep: on each side whose edge the close scan saw only at the edge of its view
+   (view_lim), keep the sideways move of the first scan if it was larger, and choose the side
+   again. Only ever moves an edge outwards. */
+void obs_merge_first(OBS_PROFILE *p, const OBS_PROFILE *first, const OBS_CFG *cfg);
+/* A fine edge at the limit of the view (p->view_lim, from obs_profile) may lie inside the real edge:
+   forget that side's fine refinement so the next obs_profile plans it from the 15 degree scan, padded
+   as before. Returns the sides forgotten (bit0 right, bit1 left). */
+unsigned obs_unrefine_view_lim(OBS_SCAN *s, const OBS_PROFILE *p);
+/* Median of n (1..5) readings. OBS_DIST_NONE counts as the largest value, so
+   one stray reading never wins and a majority of "nothing" gives "nothing". */
+uint16_t obs_median(const uint16_t *v, unsigned n);
+/* Would a reading of cm at index idx START an obstacle? (hysteresis: enter rule) */
+int  obs_dist_is_hit(const OBS_SCAN *s, unsigned idx, uint16_t cm, const OBS_CFG *cfg);
+void obs_scan_set(OBS_SCAN *s, unsigned idx, uint16_t cm);
+int  obs_scan_measured(const OBS_SCAN *s, unsigned idx);
+int  obs_scan_is_hit(const OBS_SCAN *s, unsigned idx, const OBS_CFG *cfg);
+
+/* Fine scan helper: the next index to measure to find an edge, or -1 when
+   both edges are found / limits are reached.  dir = -1 (right) or +1 (left). */
+int  obs_next_edge_idx(const OBS_SCAN *s, const OBS_CFG *cfg, int dir);
+
+/* Fine scan helper for scans with SEVERAL obstacles: the next index to measure
+   (an unmeasured neighbour of any obstacle, inside the servo window lo..hi),
+   the one closest to the servo's current index 'from'; -1 when nothing is left. */
+int  obs_next_fine_idx(const OBS_SCAN *s, const OBS_CFG *cfg, int lo, int hi, int from);
+
+/* Finer look at the two edges of the obstacle (the closest one), to plan a narrower
+   swing. The 15 degree scan only says that an edge lies somewhere in a 15 degree
+   step, so the profile has to plan with the outer end of it. Here the servo is moved
+   outwards from the outermost hit in OBS_FINE_STEP_DEG steps until the obstacle is no
+   longer seen (two misses in a row, or the next coarse index, which was a miss), and
+   obs_profile then knows the edge to within one fine step.
+   rd(ctx, deg) must turn the servo to 'deg' and return the median distance in cm
+   (OBS_DIST_NONE = no echo). Only angles between min_deg and max_deg (the servo's safe
+   window) are used. Call it after the coarse and the fine index scan, before
+   obs_profile. Returns how many readings were taken (0 = nothing to refine). */
+#define OBS_FINE_STEP_DEG	3
+typedef uint16_t (*OBS_READ_FN)(void *ctx, unsigned deg);
+unsigned obs_fine_edges(OBS_SCAN *s, const OBS_CFG *cfg, unsigned min_deg, unsigned max_deg,
+			OBS_READ_FN rd, void *ctx);
+
+/* Profile of the whole scan. Width, closest and idx_* describe the CLOSEST
+   obstacle. The bypass side and shifts take EVERY obstacle into account: a side
+   whose corridor would touch another obstacle is reported as OBS_DIST_CAP
+   (not possible), and if neither side is free the action is REVERSE_RETRY. */
+void obs_profile(const OBS_SCAN *s, const OBS_CFG *cfg, OBS_PROFILE *out);
+
+/* Creep before the second scan. How far (mm) the car should drive straight
+   ahead from where it stands so that the gap to the closest point of the
+   obstacle becomes cfg->approach_cm. The gap is measured straight ahead, not
+   along the beam: the closest point is at scan index closest_idx, so its
+   distance ahead is closest_cm x sin(angle).
+   REVERSE_RETRY also creeps forward: the width of an obstacle seen from far away is
+   uncertain (about +/-13 cm at 49 cm), so the planned width may be too wide for the
+   sideways room only because of the distance. Going closer first and measuring again
+   is better than backing away from it (found on the car in S5-M20).
+   Returns 0 (no move) when nothing was detected, when the profile chose none of
+   OBS_ACT_TURN_*, STOP or REVERSE_RETRY (a retry never backs away here), or when the gap is already inside the
+   band approach_near_cm .. approach_far_cm (15..20 cm). Never more than 1023 mm
+   (far more than a creep ever needs).
+   Too close (gap below approach_near_cm): the answer is NEGATIVE, back away that
+   many mm to approach_cm, at most approach_back_max_cm. This also holds when the
+   profile says OBS_ACT_STOP (closer than stop_cm: no sideways move is safe, but
+   backing straight away is), as long as the reading is at least approach_min_cm.
+   Positive = drive forward (a bypass or a retry; STOP never creeps forward). */
+int obs_approach_mm(const OBS_PROFILE *p, const OBS_CFG *cfg);
+
+/* Conversions */
+uint16_t obs_echo_us_to_cm(uint32_t echo_us);	/* round(us / 58), capped */
+uint32_t obs_angle_to_pulse_us(unsigned deg);	/* servo pulse width, 0..180 degrees */
+uint32_t obs_isqrt(uint32_t v);
+
+/* i8 message to the Vehicle Controller: two 32-bit words, packed.
+   word 0: bit0 detected | bits4:1 closest_idx | bits13:5 closest_cm |
+           bits22:14 width_cm | bits25:23 action | bit26 partial |
+           bits30:27 seq (4 bits, rises with every new profile)
+   word 1: bits8:0 left_cm | bits17:9 right_cm                           */
+#define OBS_MSG_WORDS		2
+#define OBS_MSG_BYTES		(OBS_MSG_WORDS * 4)
+
+void obs_pack(const OBS_PROFILE *p, uint8_t seq, uint32_t w[OBS_MSG_WORDS]);
+void obs_unpack(const uint32_t w[OBS_MSG_WORDS], OBS_PROFILE *p, uint8_t *seq);
+
+
+/* ---- Obstacle summary for the status to subsystem 1 (IF-13) ----
+   One 32 bit word, written in one store by Obstacle Detection and read by the
+   Vehicle Controller.  bit 0 present, bits 1..9 distance in cm (0..511),
+   bits 10..15 width in cm (0..63), bits 16..17 side (0 none or centred,
+   1 left, 2 right).  0 = no obstacle. */
+static inline uint32_t obs_summary_pack(const OBS_PROFILE *p)
+{
+	uint32_t d, w, side = 0;
+	int mid;
+
+	if (!p->detected) {
+		return 0;
+	}
+	d = (p->closest_cm > 511u) ? 511u : p->closest_cm;
+	w = (p->width_cm > 63u) ? 63u : p->width_cm;
+	mid = (int)p->idx_right + (int)p->idx_left;	/* 12 = straight ahead */
+	if (mid < 2 * OBS_IDX_AHEAD) {
+		side = 2;		/* indices below 6 are to the RIGHT of the car */
+	} else if (mid > 2 * OBS_IDX_AHEAD) {
+		side = 1;
+	}
+	return 1u | (d << 1) | (w << 10) | (side << 16);
+}
+static inline int      obs_summary_present(uint32_t s) { return (int)(s & 1u); }
+static inline unsigned obs_summary_dist(uint32_t s)    { return (unsigned)((s >> 1) & 0x1FFu); }
+static inline unsigned obs_summary_width(uint32_t s)   { return (unsigned)((s >> 10) & 0x3Fu); }
+static inline unsigned obs_summary_side(uint32_t s)    { return (unsigned)((s >> 16) & 0x3u); }
+/* same summary with a new live distance (cm) */
+static inline uint32_t obs_summary_with_dist(uint32_t s, unsigned cm)
+{
+	return (s & ~(0x1FFu << 1)) | ((cm > 511u ? 511u : cm) << 1);
+}
+
+/* Watch ahead during the bypass (M37 hand test, 2026-11-17). A hand is a poor echo target: the
+   readings jump between a few cm, no echo and the far background, so one reading must not decide
+   either way. BLOCKED: at least OBS_WATCH_HITS of the last OBS_WATCH_WIN readings are within
+   OBS_WATCH_CM. CLEAR again: no reading within OBS_WATCH_CM for OBS_WATCH_CLEAR_MS. The watch
+   only arms once something further than OBS_WATCH_ARM_CM (or no echo) has been seen, so the box
+   itself, straight ahead at the start of the backing-off, never counts. */
+#define OBS_WATCH_CM		15
+#define OBS_WATCH_ARM_CM	20
+#define OBS_WATCH_WIN		4
+#define OBS_WATCH_HITS		2
+#define OBS_WATCH_CLEAR_MS	700u
+typedef struct {
+	uint8_t  armed;
+	uint8_t  blocked;
+	uint8_t  hist;		/* bit i: reading i back was within OBS_WATCH_CM */
+	uint32_t last_near_ms;	/* time of the last reading within OBS_WATCH_CM */
+} OBS_WATCH;
+#define OBS_WATCH_NONE		0	/* nothing changed */
+#define OBS_WATCH_BLOCK		1	/* the path just became blocked */
+#define OBS_WATCH_CLEAR		2	/* the path just became clear again */
+void obs_watch_init(OBS_WATCH *w);
+int  obs_watch_step(OBS_WATCH *w, uint16_t cm, uint32_t t_ms);
+
+#endif /* OBSTACLE_PROFILE_H */

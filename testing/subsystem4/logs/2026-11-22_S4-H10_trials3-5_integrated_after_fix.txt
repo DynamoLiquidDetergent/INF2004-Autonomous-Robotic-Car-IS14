@@ -1,0 +1,43 @@
+S4-H10 trials 3, 4, 5 -- integrated car on the school hump (Bryan's 23 mm reference), right wheel over it, line following at
+100 mm/s, after the steering fix (commit 737713a: no wheel backwards while S4 tracks a hump). Tester: Min Han, 2026-11-22.
+Three boots, one hump crossing each. Excerpt: only the S4 lines of the crossings and the VC lines around them (S4 lines
+shortened to the fields that matter); obstacle readings (124..182 cm, nothing close) and READY / PAUSED repeats cut.
+
+=== Trial 3 (first boot) ===
+S4 state=CLIMBING   roll_md=-3638  odo_mm=9    height_reason=OK      <- small roll at the start (not the hump)
+S4 state=LEVEL      hump=1 humps=1 height_valid=1 height_mm=2 highest_mm=2 height_reason=OK odo_mm=33
+S4 state=CLIMBING   pitch_md=-1904 roll_md=-3159  odo_mm=245 odo_forward=1 height_reason=OK
+S4 state=CLIMBING   pitch_md=-6747 roll_md=-12404 odo_mm=310 odo_forward=1
+vc: t=11118 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 102 R= 136  dist=  326
+S4 state=DESCENDING pitch_md=-8504 roll_md=-14130 odo_mm=342 odo_forward=1
+vc: t=11618 zone=7 lost=0 jn=0 cmd   40 mm/s steer   40  wheels L=  35 R=  30  dist=  354   <- limited to steer = speed
+S4 state=DESCENDING pitch_md=-2151 roll_md=-6912  odo_mm=375 odo_forward=1
+S4 state=DESCENDING pitch_md=-3546 roll_md=-4078  odo_mm=380 odo_forward=1
+vc: t=12118 zone=5 lost=0 jn=0 cmd   80 mm/s steer   30  wheels L=  78 R= 116  dist=  385
+S4 state=LEVEL      hump=1 humps=2 height_valid=1 height_mm=28 highest_valid=1 highest_mm=28 height_reason=OK odo_mm=423
+vc: JUNCTION 1 passed at 503 mm (no barcode command: straight on)
+
+=== Trial 4 (second boot, S3 calibrated by a sweep) ===
+S4 state=CLIMBING   pitch_md=-447  roll_md=-3983  odo_mm=237 height_reason=OK
+S4 state=DESCENDING pitch_md=-843  roll_md=-2505  odo_mm=244
+vc: t=11679 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  81 R=  86  dist=  280
+S4 state=DESCENDING pitch_md=-5377 roll_md=-8654  odo_mm=283 odo_forward=1
+vc: t=12718 zone=7 lost=0 jn=0 cmd   40 mm/s steer   40  wheels L=  16 R=  30  dist=  351   <- limited to steer = speed
+S4 state=DESCENDING pitch_md=-7948 roll_md=-10924 odo_mm=351 odo_forward=1
+S4 state=DESCENDING pitch_md=-533  roll_md=-3869  odo_mm=403
+S4 state=DESCENDING pitch_md=1496  roll_md=-3825  odo_mm=421
+S4 state=LEVEL      hump=1 humps=1 height_valid=1 height_mm=23 highest_valid=1 highest_mm=23 height_reason=OK odo_mm=441
+vc: JUNCTION 1 passed at 510 mm (no barcode command: straight on)
+
+=== Trial 5 (third boot) ===
+S4 state=CLIMBING   pitch_md=830   roll_md=-3443  odo_mm=216 height_reason=OK
+S4 state=CLIMBING   pitch_md=-6516 roll_md=-10864 odo_mm=277 odo_forward=1
+S4 state=DESCENDING pitch_md=-8980 roll_md=-11572 odo_mm=317 odo_forward=1
+vc: t= 4560 zone=3 lost=0 jn=0 cmd   80 mm/s steer  -30  wheels L=  16 R=  59  dist=  321
+S4 state=DESCENDING pitch_md=-5788 roll_md=-10161 odo_mm=325
+S4 state=DESCENDING pitch_md=-6060 roll_md=-8551  odo_mm=331
+vc: t= 5060 zone=5 lost=0 jn=0 cmd   80 mm/s steer   70  wheels L=  22 R=  86  dist=  334
+S4 state=DESCENDING pitch_md=1894  roll_md=-2151  odo_mm=395
+S4 state=LEVEL      hump=1 humps=1 height_valid=1 height_mm=27 highest_valid=1 highest_mm=27 height_reason=OK odo_mm=419
+
+No NOT_FORWARD during any of the three crossings; S4 printed a valid height each time: 28, 23, 27 mm (reference 23 mm).

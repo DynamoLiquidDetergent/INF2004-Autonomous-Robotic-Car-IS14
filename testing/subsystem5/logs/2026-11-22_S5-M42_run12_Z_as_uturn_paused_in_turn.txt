@@ -1,0 +1,37 @@
+S5-M42 run 12 -- barcode Z read (first Z on the car), mapped to U-TURN; U-turn started, paused during the spin
+(commit 9240c6c, S5_PHASE 7, WiFi + MQTT, VC_AUTO_START 0). Tester: Min Han, 2026-11-22. IMU wiring fixed: S4 CALIBRATING -> LEVEL.
+Dashboard map Forward B, U-turn Z, Left C, Right A. Excerpt (obstacle readings 85..185 cm, nothing close, S4 lines (no impact
+all run) and repeated READY / PAUSED lines cut).
+
+BARCODE: mapping B Z C A -- only these letters are read
+vc: command from the dashboard: RESUME
+vc: mission state RUNNING
+vc: t= 4078 zone=7 lost=0 jn=0 cmd   40 mm/s steer   90  wheels L=  40 R= -51  dist=    0
+vc: t= 4597 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  86 R=  85  dist=   33
+vc: t= 5117 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  84 R=  95  dist=   79
+vc: t= 5618 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 101 R= 101  dist=  127
+GP28: min= 177 max=2317   (dark above 840, light below 610)
+vc: t= 6118 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  90 R=  95  dist=  176
+BARCODE: ch=Z cmd=2   (wide bars, forward, fit 0.19, ratio 3.07)
+vc: barcode command U-TURN (letter Z)
+vc: t= 6638 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  82 R= 103  dist=  228
+GP28: min= 170 max=2258   (dark above 840, light below 610)
+vc: t= 7138 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  97 R= 101  dist=  278
+vc: t= 7656 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  92 R= 102  dist=  319
+vc: t= 8156 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  89 R= 103  dist=  361
+vc: t= 8658 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  93 R= 102  dist=  416
+vc: t= 9158 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 100 R=  96  dist=  466
+vc: t= 9658 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 107 R= 104  dist=  517
+vc: junction -> U-TURN (epoch 2)
+vc: mission state TURNING
+vc: motion state 2
+GP28: min= 187 max=3325   (dark above 840, light below 610)
+vc: t=10177 zone=1 lost=1 jn=0 cmd  100 mm/s steer  180  wheels L=  75 R= -44  dist=  538
+vc: t=10677 zone=1 lost=1 jn=0 cmd  100 mm/s steer  180  wheels L=  84 R= -65  dist=  544
+vc: t=11178 zone=1 lost=1 jn=0 cmd  100 mm/s steer  180  wheels L=  91 R= -80  dist=  547
+vc: command from the dashboard: PAUSE
+vc: mission state PAUSED
+vc: HOLD (obstacle state 0, motion state 2, epoch 3)
+vc: motion state 0
+vc: t=11678 zone=1 lost=1 jn=0 cmd    0 mm/s steer    0  wheels L=   1 R=   1  dist=  549
+[... paused mid-turn ...]

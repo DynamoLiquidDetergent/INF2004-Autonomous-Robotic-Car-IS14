@@ -1,0 +1,13 @@
+[TEST] S2-H01 PASS  IF-10 command pack/unpack round trip, bits 27-31 unused
+[TEST] S2-H02 PASS  command boundaries: -511, 1023 mm, -180 deg, clamp 900 -> 511
+[TEST] S2-H03 PASS  IF-16 status pack/unpack round trip, 28 bits used
+[TEST] S2-H04 PASS  IF-17 odometry pack and wrap-safe difference
+[TEST] S2-H05 PASS  epoch staleness, including wrap 15 -> 0
+[TEST] S2-H06 PASS  um per pulse = pi x diameter / pulses per turn (within 1 um)
+[TEST] S2-H07 PASS  speed from edge period: 200, -200, decay, timeout, clamp
+[TEST] S2-H08 PASS  feed-forward duty: 0, +/- deadband + gain at 200 mm/s, clamp 1000
+[TEST] S2-H09 PASS  PI: no reversal, anti-windup, target 0 resets
+[TEST] S2-H10 PASS  setpoint ramp limited to 25 mm/s per cycle
+[TEST] S2-H11 PASS  turn arc 90 deg = pi x track / 4 per wheel
+[TEST] S2-H12 PASS  heading correction sign and clamp
+[TEST] subsystem2-host SUMMARY 12 passed, 0 failed

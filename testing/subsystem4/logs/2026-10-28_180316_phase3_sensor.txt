@@ -1,0 +1,680 @@
+Code checkpoint: 31a6b57ff01590cfad904c9e6d387c997ab0412c
+Tester: Bryan'
+Firmware SHA256: 246d3d0ae7fff8d7e526c5a144d6021d3341ba8e0610b92a92c0c1c33425ebd7
+Console: COM4 115200 8N1
+
+--- level_startup 2026-10-28T18:04:07.500845+08:00 ---
+[2026-10-28T18:04:08.091096+08:00] S4 mg=-20,68,900 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:08.094422+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:08.190655+08:00] [TEST] S1-U02 PASS  LED task sleeps between ticks
+
+[2026-10-28T18:04:08.192667+08:00] [TEST] subsystem1 SUMMARY 2 passed, 0 failed
+
+[2026-10-28T18:04:08.220296+08:00] [TEST] S2-U01 PASS  sample values stay within 0..100
+
+[2026-10-28T18:04:08.225351+08:00] [TEST] S2-U02 PASS  free slots and free blocks within pool size
+
+[2026-10-28T18:04:08.225351+08:00] [TEST] subsystem2 SUMMARY 2 passed, 0 failed
+
+[2026-10-28T18:04:09.091639+08:00] S4 mg=-32,72,900 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:09.093656+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:10.090076+08:00] S4 mg=-22,78,900 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:10.096108+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:10.191080+08:00] [TEST] INT-01 PASS  samples flow from subsystem 2 to subsystem 3
+
+[2026-10-28T18:04:10.191080+08:00] [TEST] S3-U01 PASS  min <= max, both within 0..100
+
+[2026-10-28T18:04:10.199319+08:00] [TEST] subsystem3 SUMMARY 2 passed, 0 failed
+
+[2026-10-28T18:04:10.199319+08:00] [TEST] S4-U03 PASS  IMU task exists at priority 18; no hardware yet
+
+[2026-10-28T18:04:10.204246+08:00] [TEST] subsystem4 SUMMARY 1 passed, 0 failed
+
+[2026-10-28T18:04:10.204246+08:00] [TEST] S5-U01 PASS  example: running in a task context
+
+[2026-10-28T18:04:10.206729+08:00] [TEST] subsystem5 SUMMARY 1 passed, 0 failed
+
+[2026-10-28T18:04:10.206729+08:00] [TEST] === test run end ===
+
+[2026-10-28T18:04:11.089403+08:00] S4 mg=-124,92,904 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:11.089403+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:12.084954+08:00] S4 mg=26,94,880 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:12.094532+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:13.081295+08:00] S4 mg=-10,78,904 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:13.094316+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:14.093101+08:00] S4 mg=-28,74,896 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:14.097120+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:15.079677+08:00] S4 mg=-32,70,902 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:15.079677+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:16.086030+08:00] S4 mg=-32,92,896 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:16.094467+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:17.083362+08:00] S4 mg=-62,-16,1076 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:17.094965+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:18.089765+08:00] S4 mg=-120,20,902 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:18.093799+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:19.086424+08:00] S4 mg=-20,78,902 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:19.094456+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:20.091103+08:00] S4 mg=-26,76,902 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:20.093963+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:21.079974+08:00] S4 mg=-32,64,902 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:21.094420+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:22.082359+08:00] S4 mg=-18,78,894 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:22.082359+08:00] S4 calibrated=1 pitch_md=628 roll_md=163 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:23.090822+08:00] S4 mg=-20,72,904 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:23.094854+08:00] S4 calibrated=1 pitch_md=481 roll_md=220 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:24.083682+08:00] S4 mg=-30,64,898 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:24.094770+08:00] S4 calibrated=1 pitch_md=163 roll_md=-193 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:25.081557+08:00] S4 mg=-26,74,904 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:25.094588+08:00] S4 calibrated=1 pitch_md=280 roll_md=-87 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:26.081815+08:00] S4 mg=-28,80,908 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:26.094619+08:00] S4 calibrated=1 pitch_md=160 roll_md=264 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:27.090564+08:00] S4 mg=-52,56,900 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:27.094675+08:00] S4 calibrated=1 pitch_md=-412 roll_md=-388 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:28.086518+08:00] S4 mg=-34,68,902 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:28.086518+08:00] S4 calibrated=1 pitch_md=-320 roll_md=-192 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:29.090079+08:00] S4 mg=-30,82,904 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:29.094270+08:00] S4 calibrated=1 pitch_md=145 roll_md=297 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:30.085847+08:00] S4 mg=-30,76,906 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:30.094482+08:00] S4 calibrated=1 pitch_md=71 roll_md=51 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:31.091527+08:00] S4 mg=-18,82,898 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:31.095046+08:00] S4 calibrated=1 pitch_md=691 roll_md=124 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:32.084342+08:00] S4 mg=-24,72,906 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:32.093128+08:00] S4 calibrated=1 pitch_md=416 roll_md=-180 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:33.079735+08:00] S4 mg=-22,74,894 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:33.094695+08:00] S4 calibrated=1 pitch_md=438 roll_md=-85 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:34.090625+08:00] S4 mg=-20,72,902 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:34.093855+08:00] S4 calibrated=1 pitch_md=660 roll_md=127 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:35.089238+08:00] S4 mg=-4,118,896 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:35.089238+08:00] S4 calibrated=1 pitch_md=693 roll_md=760 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:36.092288+08:00] S4 mg=-56,-18,946 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:36.094908+08:00] S4 calibrated=1 pitch_md=1045 roll_md=-1241 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:04:37.081363+08:00] S4 mg=-28,96,902 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:04:37.094771+08:00] S4 calibrated=1 pitch_md=-1364 roll_md=1463 heading_ok=0 rate_ok=0
+
+
+--- front_up_settling 2026-10-28T18:05:16.226741+08:00 ---
+[2026-10-28T18:05:17.088475+08:00] S4 mg=252,-100,858 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:05:17.088475+08:00] S4 calibrated=1 pitch_md=18428 roll_md=-11754 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:05:18.077832+08:00] S4 mg=252,-100,860 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:05:18.093684+08:00] S4 calibrated=1 pitch_md=18114 roll_md=-11859 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:05:19.085504+08:00] S4 mg=246,-100,858 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:05:19.085504+08:00] S4 calibrated=1 pitch_md=17896 roll_md=-11789 heading_ok=0 rate_ok=0
+
+
+--- front_up 2026-10-28T18:05:19.598991+08:00 ---
+[2026-10-28T18:05:20.090598+08:00] S4 mg=248,-88,858 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:05:20.094616+08:00] S4 calibrated=1 pitch_md=17860 roll_md=-11299 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:05:21.092322+08:00] S4 mg=248,-92,852 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:05:21.096341+08:00] S4 calibrated=1 pitch_md=17701 roll_md=-11367 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:05:22.093205+08:00] S4 mg=252,-98,856 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:05:22.095657+08:00] S4 calibrated=1 pitch_md=17882 roll_md=-11685 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:05:23.092360+08:00] S4 mg=250,-106,876 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:05:23.096394+08:00] S4 calibrated=1 pitch_md=17730 roll_md=-11641 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:05:24.081530+08:00] S4 mg=246,-96,850 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:05:24.094770+08:00] S4 calibrated=1 pitch_md=17596 roll_md=-11569 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:05:25.089527+08:00] S4 mg=234,-106,844 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:05:25.094547+08:00] S4 calibrated=1 pitch_md=17087 roll_md=-12012 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:05:26.085350+08:00] S4 mg=230,-98,868 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:05:26.103924+08:00] S4 calibrated=1 pitch_md=16571 roll_md=-11626 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:05:27.087024+08:00] S4 mg=232,-92,850 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:05:27.095297+08:00] S4 calibrated=1 pitch_md=17108 roll_md=-11191 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:05:28.088975+08:00] S4 mg=232,-96,862 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:05:28.095829+08:00] S4 calibrated=1 pitch_md=16605 roll_md=-11190 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:05:29.090927+08:00] S4 mg=232,-104,868 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:05:29.096698+08:00] S4 calibrated=1 pitch_md=16672 roll_md=-11690 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:05:30.087271+08:00] S4 mg=236,-100,866 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:05:30.096195+08:00] S4 calibrated=1 pitch_md=17048 roll_md=-11474 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:05:31.091689+08:00] S4 mg=240,-102,860 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:05:31.093703+08:00] S4 calibrated=1 pitch_md=16988 roll_md=-11592 heading_ok=0 rate_ok=0
+
+
+--- front_down_settling 2026-10-28T18:06:40.492272+08:00 ---
+[2026-10-28T18:06:41.087667+08:00] S4 mg=-280,-12,896 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:06:41.099513+08:00] S4 calibrated=1 pitch_md=-15619 roll_md=-5256 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:06:42.082408+08:00] S4 mg=-302,0,874 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:06:42.096251+08:00] S4 calibrated=1 pitch_md=-16774 roll_md=-4488 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:06:43.086245+08:00] S4 mg=-298,14,868 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:06:43.096315+08:00] S4 calibrated=1 pitch_md=-17537 roll_md=-3950 heading_ok=0 rate_ok=0
+
+
+--- front_down 2026-10-28T18:06:43.608230+08:00 ---
+[2026-10-28T18:06:44.089077+08:00] S4 mg=-312,14,858 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:06:44.096116+08:00] S4 calibrated=1 pitch_md=-18157 roll_md=-3675 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:06:45.083465+08:00] S4 mg=-310,10,856 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:06:45.095428+08:00] S4 calibrated=1 pitch_md=-17737 roll_md=-4095 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:06:46.089471+08:00] S4 mg=-326,28,872 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:06:46.096967+08:00] S4 calibrated=1 pitch_md=-18904 roll_md=-3028 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:06:47.093122+08:00] S4 mg=-348,14,868 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:06:47.097147+08:00] S4 calibrated=1 pitch_md=-19922 roll_md=-3508 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:06:48.093479+08:00] S4 mg=-354,22,870 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:06:48.096618+08:00] S4 calibrated=1 pitch_md=-20266 roll_md=-3405 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:06:49.092733+08:00] S4 mg=-350,4,842 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:06:49.096112+08:00] S4 calibrated=1 pitch_md=-20776 roll_md=-3728 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:06:50.095106+08:00] S4 mg=-364,10,840 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:06:50.097124+08:00] S4 calibrated=1 pitch_md=-21149 roll_md=-3484 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:06:51.091989+08:00] S4 mg=-362,36,854 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:06:51.100043+08:00] S4 calibrated=1 pitch_md=-21245 roll_md=-2551 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:06:52.084287+08:00] S4 mg=-376,30,840 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:06:52.096110+08:00] S4 calibrated=1 pitch_md=-22048 roll_md=-2723 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:06:53.093826+08:00] S4 mg=-388,36,856 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:06:53.097848+08:00] S4 calibrated=1 pitch_md=-22621 roll_md=-2288 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:06:54.092785+08:00] S4 mg=-410,34,832 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:06:54.096227+08:00] S4 calibrated=1 pitch_md=-24335 roll_md=-2228 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:06:55.092730+08:00] S4 mg=-406,30,840 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:06:55.118933+08:00] S4 calibrated=1 pitch_md=-23744 roll_md=-2332 heading_ok=0 rate_ok=0
+
+
+--- left_side_up_settling 2026-10-28T18:07:25.530015+08:00 ---
+[2026-10-28T18:07:26.083225+08:00] S4 mg=-290,476,752 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:07:26.083225+08:00] S4 calibrated=1 pitch_md=-16823 roll_md=27005 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:07:27.089533+08:00] S4 mg=-284,476,752 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:07:27.097366+08:00] S4 calibrated=1 pitch_md=-16227 roll_md=27340 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:07:28.093406+08:00] S4 mg=-282,390,790 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:07:28.097658+08:00] S4 calibrated=1 pitch_md=-15710 roll_md=21990 heading_ok=0 rate_ok=0
+
+
+--- left_side_up 2026-10-28T18:07:28.606320+08:00 ---
+[2026-10-28T18:07:29.092813+08:00] S4 mg=-288,406,780 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:07:29.097217+08:00] S4 calibrated=1 pitch_md=-16023 roll_md=22811 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:07:30.093347+08:00] S4 mg=-278,412,788 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:07:30.096978+08:00] S4 calibrated=1 pitch_md=-15417 roll_md=23166 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:07:31.094049+08:00] S4 mg=-322,356,778 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:07:31.097249+08:00] S4 calibrated=1 pitch_md=-16490 roll_md=21954 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:07:32.094809+08:00] S4 mg=-272,422,784 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:07:32.098016+08:00] S4 calibrated=1 pitch_md=-15347 roll_md=23539 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:07:33.088042+08:00] S4 mg=-276,426,782 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:07:33.096637+08:00] S4 calibrated=1 pitch_md=-15134 roll_md=23455 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:07:34.094073+08:00] S4 mg=-284,428,788 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:07:34.098114+08:00] S4 calibrated=1 pitch_md=-15464 roll_md=23537 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:07:35.091607+08:00] S4 mg=-276,432,784 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:07:35.096110+08:00] S4 calibrated=1 pitch_md=-15466 roll_md=23588 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:07:36.095117+08:00] S4 mg=-260,418,790 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:07:36.098298+08:00] S4 calibrated=1 pitch_md=-14904 roll_md=23196 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:07:37.089998+08:00] S4 mg=-268,418,790 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:07:37.096266+08:00] S4 calibrated=1 pitch_md=-14883 roll_md=23077 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:07:38.093355+08:00] S4 mg=-264,420,788 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:07:38.102440+08:00] S4 calibrated=1 pitch_md=-14655 roll_md=23265 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:07:39.093933+08:00] S4 mg=-270,414,780 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:07:39.097464+08:00] S4 calibrated=1 pitch_md=-14761 roll_md=23408 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:07:40.093979+08:00] S4 mg=-272,412,774 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:07:40.095987+08:00] S4 calibrated=1 pitch_md=-14876 roll_md=23472 heading_ok=0 rate_ok=0
+
+
+--- right_side_up_settling 2026-10-28T18:08:05.523544+08:00 ---
+[2026-10-28T18:08:06.093857+08:00] S4 mg=-264,-210,844 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:06.099890+08:00] S4 calibrated=1 pitch_md=-14805 roll_md=-18575 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:07.093918+08:00] S4 mg=-244,-226,844 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:07.095927+08:00] S4 calibrated=1 pitch_md=-13714 roll_md=-19425 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:08.094456+08:00] S4 mg=-242,-212,836 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:08.098495+08:00] S4 calibrated=1 pitch_md=-14006 roll_md=-19006 heading_ok=0 rate_ok=0
+
+
+--- right_side_up 2026-10-28T18:08:08.613914+08:00 ---
+[2026-10-28T18:08:09.094573+08:00] S4 mg=-248,-222,850 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:09.098103+08:00] S4 calibrated=1 pitch_md=-13881 roll_md=-19093 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:10.085474+08:00] S4 mg=-244,-220,842 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:10.098925+08:00] S4 calibrated=1 pitch_md=-13709 roll_md=-19199 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:11.092575+08:00] S4 mg=-242,-216,852 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:11.096614+08:00] S4 calibrated=1 pitch_md=-13447 roll_md=-19308 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:12.090938+08:00] S4 mg=-244,-218,848 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:12.098081+08:00] S4 calibrated=1 pitch_md=-13587 roll_md=-19221 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:13.094218+08:00] S4 mg=-240,-230,842 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:13.094218+08:00] S4 calibrated=1 pitch_md=-13354 roll_md=-19406 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:14.084410+08:00] S4 mg=-236,-222,844 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:14.084410+08:00] S4 calibrated=1 pitch_md=-13260 roll_md=-19422 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:15.093715+08:00] S4 mg=-228,-228,848 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:15.096916+08:00] S4 calibrated=1 pitch_md=-12924 roll_md=-19501 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:16.090845+08:00] S4 mg=-238,-218,854 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:16.095251+08:00] S4 calibrated=1 pitch_md=-13086 roll_md=-19127 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:17.089470+08:00] S4 mg=-238,-224,856 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:17.095367+08:00] S4 calibrated=1 pitch_md=-13301 roll_md=-19374 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:18.093580+08:00] S4 mg=-238,-220,854 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:18.101621+08:00] S4 calibrated=1 pitch_md=-13428 roll_md=-19140 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:19.093638+08:00] S4 mg=-234,-214,866 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:19.096853+08:00] S4 calibrated=1 pitch_md=-13427 roll_md=-19238 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:20.086524+08:00] S4 mg=-232,-216,856 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:20.098513+08:00] S4 calibrated=1 pitch_md=-13434 roll_md=-19046 heading_ok=0 rate_ok=0
+
+
+--- return_level_settling 2026-10-28T18:08:26.732284+08:00 ---
+[2026-10-28T18:08:27.094849+08:00] S4 mg=-24,76,906 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:27.098884+08:00] S4 calibrated=1 pitch_md=-150 roll_md=-112 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:28.087352+08:00] S4 mg=-32,70,912 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:28.097886+08:00] S4 calibrated=1 pitch_md=-171 roll_md=-201 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:29.086413+08:00] S4 mg=-22,74,910 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:29.096089+08:00] S4 calibrated=1 pitch_md=281 roll_md=-221 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:30.092809+08:00] S4 mg=-22,68,902 fresh=1 rc=0 missed=0
+
+
+--- return_to_level 2026-10-28T18:08:30.094817+08:00 ---
+[2026-10-28T18:08:30.096825+08:00] S4 calibrated=1 pitch_md=159 roll_md=-56 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:31.095420+08:00] S4 mg=-28,72,918 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:31.099333+08:00] S4 calibrated=1 pitch_md=31 roll_md=-173 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:32.088239+08:00] S4 mg=-30,68,904 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:32.097441+08:00] S4 calibrated=1 pitch_md=81 roll_md=-339 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:33.093577+08:00] S4 mg=-24,72,910 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:33.098003+08:00] S4 calibrated=1 pitch_md=103 roll_md=-91 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:34.093738+08:00] S4 mg=-30,78,912 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:34.097774+08:00] S4 calibrated=1 pitch_md=53 roll_md=-40 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:35.095618+08:00] S4 mg=-30,70,908 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:35.105667+08:00] S4 calibrated=1 pitch_md=-88 roll_md=-121 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:36.091331+08:00] S4 mg=-32,76,904 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:36.096859+08:00] S4 calibrated=1 pitch_md=-118 roll_md=-70 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:37.084980+08:00] S4 mg=-18,66,908 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:37.097782+08:00] S4 calibrated=1 pitch_md=441 roll_md=-342 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:38.082738+08:00] S4 mg=-30,72,904 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:38.082738+08:00] S4 calibrated=1 pitch_md=70 roll_md=-207 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:39.091043+08:00] S4 mg=-30,74,904 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:39.098570+08:00] S4 calibrated=1 pitch_md=-130 roll_md=-54 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:40.091890+08:00] S4 mg=-30,70,908 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:40.096538+08:00] S4 calibrated=1 pitch_md=-49 roll_md=-329 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:41.081999+08:00] S4 mg=-26,72,904 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:41.097350+08:00] S4 calibrated=1 pitch_md=45 roll_md=-127 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:42.094873+08:00] S4 mg=-28,76,912 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:42.096893+08:00] S4 calibrated=1 pitch_md=52 roll_md=6 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:43.085074+08:00] S4 mg=-28,78,904 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:43.097396+08:00] S4 calibrated=1 pitch_md=56 roll_md=-83 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:44.094736+08:00] S4 mg=-32,76,904 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:08:44.098753+08:00] S4 calibrated=1 pitch_md=-460 roll_md=-101 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:08:45.088477+08:00] S4 mg=-30,72,908 fresh=1 rc=0 missed=0
+
+
+--- moving_during_startup 2026-10-28T18:09:03.965963+08:00 ---
+[2026-10-28T18:09:04.416753+08:00] S4 mg=-426,-736,194 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:04.418313+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:05.418084+08:00] S4 mg=-104,38,518 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:05.420966+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:05.540802+08:00] [TEST] INT-01 FAIL  samples flow from subsystem 2 to subsystem 3   (../app_program/subsystem3/subsystem3_test.c:34)
+
+[2026-10-28T18:09:05.544831+08:00] [TEST] S3-U01 PASS  min <= max, both within 0..100
+
+[2026-10-28T18:09:05.547357+08:00] [TEST] subsystem3 SUMMARY 1 passed, 1 failed
+
+[2026-10-28T18:09:05.549370+08:00] [TEST] S4-U03 PASS  IMU task exists at priority 18; no hardware yet
+
+[2026-10-28T18:09:05.551383+08:00] [TEST] subsystem4 SUMMARY 1 passed, 0 failed
+
+[2026-10-28T18:09:05.554902+08:00] [TEST] S5-U01 PASS  example: running in a task context
+
+[2026-10-28T18:09:05.560933+08:00] [TEST] subsystem5 SUMMARY 1 passed, 0 failed
+
+[2026-10-28T18:09:05.560933+08:00] [TEST] === test run end ===
+
+[2026-10-28T18:09:06.417841+08:00] S4 mg=-844,204,868 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:06.419862+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:07.414795+08:00] S4 mg=648,746,-424 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:07.419177+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:08.416733+08:00] S4 mg=-728,-732,0 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:08.418751+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:09.402845+08:00] S4 mg=690,802,-228 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:09.420581+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:10.405242+08:00] S4 mg=-806,-616,82 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:10.421354+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:11.416242+08:00] S4 mg=720,708,576 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:11.428404+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:12.416432+08:00] S4 mg=-592,-166,648 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:12.416432+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:13.408111+08:00] S4 mg=-480,310,642 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:13.420095+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:14.410828+08:00] S4 mg=-606,-386,364 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:14.410828+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:15.418313+08:00] S4 mg=-650,884,548 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:15.421511+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:16.409446+08:00] S4 mg=-396,732,350 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:16.409446+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:17.416483+08:00] S4 mg=-308,300,706 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:17.420870+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:18.417615+08:00] S4 mg=-38,912,-108 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:18.421845+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:19.415380+08:00] S4 mg=-520,-456,60 fresh=1 rc=0 missed=0
+
+
+--- after_movement_settling 2026-10-28T18:09:19.415380+08:00 ---
+[2026-10-28T18:09:20.415649+08:00] S4 mg=-44,364,946 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:20.423692+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:21.414965+08:00] S4 mg=-72,12,938 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:21.419551+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:22.416292+08:00] S4 mg=-30,70,910 fresh=1 rc=0 missed=0
+
+
+--- calibration_after_movement 2026-10-28T18:09:22.419986+08:00 ---
+[2026-10-28T18:09:22.419986+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:23.410263+08:00] S4 mg=-26,80,918 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:23.420371+08:00] S4 calibrated=0 pitch_md=0 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:24.417623+08:00] S4 mg=-26,74,902 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:24.421656+08:00] S4 calibrated=1 pitch_md=153 roll_md=-150 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:25.409471+08:00] S4 mg=-18,66,910 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:25.420263+08:00] S4 calibrated=1 pitch_md=126 roll_md=-267 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:26.414008+08:00] S4 mg=-20,72,898 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:26.419562+08:00] S4 calibrated=1 pitch_md=202 roll_md=-265 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:27.417443+08:00] S4 mg=-20,72,904 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:27.420805+08:00] S4 calibrated=1 pitch_md=149 roll_md=-32 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:28.412140+08:00] S4 mg=-32,72,904 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:28.420278+08:00] S4 calibrated=1 pitch_md=-146 roll_md=-50 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:29.415843+08:00] S4 mg=-22,72,906 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:29.421873+08:00] S4 calibrated=1 pitch_md=52 roll_md=-140 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:30.405329+08:00] S4 mg=-26,78,918 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:30.420579+08:00] S4 calibrated=1 pitch_md=-55 roll_md=36 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:31.410966+08:00] S4 mg=-18,72,906 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:31.410966+08:00] S4 calibrated=1 pitch_md=299 roll_md=-201 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:32.417234+08:00] S4 mg=-30,78,904 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:32.423282+08:00] S4 calibrated=1 pitch_md=-178 roll_md=-37 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:33.416942+08:00] S4 mg=-16,80,898 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:33.418961+08:00] S4 calibrated=1 pitch_md=314 roll_md=144 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:34.409418+08:00] S4 mg=-26,76,906 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:34.420614+08:00] S4 calibrated=1 pitch_md=74 roll_md=44 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:35.406843+08:00] S4 mg=-26,80,906 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:35.420647+08:00] S4 calibrated=1 pitch_md=-302 roll_md=212 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:36.412400+08:00] S4 mg=-28,76,902 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:36.420645+08:00] S4 calibrated=1 pitch_md=2 roll_md=219 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:37.414588+08:00] S4 mg=-28,78,902 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:37.421822+08:00] S4 calibrated=1 pitch_md=-194 roll_md=58 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:38.417875+08:00] S4 mg=-24,72,908 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:38.421783+08:00] S4 calibrated=1 pitch_md=105 roll_md=-219 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:39.402696+08:00] S4 mg=-26,76,904 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:39.420496+08:00] S4 calibrated=1 pitch_md=-121 roll_md=-10 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:40.413807+08:00] S4 mg=-30,74,900 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:40.421865+08:00] S4 calibrated=1 pitch_md=206 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:41.415353+08:00] S4 mg=-26,88,890 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:41.419987+08:00] S4 calibrated=1 pitch_md=-69 roll_md=485 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:42.416455+08:00] S4 mg=-32,74,912 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:42.420220+08:00] S4 calibrated=1 pitch_md=-391 roll_md=0 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:43.405200+08:00] S4 mg=-34,72,912 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:43.420751+08:00] S4 calibrated=1 pitch_md=-363 roll_md=-256 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:44.412507+08:00] S4 mg=-32,72,904 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:44.420749+08:00] S4 calibrated=1 pitch_md=-255 roll_md=-173 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:45.413171+08:00] S4 mg=-28,76,904 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:45.420604+08:00] S4 calibrated=1 pitch_md=-255 roll_md=-35 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:46.418547+08:00] S4 mg=-30,78,898 fresh=1 rc=0 missed=0
+
+[2026-10-28T18:09:46.420061+08:00] S4 calibrated=1 pitch_md=-192 roll_md=21 heading_ok=0 rate_ok=0
+
+[2026-10-28T18:09:47.413710+08:00] S4 mg=-28,70,910 fresh=1 rc=0 missed=0
+

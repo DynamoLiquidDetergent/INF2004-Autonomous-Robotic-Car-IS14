@@ -1,0 +1,128 @@
+S5-M39 run 1, 2026-11-21, image from 78dbaef (S5_PHASE 7, WIFI=none), on paper on the floor at home (not the tiles).
+Tester: Min Han. What he saw: the car only moved for about 0.2 s, nothing touched it, then it stopped.
+Happens sometimes on the real tiles too; other times the start works.
+
+---- Opened the serial port COM3 ----
+
+
+microT-Kernel Version 3.00
+
+
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+dual-core (SMP) build, usermain on core 0
+safety: monitor running (hold 3000 ms after a fault, 500 ms after a scan)
+all subsystems started
+
+vc: calibrating the line sensor for 5 s -- sweep the robot slowly side to side across the black line (or leave it: defaults kept)
+S4 t_us=6477 state=CALIBRATING motion=UNCLASSIFIED calibrated=0 valid=0 fresh=1 rc=0 pitch_md=0 roll_md=0 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=0 missed=0 bus_rc=0 init_rc=0 timebase=PENDING odom_valid=0 height_valid=0 height_mm=-1 highest_valid=0 highest_mm=-1 height_reason=NO_ODOMETRY odo_mm=0 odo_ms=0 odo_forward=0 fault_rc=0 build_id=UNSTAMPED profile=REPO encoder_valid=0 imu_status=CALIBRATING dynamic_mg=547 interpolated=0 max_interp_us=0 pending_imu=0 chain_valid=0 filter_compare=1 median_window=5 right_wheel_mode=1 track_um=120000 old_pitch_md=0 old_roll_md=0 old_valid=0 old_cal=0 old_state=1 diag_rejected=0 diag_run=0 diag_longest=0 imu_policy=QUALIFIED_ENDPOINTS_V1 accel_x_mg=-14 accel_y_mg=-14 accel_z_mg=452
+obstacle: ready (servo GP12, trig GP16, echo GP17)
+obstacle: taking background scan, keep the path ahead CLEAR
+s1: pub telem t=3355770358 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  30 deg  echo  5201 us  status 0  -> 90 cm
+obstacle:  30 deg  echo  7217 us  status 0  -> 124 cm
+obstacle:  30 deg  echo  5759 us  status 0  -> 99 cm
+obstacle:  45 deg  echo  5187 us  status 0  -> 89 cm
+obstacle:  45 deg  echo  5040 us  status 0  -> 87 cm
+S4 t_us=1113235 state=CALIBRATING motion=UNCLASSIFIED calibrated=0 valid=0 fresh=1 rc=0 pitch_md=0 roll_md=0 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=4410 missed=0 bus_rc=0 init_rc=0 timebase=CONSISTENT odom_valid=0 height_valid=0 height_mm=-1 highest_valid=0 highest_mm=-1 height_reason=NO_ODOMETRY odo_mm=0 odo_ms=65493 odo_forward=1 fault_rc=0 build_id=UNSTAMPED profile=REPO encoder_valid=1 imu_status=CALIBRATING dynamic_mg=79 interpolated=0 max_interp_us=0 pending_imu=0 chain_valid=0 filter_compare=1 median_window=5 right_wheel_mode=1 track_um=120000 old_pitch_md=0 old_roll_md=0 old_valid=0 old_cal=0 old_state=1 diag_rejected=0 diag_run=0 diag_longest=0 imu_policy=QUALIFIED_ENDPOINTS_V1 accel_x_mg=-20 accel_y_mg=-22 accel_z_mg=920
+s1: pub telem t=3355770858 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355770858 - 09 00 0F 00
+handling: last 1 s peak jolt 59 mg (collision at 450), moved 419 mg (150), line raw L=230 C=1877 R=283 (no floor: L,C >= 2000 and R >= 1000)
+obstacle:  45 deg  echo  5115 us  status 0  -> 88 cm
+obstacle:  60 deg  echo  4928 us  status 0  -> 85 cm
+obstacle:  60 deg  echo  4949 us  status 0  -> 85 cm
+obstacle:  60 deg  echo  4923 us  status 0  -> 85 cm
+obstacle:  75 deg  echo  4898 us  status 0  -> 84 cm
+obstacle:  75 deg  echo  4918 us  status 0  -> 85 cm
+s1: pub telem t=3355771357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle:  75 deg  echo  4898 us  status 0  -> 84 cm
+obstacle:  90 deg  echo  4817 us  status 0  -> 83 cm
+obstacle:  90 deg  echo  4817 us  status 0  -> 83 cm
+obstacle:  90 deg  echo  4918 us  status 0  -> 85 cm
+obstacle: 105 deg  echo  4923 us  status 0  -> 85 cm
+obstacle: 105 deg  echo  4898 us  status 0  -> 84 cm
+S4 t_us=2113292 state=CALIBRATING motion=UNCLASSIFIED calibrated=0 valid=0 fresh=1 rc=0 pitch_md=0 roll_md=0 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=5807 missed=0 bus_rc=0 init_rc=0 timebase=CONSISTENT odom_valid=0 height_valid=0 height_mm=-1 highest_valid=0 highest_mm=-1 height_reason=NO_ODOMETRY odo_mm=0 odo_ms=957 odo_forward=1 fault_rc=0 build_id=UNSTAMPED profile=REPO encoder_valid=1 imu_status=CALIBRATING dynamic_mg=81 interpolated=0 max_interp_us=0 pending_imu=0 chain_valid=0 filter_compare=1 median_window=5 right_wheel_mode=1 track_um=120000 old_pitch_md=0 old_roll_md=0 old_valid=0 old_cal=0 old_state=1 diag_rejected=0 diag_run=0 diag_longest=0 imu_policy=QUALIFIED_ENDPOINTS_V1 accel_x_mg=-24 accel_y_mg=-20 accel_z_mg=918
+s1: pub telem t=3355771858 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355771858 - 09 01 0F 00
+obstacle: 105 deg  echo  4949 us  status 0  -> 85 cm
+handling: last 1 s peak jolt 23 mg (collision at 450), moved 111 mg (150), line raw L=248 C=1879 R=284 (no floor: L,C >= 2000 and R >= 1000)
+obstacle: 120 deg  echo  4934 us  status 0  -> 85 cm
+obstacle: 120 deg  echo  5010 us  status 0  -> 86 cm
+obstacle: 120 deg  echo  4909 us  status 0  -> 85 cm
+obstacle: 135 deg  echo  5050 us  status 0  -> 87 cm
+obstacle: 135 deg  echo  5156 us  status 0  -> 89 cm
+s1: pub telem t=3355772357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+obstacle: 135 deg  echo  5055 us  status 0  -> 87 cm
+obstacle: 150 deg  echo  6467 us  status 0  -> 112 cm
+obstacle: 150 deg  echo  6467 us  status 0  -> 112 cm
+obstacle: 150 deg  echo  6468 us  status 0  -> 112 cm
+S4 t_us=3113236 state=CALIBRATING motion=UNCLASSIFIED calibrated=0 valid=0 fresh=1 rc=0 pitch_md=0 roll_md=0 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=5807 missed=0 bus_rc=0 init_rc=0 timebase=CONSISTENT odom_valid=0 height_valid=0 height_mm=-1 highest_valid=0 highest_mm=-1 height_reason=NO_ODOMETRY odo_mm=0 odo_ms=1957 odo_forward=1 fault_rc=0 build_id=UNSTAMPED profile=REPO encoder_valid=1 imu_status=CALIBRATING dynamic_mg=78 interpolated=0 max_interp_us=0 pending_imu=0 chain_valid=0 filter_compare=1 median_window=5 right_wheel_mode=1 track_um=120000 old_pitch_md=0 old_roll_md=0 old_valid=0 old_cal=0 old_state=1 diag_rejected=0 diag_run=0 diag_longest=0 imu_policy=QUALIFIED_ENDPOINTS_V1 accel_x_mg=-14 accel_y_mg=-48 accel_z_mg=920
+s1: pub telem t=3355772858 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355772858 - 09 02 0F 00
+handling: last 1 s peak jolt 43 mg (collision at 450), moved 104 mg (150), line raw L=235 C=1868 R=280 (no floor: L,C >= 2000 and R >= 1000)
+obstacle: background  30 deg = 99 cm
+obstacle: background  45 deg = 88 cm
+obstacle: background  60 deg = 85 cm
+obstacle: background  75 deg = 84 cm
+obstacle: background  90 deg = 83 cm
+obstacle: background 105 deg = 85 cm
+obstacle: background 120 deg = 85 cm
+obstacle: background 135 deg = 87 cm
+obstacle: background 150 deg = 112 cm
+s1: pub telem t=3355773358 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+S4 t_us=4113247 state=CALIBRATING motion=UNCLASSIFIED calibrated=0 valid=0 fresh=1 rc=0 pitch_md=0 roll_md=0 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=5807 missed=0 bus_rc=0 init_rc=0 timebase=CONSISTENT odom_valid=0 height_valid=0 height_mm=-1 highest_valid=0 highest_mm=-1 height_reason=NO_ODOMETRY odo_mm=0 odo_ms=2957 odo_forward=1 fault_rc=0 build_id=UNSTAMPED profile=REPO encoder_valid=1 imu_status=CALIBRATING dynamic_mg=79 interpolated=0 max_interp_us=0 pending_imu=0 chain_valid=0 filter_compare=1 median_window=5 right_wheel_mode=1 track_um=120000 old_pitch_md=0 old_roll_md=0 old_valid=0 old_cal=0 old_state=1 diag_rejected=0 diag_run=0 diag_longest=0 imu_policy=QUALIFIED_ENDPOINTS_V1 accel_x_mg=-16 accel_y_mg=-28 accel_z_mg=920
+s1: pub telem t=3355773858 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355773858 - 09 03 0F 00
+handling: last 1 s peak jolt 17 mg (collision at 450), moved 103 mg (150), line raw L=234 C=1889 R=287 (no floor: L,C >= 2000 and R >= 1000)
+s1: pub telem t=3355774357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+S4 t_us=5073038 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-70 roll_md=-19 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=6212 missed=0 bus_rc=0 init_rc=0 timebase=CONSISTENT odom_valid=1 height_valid=0 height_mm=-1 highest_valid=0 highest_mm=-1 height_reason=NO_ODOMETRY odo_mm=0 odo_ms=3917 odo_forward=1 fault_rc=0 build_id=UNSTAMPED profile=REPO encoder_valid=1 imu_status=OK dynamic_mg=71 interpolated=0 max_interp_us=0 pending_imu=0 chain_valid=0 filter_compare=1 median_window=5 right_wheel_mode=1 track_um=120000 old_pitch_md=-70 old_roll_md=-19 old_valid=1 old_cal=1 old_state=2 diag_rejected=0 diag_run=0 diag_longest=0 imu_policy=QUALIFIED_ENDPOINTS_V1 accel_x_mg=-30 accel_y_mg=-28 accel_z_mg=928
+S4 t_us=5114252 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-162 roll_md=-45 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=6450 missed=0 bus_rc=0 init_rc=0 timebase=CONSISTENT odom_valid=1 height_valid=0 height_mm=-1 highest_valid=0 highest_mm=-1 height_reason=NO_ODOMETRY odo_mm=0 odo_ms=3957 odo_forward=1 fault_rc=0 build_id=UNSTAMPED profile=REPO encoder_valid=1 imu_status=OK dynamic_mg=83 interpolated=0 max_interp_us=0 pending_imu=0 chain_valid=0 filter_compare=1 median_window=5 right_wheel_mode=1 track_um=120000 old_pitch_md=-135 old_roll_md=-90 old_valid=1 old_cal=1 old_state=2 diag_rejected=0 diag_run=0 diag_longest=0 imu_policy=QUALIFIED_ENDPOINTS_V1 accel_x_mg=-28 accel_y_mg=-26 accel_z_mg=916
+s1: pub telem t=3355774858 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355774858 - 09 04 0F 00
+S3 calib: timed out, seen L 217..259  C 1866..1932 -- range kept
+vc: calibration not done, default range kept
+vc: put the robot on the line, centre sensor over it -- starting in 3 s
+handling: last 1 s peak jolt 14 mg (collision at 450), moved 108 mg (150), line raw L=238 C=1891 R=293 (no floor: L,C >= 2000 and R >= 1000)
+s1: pub telem t=3355775357 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+S4 t_us=6115047 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=143 roll_md=156 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=6450 missed=0 bus_rc=0 init_rc=0 timebase=CONSISTENT odom_valid=1 height_valid=0 height_mm=-1 highest_valid=0 highest_mm=-1 height_reason=OK odo_mm=0 odo_ms=4957 odo_forward=1 fault_rc=0 build_id=UNSTAMPED profile=REPO encoder_valid=1 imu_status=OK dynamic_mg=76 interpolated=0 max_interp_us=0 pending_imu=0 chain_valid=1 filter_compare=1 median_window=5 right_wheel_mode=1 track_um=120000 old_pitch_md=35 old_roll_md=-13 old_valid=1 old_cal=1 old_state=2 diag_rejected=0 diag_run=0 diag_longest=0 imu_policy=QUALIFIED_ENDPOINTS_V1 accel_x_mg=-28 accel_y_mg=-34 accel_z_mg=922
+s1: pub telem t=3355775858 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355775858 - 09 05 0F 00
+handling: last 1 s peak jolt 19 mg (collision at 450), moved 102 mg (150), line raw L=245 C=1893 R=296 (no floor: L,C >= 2000 and R >= 1000)
+s1: pub telem t=3355776358 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+S4 t_us=6716256 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=26 roll_md=-14 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=6450 missed=0 bus_rc=0 init_rc=0 timebase=CONSISTENT odom_valid=1 height_valid=0 height_mm=-1 highest_valid=0 highest_mm=-1 height_reason=OK odo_mm=0 odo_ms=5557 odo_forward=1 fault_rc=0 build_id=UNSTAMPED profile=REPO encoder_valid=1 imu_status=OK dynamic_mg=75 interpolated=1 max_interp_us=40000 pending_imu=0 chain_valid=1 filter_compare=1 median_window=5 right_wheel_mode=1 track_um=120000 old_pitch_md=21 old_roll_md=24 old_valid=1 old_cal=1 old_state=2 diag_rejected=1 diag_run=0 diag_longest=1 imu_policy=QUALIFIED_ENDPOINTS_V1 accel_x_mg=-22 accel_y_mg=-28 accel_z_mg=924
+S4 t_us=7116244 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-111 roll_md=24 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=6450 missed=0 bus_rc=0 init_rc=0 timebase=CONSISTENT odom_valid=1 height_valid=0 height_mm=-1 highest_valid=0 highest_mm=-1 height_reason=OK odo_mm=0 odo_ms=5957 odo_forward=1 fault_rc=0 build_id=UNSTAMPED profile=REPO encoder_valid=1 imu_status=OK dynamic_mg=71 interpolated=1 max_interp_us=40000 pending_imu=0 chain_valid=1 filter_compare=1 median_window=5 right_wheel_mode=1 track_um=120000 old_pitch_md=-54 old_roll_md=27 old_valid=1 old_cal=1 old_state=2 diag_rejected=1 diag_run=0 diag_longest=1 imu_policy=QUALIFIED_ENDPOINTS_V1 accel_x_mg=-24 accel_y_mg=-28 accel_z_mg=928
+s1: pub telem t=3355776858 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355776858 - 09 06 0F 00
+handling: last 1 s peak jolt 14 mg (collision at 450), moved 103 mg (150), line raw L=238 C=1882 R=294 (no floor: L,C >= 2000 and R >= 1000)
+s1: pub telem t=3355777358 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+S4 t_us=8116251 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=184 roll_md=-76 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=6450 missed=0 bus_rc=0 init_rc=0 timebase=CONSISTENT odom_valid=1 height_valid=0 height_mm=-1 highest_valid=0 highest_mm=-1 height_reason=OK odo_mm=0 odo_ms=6957 odo_forward=1 fault_rc=0 build_id=UNSTAMPED profile=REPO encoder_valid=1 imu_status=OK dynamic_mg=73 interpolated=1 max_interp_us=40000 pending_imu=0 chain_valid=1 filter_compare=1 median_window=5 right_wheel_mode=1 track_um=120000 old_pitch_md=168 old_roll_md=-21 old_valid=1 old_cal=1 old_state=2 diag_rejected=1 diag_run=0 diag_longest=1 imu_policy=QUALIFIED_ENDPOINTS_V1 accel_x_mg=-22 accel_y_mg=-22 accel_z_mg=926
+s1: pub telem t=3355777857 - 01 00 00 0F 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355777861 - 09 07 0F 00
+vc: following the line at up to 100 mm/s (starts by itself; VC_AUTO_START 0 waits for RESUME)
+vc: dashboard link up
+vc: mission state RUNNING
+vc: motion state 0
+handling: last 1 s peak jolt 15 mg (collision at 450), moved 103 mg (150), line raw L=243 C=1886 R=291 (no floor: L,C >= 2000 and R >= 1000)
+vc: motion state 1
+s1: pub evt   t=3355777958 - 11 96 07
+obstacle:  90 deg  echo  4893 us  status 0  -> 84 cm
+obstacle:  90 deg  echo  4843 us  status 0  -> 84 cm
+handling: COLLISION (jolt 1039 mg, moved 180 mg, floor lost 0 ms; line raw L=259 C=2321 R=281)
+vc: COLLISION: motors stopped, run over (reset to start again)
+vc: mission state ABORTED
+vc: HOLD (obstacle state 0, motion state 1, epoch 2)
+obstacle:  90 deg  echo  4853 us  status 0  -> 84 cm
+vc: motion state 0
+s1: pub telem t=3355778358 - 01 00 00 02 00 02 08 00 80 F3 01 FF FE F3 03
+vc: t=  518 zone=3 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   1  dist=    8
+s1: pub evt   t=3355778458 - 11 36 01
+S4 t_us=9116306 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-236 roll_md=225 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=6587 missed=0 bus_rc=0 init_rc=0 timebase=CONSISTENT odom_valid=1 height_valid=0 height_mm=-1 highest_valid=0 highest_mm=-1 height_reason=OK odo_mm=8 odo_ms=7957 odo_forward=1 fault_rc=0 build_id=UNSTAMPED profile=REPO encoder_valid=1 imu_status=OK dynamic_mg=85 interpolated=5 max_interp_us=80000 pending_imu=0 chain_valid=1 filter_compare=1 median_window=5 right_wheel_mode=1 track_um=120000 old_pitch_md=-187 old_roll_md=54 old_valid=1 old_cal=1 old_state=2 diag_rejected=5 diag_run=0 diag_longest=3 imu_policy=QUALIFIED_ENDPOINTS_V1 accel_x_mg=-26 accel_y_mg=-30 accel_z_mg=914
+s1: pub telem t=3355778858 - 01 01 00 06 00 02 08 00 80 F3 01 FF FE F3 03
+s1: pub hb    t=3355778858 - 09 08 06 00
+vc: t= 1018 zone=3 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=    8
+handling: last 1 s peak jolt 1195 mg (collision at 450), moved 502 mg (150), line raw L=232 C=1969 R=253 (no floor: L,C >= 2000 and R >= 1000)
+s1: pub telem t=3355779357 - 01 01 00 06 00 02 08 00 80 F3 01 FF FE F3 03
+vc: t= 1518 zone=3 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=    8
+[... the car stays stopped (ABORTED) until 8.1 s after the start; every second after the stop:
+ handling peak jolt 11-28 mg, moved 103-107 mg (with the car standing still), line raw L 232-252, C 1962-1977, R 236-268;
+ wheels L=0 R=0, dist=8 mm. Serial port closed afterwards.]
+---- Closed the serial port COM3 ----

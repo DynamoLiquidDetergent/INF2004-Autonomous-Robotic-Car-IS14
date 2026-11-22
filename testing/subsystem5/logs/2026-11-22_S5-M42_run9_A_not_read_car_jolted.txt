@@ -1,0 +1,35 @@
+S5-M42 run 9 -- barcode A again, not read; the car jolted hard while crossing it (commit 9240c6c, S5_PHASE 7, WiFi + MQTT,
+VC_AUTO_START 0). Tester: Min Han, 2026-11-22. Excerpt of the second session in the capture (the first part of the paste
+is the end of an earlier session, car standing still, then a USB disconnect). Obstacle readings (117..177 cm, nothing close),
+repeated READY lines and most S4 fields cut.
+
+BARCODE: mapping C D A B -- only these letters are read
+vc: command from the dashboard: RESUME
+vc: mission state RUNNING
+S4 ... impact=1 impacts=1 ... imu_status=IMPACT dynamic_mg=846 odo_mm=2 ... accel_x_mg=1334 accel_y_mg=20 accel_z_mg=1276
+vc: t= 9640 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  98 R=  84  dist=   13
+GP28: min= 226 max= 496   (dark above 840, light below 610)
+vc: t=10160 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  82 R= 102  dist=   62
+handling: last 1 s moved 435 mg (lift needs 150), lowest up axis 806 mg (overturned below 400), line raw L=252 C=2559 R=333 (no floor: L,C >= 2000 and R >= 1000)
+S4 ... impact=1 impacts=2 ... imu_status=IMPACT dynamic_mg=1650 odo_mm=82 ... accel_x_mg=1700 accel_y_mg=526 accel_z_mg=1964
+vc: t=10680 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  95 R=  96  dist=  112
+GP28: min= 241 max=2691   (dark above 840, light below 610)
+vc: t=11181 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 103 R=  96  dist=  160
+handling: last 1 s moved 569 mg (lift needs 150), lowest up axis 52 mg (overturned below 400), line raw L=257 C=2962 R=2604 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=11701 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  94 R=  96  dist=  212
+GP28: min= 245 max=2705   (dark above 840, light below 610)
+handling: last 1 s moved 92 mg (lift needs 150), lowest up axis 884 mg (overturned below 400), line raw L=511 C=3067 R=245 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=12221 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  94 R=  96  dist=  262
+vc: t=12721 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  94 R= 102  dist=  312
+GP28: min= 210 max=1884   (dark above 840, light below 610)
+vc: t=13240 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 100 R=  98  dist=  363
+vc: t=13761 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  88 R=  92  dist=  414
+GP28: min= 293 max=3550   (dark above 840, light below 610)
+vc: JUNCTION 1 passed at 450 mm (no barcode command: straight on)
+vc: t=14281 zone=3 lost=0 jn=0 cmd   80 mm/s steer  -30  wheels L=  91 R= 109  dist=  462
+vc: t=14799 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  95 R=  94  dist=  510
+vc: command from the dashboard: PAUSE
+vc: mission state PAUSED
+[... no BARCODE: line at any time ...]
+
+For comparison, run 8 (A read, left turn): no S4 impact, "lowest up axis" 872..882 mg in the seconds around the barcode.

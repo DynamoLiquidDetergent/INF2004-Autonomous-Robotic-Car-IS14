@@ -1,0 +1,34 @@
+S5-M42 run 13 -- barcode Z mapped to FORWARD, straight on at the junction, line followed on (commit 9240c6c, S5_PHASE 7,
+WiFi + MQTT, VC_AUTO_START 0). Tester: Min Han, 2026-11-22. Dashboard map Forward Z, U-turn A, Left C, Right B.
+Excerpt (obstacle readings 117..185 cm, nothing close, S4 lines (no impact all run) and repeated READY / PAUSED lines cut).
+
+BARCODE: mapping Z A C B -- only these letters are read
+vc: command from the dashboard: RESUME
+vc: mission state RUNNING
+vc: t= 9116 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  84 R=  50  dist=    3
+vc: t= 9616 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  90 R=  96  dist=   45
+GP28: min= 158 max=2200   (dark above 840, light below 610)
+vc: t=10116 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  91 R=  97  dist=   93
+vc: t=10616 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  93 R=  98  dist=  141
+GP28: min= 183 max=2283   (dark above 840, light below 610)
+vc: t=11118 zone=7 lost=0 jn=0 cmd   40 mm/s steer   90  wheels L=  91 R= -26  dist=  191
+BARCODE: ch=Z cmd=1   (wide bars, forward, fit 0.22, ratio 4.15)
+vc: barcode command FORWARD (letter Z)
+handling: last 1 s moved 56 mg (lift needs 150), lowest up axis 866 mg (overturned below 400), line raw L=194 C=2307 R=197 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=11618 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  92 R=  95  dist=  233
+GP28: min= 163 max=2187   (dark above 840, light below 610)
+vc: t=12136 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  96 R=  93  dist=  282
+vc: t=12637 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  98 R= 100  dist=  334
+vc: t=13138 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  93 R= 103  dist=  385
+vc: t=13638 zone=7 lost=0 jn=0 cmd   40 mm/s steer   90  wheels L=  96 R= -16  dist=  432
+vc: t=14157 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  79 R= 103  dist=  469
+vc: t=14658 zone=4 lost=0 jn=0 cmd  100 mm/s steer   -8  wheels L= 104 R= 100  dist=  519
+vc: junction -> FORWARD (epoch 2)
+GP28: min= 185 max=3307   (dark above 840, light below 610)
+vc: t=15176 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  76 R=  81  dist=  558
+handling: last 1 s moved 74 mg (lift needs 150), lowest up axis 856 mg (overturned below 400), line raw L=229 C=2844 R=209 (no floor: L,C >= 2000 and R >= 1000)
+vc: t=15677 zone=7 lost=0 jn=0 cmd   40 mm/s steer   90  wheels L=  67 R= -13  dist=  602
+vc: t=16197 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 101 R=  98  dist=  647
+vc: t=16697 zone=7 lost=0 jn=0 cmd   40 mm/s steer   90  wheels L=  18 R= -31  dist=  672
+vc: command from the dashboard: PAUSE
+vc: mission state PAUSED

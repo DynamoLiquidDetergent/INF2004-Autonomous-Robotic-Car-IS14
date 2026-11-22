@@ -1,0 +1,21 @@
+S5-M42 run 6 -- barcode A driven over, nothing printed by the decoder (commit 6494e22, S5_PHASE 7, WiFi + MQTT, VC_AUTO_START 0)
+Tester: Min Han, 2026-11-22. Excerpt (obstacle readings, S4 lines and repeated READY lines cut).
+
+BARCODE: mapping C D A B -- only these letters are read
+vc: command from the dashboard: RESUME
+vc: mission state RUNNING
+vc: t= 4577 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  96 R=  99  dist=   64
+GP28: min= 211 max=2502   (dark above 840, light below 610)
+vc: t= 5078 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=  95 R=  94  dist=  112
+handling: last 1 s moved 68 mg (lift needs 150), lowest up axis 868 mg (overturned below 400), line raw L=261 C=2808 R=2580 (no floor: L,C >= 2000 and R >= 1000)
+vc: t= 5598 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 102 R= 101  dist=  163
+GP28: min= 307 max=2781   (dark above 840, light below 610)
+vc: t= 6098 zone=5 lost=0 jn=0 cmd   80 mm/s steer    8  wheels L=  86 R=  89  dist=  211
+handling: last 1 s moved 88 mg (lift needs 150), lowest up axis 876 mg (overturned below 400), line raw L=1088 C=3025 R=2619 (no floor: L,C >= 2000 and R >= 1000)
+vc: t= 6598 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 100 R=  89  dist=  258
+GP28: min= 207 max=2749   (dark above 840, light below 610)
+vc: t= 7118 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L= 101 R= 102  dist=  308
+GP28: min= 252 max= 339   (dark above 840, light below 610)
+vc: command from the dashboard: PAUSE
+vc: mission state PAUSED
+[... no BARCODE: line at any time ...]

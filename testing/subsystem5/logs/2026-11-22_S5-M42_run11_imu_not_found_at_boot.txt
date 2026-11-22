@@ -1,0 +1,20 @@
+S5-M42 run 11 -- not run: IMU not found at power-up, FAULT from the start (commit 9240c6c, S5_PHASE 7, WiFi + MQTT,
+VC_AUTO_START 0). Tester: Min Han, 2026-11-22. Dashboard map Forward B, U-turn Z, Left C, Right A.
+Excerpt (obstacle readings, repeated S4 FAULT lines and READY lines cut).
+
+all subsystems started
+vc: calibrating the line sensor for 5 s -- sweep the robot slowly side to side across the black line (or leave it: defaults kept)
+safety: INHIBIT set (faults 0x4, obstacle state 0)
+S4 t_us=7112 state=FAULT ... rc=-1 ... init_rc=-2 timebase=PENDING ... imu_status=IO_ERROR dynamic_mg=0 ... accel_x_mg=0 accel_y_mg=0 accel_z_mg=0
+S4 t_us=1112964 state=FAULT ... init_rc=-2 ... imu_status=IO_ERROR ... accel_x_mg=0 accel_y_mg=0 accel_z_mg=0
+[... every S4 line the same: FAULT, init_rc=-2, IO_ERROR, all accelerations 0 ...]
+vc: ready, waiting for START (RESUME from the dashboard)
+vc: dashboard link up
+vc: mission state READY
+vc: HOLD (obstacle state 0, motion state 5, epoch 2)
+vc: motion state 5
+BARCODE: mapping B Z C A -- only these letters are read
+vc: command from the dashboard: RESUME
+vc: mission state FAULT
+vc: t= 5558 zone=7 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=    0
+[... stays in FAULT, motors off ...]

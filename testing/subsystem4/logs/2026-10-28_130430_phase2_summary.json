@@ -1,0 +1,218 @@
+{
+  "code_commit": "4a779d0beb4ba857ca500ba0dde2940e52164c79",
+  "started_singapore": "2026-10-28T13:04:32.736520+08:00",
+  "tester": "Bryan",
+  "host": "PASS",
+  "build": "PASS",
+  "sensor": "PASS",
+  "six_poses": "PASS (functional check)",
+  "disconnected": "PASS",
+  "recovery": "PASS",
+  "observations": {
+    "stationary_baseline": {
+      "rows": 30,
+      "fresh_rows": 30,
+      "read_errors": 0,
+      "mean_mg": [
+        392.73,
+        -916.6,
+        -91.2
+      ],
+      "magnitude_mg": 1001.36,
+      "dominant_axis": "Y",
+      "max_missed": 0
+    },
+    "component_side_up_settling": {
+      "rows": 51,
+      "fresh_rows": 51,
+      "read_errors": 0,
+      "mean_mg": [
+        244.0,
+        -594.31,
+        241.06
+      ],
+      "magnitude_mg": 686.19,
+      "dominant_axis": "Y",
+      "max_missed": 0
+    },
+    "component_side_up": {
+      "rows": 15,
+      "fresh_rows": 15,
+      "read_errors": 0,
+      "mean_mg": [
+        -50.0,
+        98.93,
+        901.87
+      ],
+      "magnitude_mg": 908.65,
+      "dominant_axis": "Z",
+      "max_missed": 0
+    },
+    "component_side_down_settling": {
+      "rows": 22,
+      "fresh_rows": 22,
+      "read_errors": 0,
+      "mean_mg": [
+        9.09,
+        102.36,
+        -507.45
+      ],
+      "magnitude_mg": 517.76,
+      "dominant_axis": "Z",
+      "max_missed": 0
+    },
+    "component_side_down": {
+      "rows": 15,
+      "fresh_rows": 15,
+      "read_errors": 0,
+      "mean_mg": [
+        -142.93,
+        31.33,
+        -1062.67
+      ],
+      "magnitude_mg": 1072.69,
+      "dominant_axis": "Z",
+      "max_missed": 0
+    },
+    "connector_edge_up_settling": {
+      "rows": 38,
+      "fresh_rows": 37,
+      "read_errors": 0,
+      "mean_mg": [
+        202.11,
+        551.46,
+        286.76
+      ],
+      "magnitude_mg": 653.59,
+      "dominant_axis": "Y",
+      "max_missed": 0
+    },
+    "connector_edge_up": {
+      "rows": 15,
+      "fresh_rows": 15,
+      "read_errors": 0,
+      "mean_mg": [
+        -53.07,
+        1009.2,
+        73.73
+      ],
+      "magnitude_mg": 1013.28,
+      "dominant_axis": "Y",
+      "max_missed": 0
+    },
+    "opposite_connector_edge_up_settling": {
+      "rows": 22,
+      "fresh_rows": 22,
+      "read_errors": 0,
+      "mean_mg": [
+        -45.91,
+        163.0,
+        73.27
+      ],
+      "magnitude_mg": 184.51,
+      "dominant_axis": "Y",
+      "max_missed": 0
+    },
+    "opposite_connector_edge_up": {
+      "rows": 16,
+      "fresh_rows": 16,
+      "read_errors": 0,
+      "mean_mg": [
+        -36.38,
+        -1003.38,
+        -147.38
+      ],
+      "magnitude_mg": 1014.79,
+      "dominant_axis": "Y",
+      "max_missed": 0
+    },
+    "left_edge_up_settling": {
+      "rows": 34,
+      "fresh_rows": 34,
+      "read_errors": 0,
+      "mean_mg": [
+        -343.18,
+        -499.29,
+        -191.41
+      ],
+      "magnitude_mg": 635.38,
+      "dominant_axis": "Y",
+      "max_missed": 0
+    },
+    "left_edge_up": {
+      "rows": 15,
+      "fresh_rows": 14,
+      "read_errors": 0,
+      "mean_mg": [
+        -1040.29,
+        13.0,
+        -154.43
+      ],
+      "magnitude_mg": 1051.77,
+      "dominant_axis": "X",
+      "max_missed": 0
+    },
+    "right_edge_up_settling": {
+      "rows": 15,
+      "fresh_rows": 15,
+      "read_errors": 0,
+      "mean_mg": [
+        642.27,
+        -59.07,
+        -122.67
+      ],
+      "magnitude_mg": 656.54,
+      "dominant_axis": "X",
+      "max_missed": 0
+    },
+    "right_edge_up": {
+      "rows": 15,
+      "fresh_rows": 15,
+      "read_errors": 0,
+      "mean_mg": [
+        1008.4,
+        -4.93,
+        -83.07
+      ],
+      "magnitude_mg": 1011.83,
+      "dominant_axis": "X",
+      "max_missed": 0
+    },
+    "sensor_disconnected": {
+      "rows": 31,
+      "fresh_rows": 0,
+      "read_errors": 31
+    },
+    "sensor_reconnected": {
+      "rows": 21,
+      "fresh_rows": 21,
+      "read_errors": 0,
+      "mean_mg": [
+        390.95,
+        -907.71,
+        -216.86
+      ],
+      "magnitude_mg": 1011.84,
+      "dominant_axis": "Y",
+      "max_missed": 0
+    }
+  },
+  "evidence_note": "Absolute machine paths are removed from public evidence; readings, timestamps and errors are retained.",
+  "build_exit_code": 0,
+  "firmware_sha256": "2080d247640b571dcf440c6c727ee5516563d909899c9ec2eec9747c3898ec1f",
+  "flashed_singapore": "2026-10-28T13:05:01.870461+08:00",
+  "flash_drive": "D:",
+  "port": "COM4",
+  "console_file": "2026-10-28_130430_phase2_sensor.txt",
+  "task_startup_pass_seen": true,
+  "operator_gravity_observation": "yes",
+  "six_pose_opposite_axis_check": true,
+  "board_result": "PASS",
+  "finished_singapore": "2026-10-28T13:14:02.695554+08:00",
+  "limitations": [
+    "Serial output is sampled for logging about once per second, not every sensor sample.",
+    "Six-position checks establish basic axis/sign behaviour, not a calibrated measurement tolerance.",
+    "No precise task jitter, execution-time, impact, terrain or height claim is made.",
+    "Fault flags and Safety Monitor integration are not part of this phase."
+  ]
+}

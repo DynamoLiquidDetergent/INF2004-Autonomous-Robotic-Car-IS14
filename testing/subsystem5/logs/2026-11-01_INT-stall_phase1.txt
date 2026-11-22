@@ -1,0 +1,44 @@
+---- Opened the serial port COM3 ----
+monitor: alarm -- no batch for 2000 ms
+monitor: t=3355771866 ms  samples=4  min=0 max=30 avg=15  free slots=1  free blocks=1
+s5 phase 1: alive 2 s, PWM out of reset = 1
+s5 phase 1: alive 3 s, PWM out of reset = 1
+[TEST] INT-01 FAIL  samples flow from subsystem 2 to subsystem 3   (../app_program/subsystem3/subsystem3_test.c:34)
+[TEST] S3-U01 PASS  min <= max, both within 0..100
+[TEST] subsystem3 SUMMARY 1 passed, 1 failed
+[TEST] S4-U01 PASS  message buffer max line = S4_SUMMARY_MAX
+monitor: alarm -- no batch for 2000 ms
+monitor: t=3355773876 ms  samples=4  min=0 max=30 avg=15  free slots=0  free blocks=0
+s5 phase 1: alive 4 s, PWM out of reset = 1
+s5 phase 1: alive 5 s, PWM out of reset = 1
+monitor: alarm -- no batch for 2000 ms
+monitor: t=3355775886 ms  samples=4  min=0 max=30 avg=15  free slots=0  free blocks=0
+s5 phase 1: alive 6 s, PWM out of reset = 1
+monitor: batch  n=5 last=40 from core 1
+monitor: t=3355776346 ms  samples=8  min=0 max=70 avg=35  free slots=3  free blocks=4
+[TEST] INT-02 FAIL  summary lines flow from subsystem 3 to subsystem 4   (../app_program/subsystem4/subsystem4_test.c:30)
+[TEST] subsystem4 SUMMARY 1 passed, 1 failed
+monitor: batch  n=10 last=90 from core 1
+monitor: t=3355776656 ms  samples=10  min=0 max=90 avg=45  free slots=4  free blocks=4
+s5 phase 1: alive 7 s, PWM out of reset = 1
+[TEST] S5-U01 PASS  running in a task context
+[TEST] S5-U02 PASS  PWM block is out of reset (kernel leaves it in reset)
+[TEST] S5-U05 PASS  Obstacle state fits in 3 bits
+[TEST] S5-U06 PASS  i8 profile message packs and unpacks
+[TEST] S5-U07 PASS  i8 message is 8 bytes (two packed words)
+[TEST] S5-U08 PASS  two simultaneous fault bits are both kept
+[TEST] S5-U09 PASS  clearing one fault bit leaves the other set (TWF_BITCLR)
+[TEST] subsystem5 SUMMARY 7 passed, 0 failed
+[TEST] === test run end ===
+s5 phase 1: alive 8 s, PWM out of reset = 1
+monitor: batch  n=15 last=60 from core 1
+monitor: t=3355778206 ms  samples=15  min=0 max=100 avg=56  free slots=4  free blocks=4
+monitor: LED task paused, state=WAIT+SUSPEND, pri=13
+s5 phase 1: alive 9 s, PWM out of reset = 1
+monitor: batch  n=20 last=10 from core 1
+monitor: t=3355779756 ms  samples=20  min=0 max=100 avg=50  free slots=4  free blocks=4
+s5 phase 1: alive 10 s, PWM out of reset = 1
+s5 phase 1: alive 11 s, PWM out of reset = 1
+monitor: batch  n=25 last=40 from core 1
+monitor: t=3355781306 ms  samples=25  min=0 max=100 avg=44  free slots=4  free blocks=4
+---- Closed the serial port COM3 ----
