@@ -55,6 +55,7 @@ Test IDs are never changed.
 | S1-U43 | 60 s outage: S1 keeps running and recovers | NFR4 (S1 part), NFR3, FR10, NFR5 | manual | Laptop WiFi off 60 s, then on | Heartbeat seq continues (no reset). 20 newest frames replayed in order. Outage count back to 0. Other subsystems checked at integration |
 | S1-U44 | IF-13 packed into 8 B: exact words for fixed values, round-trip at max/none, too-large codes and counters capped at field max, spare bits 0 | CR1, IF-13 | auto | make TEST=1, flash, read console | `[TEST] S1-U44 PASS` *(Revised 2026-11-01: distance/width capping moved to S1-U45 after review)* |
 | S1-U45 | IF-13 distance, width, hump: "no data" kept, too-large capped at the largest real value. Hump in w1 bits 21–28 reaches the telemetry frame | CR1, IF-13, FR5 | auto | make TEST=1, flash, read console | `[TEST] S1-U45 PASS` |
+| S1-M01 | Wheel speeds, motion state and run distance on the dashboard: S1 reads S2's motion status (IF-16) and odometry (IF-17) for each telemetry frame; distance counts from the end of READY. Line zone, junction and line lost have no source in S1 and are not shown | IF-16, IF-17, FR10 | manual | integrated WiFi image, dashboard open. 1. Car in READY. 2. RESUME and let it follow the line. 3. PAUSE | 1: Distance 0 mm. 2: Speed left / right about 80..100 mm/s, Motion state DRIVING, Distance counting up. 3: speeds 0, Motion state HOLDING or IDLE, Distance stays |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).
@@ -115,3 +116,4 @@ Old rows are never deleted or edited to change their meaning / results.
 | 2026-11-01 | S1-U44 | `50791f1` | Saad | PASS | `logs/2026-11-01_S1-U44-U45.txt` | Rerun after review fixes. Codes/counters capped at field max |
 | 2026-11-01 | S1-U45 | `50791f1` | Saad | PASS | `logs/2026-11-01_S1-U44-U45.txt` | 600 cm → 510, 99 cm → 62, none kept. Hump 42 reaches telemetry. U01–U30 re-pass (29/29) |
 | 2026-11-01 | S1-U30 | `50791f1` | Saad | PASS | `logs/2026-11-01_S1-U44-U45.txt` | n=20, 104 → 123. Replay now runs before packing each tick, so no kept frame is dropped when the link returns |
+| 2026-11-22 | S1-M01 | `9ca55df` | Min Han | PASS | dashboard on the car | Speed left / right, Motion state and Distance updated while the car drove and went back to 0 / stopped on PAUSE. Line zone, junction and line lost rows removed from the dashboard |
