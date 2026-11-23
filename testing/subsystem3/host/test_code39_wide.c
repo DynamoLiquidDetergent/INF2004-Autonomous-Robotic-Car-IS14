@@ -228,6 +228,36 @@ int main(void)
 		check((got == 0 || got == 'A') && !bad, "S3-H01b", msg);
 	}
 
+	/* S3-H09: real capture of *F* from the lab track (2026-11-23), map F Z J Q */
+	{
+		static unsigned short capf[1600];
+		unsigned map_fzjq = (1u << ('F' - 'A')) | (1u << ('Z' - 'A')) | (1u << ('J' - 'A')) | (1u << ('Q' - 'A'));
+		int nf = 0;
+		char msg[120];
+		FILE *ff = fopen("testing/subsystem3/host/cap_2026-11-23_F_100mms.txt", "r");
+		if (ff != NULL) {
+			while (fgets(line, sizeof line, ff) && nf < 1600) {
+				char *p = line, *e;
+				if (line[0] == '#') continue;
+				for (;;) {
+					long v = strtol(p, &e, 10);
+					if (e == p || nf >= 1600) break;
+					capf[nf++] = (unsigned short)v;
+					p = e;
+				}
+			}
+			fclose(ff);
+		}
+		got = decode_trace(capf, nf, map_fzjq, &tries, &bad);
+		snprintf(msg, sizeof msg, "real capture of *F* (lab, ~100 mm/s), map F Z J Q: got %c (%d tries)",
+			 got ? got : '-', tries);
+		check(nf == 1500 && got == 'F' && !bad, "S3-H09a", msg);
+		got = decode_trace(capf, nf, 0, &tries, &bad);
+		snprintf(msg, sizeof msg, "same capture, any of 26 letters allowed: got %c, never a wrong letter",
+			 got ? got : '-');
+		check((got == 0 || got == 'F') && !bad, "S3-H09b", msg);
+	}
+
 	run_family("S3-H02a", 1.2, 0.15, 3.3, 8.5, 0, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 0);
 	run_family("S3-H02b", 1.2, 0.15, 3.3, 8.5, mapped, "CDAB", 1);
 	run_family("S3-H03", 3.1, 1.00, 3.0, 9.0, 0, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1);
