@@ -114,7 +114,8 @@
 #define VC_JN_CONFIRM_MSGS	1	/* junction flag in this many line messages in a row */
 #define VC_JN_ADVANCE_MM	(VC_SENSOR_AXLE_MM - VC_BAR_MM / 2)	/* after the flag, before a turn: axle over the bar's centre */
 #define VC_JN_CROSS_MM		25	/* FORWARD: straight on after the flag, no steering by sensors, until the sensors are back on the line */
-#define VC_BC_STEER_MAX		8	/* mm/s steering limit while GP28 reads a barcode and the line is <= 1 zone off */
+#define VC_BC_STEER_MAX		8	/* mm/s steering limit while GP28 reads a barcode and the line is <= 1 zone off (x2 at 2 zones off) */
+#define VC_BC_HOLD_ZONES	2	/* the limit applies up to this many zones off centre; further off, the normal correction */
 #define VC_JN_SPEED		60	/* mm/s for those two */
 #define VC_JN_REARM_MM		100	/* after a manoeuvre: flag low and this far before the next */
 #define VC_BC_EXPIRE_MM		1500	/* a command not used by a junction this far on is dropped */

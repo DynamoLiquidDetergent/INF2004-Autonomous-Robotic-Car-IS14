@@ -130,9 +130,11 @@ static int follow_line(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 	v->err_prev  = err;
 	v->have_prev = 1;
 	o->steer = clamp(-VC_LF_STEER_SIGN * turn, VC_LF_STEER_MAX);
-	if (in->bc_busy && iabs(err) <= 1) {
-		/* GP28 is reading bars: a steady speed over them matters more than a tidy line */
-		o->steer = clamp(o->steer, VC_BC_STEER_MAX);
+	if (in->bc_busy && iabs(err) <= VC_BC_HOLD_ZONES) {
+		/* GP28 is reading bars: a steady speed over them matters more than a tidy line.
+		   8 mm/s up to 1 zone off, 16 mm/s at 2 zones off (lab, 23 Nov: small wobbles
+		   2 zones off steered hard mid-barcode and Z was not read) */
+		o->steer = clamp(o->steer, VC_BC_STEER_MAX * ((iabs(err) > 1) ? iabs(err) : 1));
 	}
 	o->speed = VC_LF_SPEED - VC_LF_SLOW_PER_ZONE * iabs(err);
 	if (o->speed < VC_LF_MIN_SPEED) {

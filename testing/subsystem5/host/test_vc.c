@@ -1099,13 +1099,33 @@ int main(void)
 		bo = vc_step(&v, &b);
 		CHECK("S5-H120b", bo.steer == -VC_BC_STEER_MAX, "zone 3: limited to -8 mm/s");
 		vc_init(&v, 0);
-		b = line_in(6, 0); b.bc_busy = 1;
+		b = line_in(7, 0); b.bc_busy = 1;
 		bo = vc_step(&v, &b);
-		CHECK("S5-H120c", bo.steer >= 60, "zone 6 (two zones off): not limited");
+		CHECK("S5-H120c", bo.steer >= 60, "zone 7 (three zones off): not limited (was zone 6 before S5-H142)");
 		vc_init(&v, 0);
 		b = line_in(5, 0); b.bc_busy = 0;
 		bo = vc_step(&v, &b);
 		CHECK("S5-H120d", bo.steer == 30, "not in a barcode: zone 5 gives the normal 30 mm/s");
+	}
+
+	/* H142: the barcode hold also covers 2 zones off (lab run, 2026-11-23: Z not read while the car wobbled) */
+	{
+		VC_IN b;
+		VC_OUT bo;
+
+		vc_init(&v, 0);
+		b = line_in(6, 0); b.bc_busy = 1;
+		bo = vc_step(&v, &b);
+		CHECK("S5-H142a", bo.mode == VC_MODE_DRIVE && bo.steer == 2 * VC_BC_STEER_MAX,
+		      "zone 6 (two zones off) while reading a barcode: limited to 16 mm/s, right way");
+		vc_init(&v, 0);
+		b = line_in(2, 0); b.bc_busy = 1;
+		bo = vc_step(&v, &b);
+		CHECK("S5-H142b", bo.steer == -2 * VC_BC_STEER_MAX, "zone 2: limited to -16 mm/s");
+		vc_init(&v, 0);
+		b = line_in(6, 0); b.bc_busy = 0;
+		bo = vc_step(&v, &b);
+		CHECK("S5-H142c", bo.steer >= 60, "zone 6 not in a barcode: the normal correction (unchanged)");
 	}
 
 	/* H141: right wheel on a hump (subsystem 4 tracking a height): no wheel may run backwards,
