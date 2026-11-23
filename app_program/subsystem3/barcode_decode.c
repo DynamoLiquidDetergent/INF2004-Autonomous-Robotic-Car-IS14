@@ -453,6 +453,26 @@ LOCAL void decode_and_send(BC_STATE *st)
 #endif
 }
 
+/* The barcode ended before all 29 elements: if the start marker, the letter and
+   the stop elements read so far are all valid, use the letter (only a mapped
+   letter is sent).  Lab, 23 Nov: *Q* read 25 of 29, the last bars too faint. */
+LOCAL void try_partial(BC_STATE *st)
+{
+    uint8_t     ch;
+    BARCODE_CMD cmd = BARCODE_CMD_NONE;
+
+    ch = code39_decode_partial(st->elems, (unsigned)st->n);
+    if (ch < 'A' || ch > 'Z' || resolve(ch) == BARCODE_CMD_NONE) {
+        return;
+    }
+    if (report_letter(ch, &cmd)) {
+#if S3_BC_DEBUG
+        tm_printf((UB *)"BARCODE: ch=%c cmd=%u   (%u of 29 elements, end of the stop marker missing)\n",
+                  (char)ch, (unsigned)cmd, (unsigned)st->n);
+#endif
+    }
+}
+
 /* Feed one GP28 sample into the element state machine */
 LOCAL void process_sample(BC_STATE *st, GP28_SAMPLE_MSG s)
 {
@@ -487,6 +507,7 @@ LOCAL void process_sample(BC_STATE *st, GP28_SAMPLE_MSG s)
     if (dark == st->dark) {                           /* same run */
         if (st->run < 0xFFFFu) st->run++;
         if (st->collecting && !dark && st->run >= BC_QUIET_SAMPLES) {
+            try_partial(st);                                  /* end of the stop marker faded? */
             abandon(st, "long white gap, BC_QUIET_SAMPLES");  /* barcode ended early */
         }
         return;

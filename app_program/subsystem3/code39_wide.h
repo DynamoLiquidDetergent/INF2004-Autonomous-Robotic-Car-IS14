@@ -84,7 +84,12 @@
 #define C39W_SPLIT_PCT     85u
 #define C39W_SPLIT_RISE    150u
 #define C39W_TOP_PCT       85u
-#define C39W_MAX_ERR_X100  35      /* fit error limit, 1/100 narrow unit   */
+#ifndef C39W_MAX_ERR_X100
+#define C39W_MAX_ERR_X100  50      /* fit error limit, 1/100 narrow unit.
+                                      35 -> 50 (lab, 23 Nov: Z at 0.42 not
+                                      read; PC tests: 0 wrong letters at 50,
+                                      wrong letters from 60) */
+#endif
 #define C39W_TIE_ERR_X100  35      /* letters this close in fit are all
                                       compared by the tie-break (blur moves
                                       wide-bar centres, so the right letter
@@ -104,7 +109,11 @@
    units" more squared error than the winner (n x (err2 - err1) / err1;
    real *Z*: ~340), and the winner's narrow bars lift the reading by at
    least C39W_MIN_NARROW ADC counts (real *Z*: ~100). */
-#define C39W_MIN_EVIDENCE        100
+#ifndef C39W_MIN_EVIDENCE
+#define C39W_MIN_EVIDENCE        60    /* 100 -> 60 (lab, 23 Nov: Q vs J at 92
+                                          not sent; read at 118 the run before.
+                                          PC tests: 0 wrong letters at 40..100) */
+#endif
 #define C39W_MIN_NARROW          20
 
 /* The 6 pulses must all be wide bars: none narrower than half the widest.

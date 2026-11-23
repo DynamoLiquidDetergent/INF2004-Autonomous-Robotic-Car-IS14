@@ -151,6 +151,7 @@ typedef struct {
 	double end_y_mm;	/* lateral error 3 s after the hand-over */
 	int   lost_after;	/* line lost during those 3 s */
 	double done_y_mm;	/* y of the axle at BYP_DONE (the side line runs along y) */
+	double done_sy_mm;	/* y of the sensor row at BYP_DONE: how far the line is from the sensor centre (H143) */
 	int   moved_blocked;	/* a wheel moved while the path was blocked (after 300 ms to stop) */
 	int   done_kind;		/* swerve leg the line was taken over in (VC_SW_...) */
 	int   done_post_dir;		/* where a loss just after the take-over is looked for */
@@ -232,6 +233,9 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 
 			lost = (d_main > 32.0 && d_side > 32.0) ? 1 : 0;
 			rel = 0.0;
+			/* clearly over the corner's line: it shows one zone towards the bypass side, where that
+			   line leads (S5-H143: the search direction is taken from the zone after straightening) */
+			if (!lost && d_side + 15.0 < d_main && v.sw_kind == VC_SW_SETTLE) { rel = side * 10.0; }
 			if (!lost && done_t < 0) { r.on_side = (d_side + 15.0 < d_main) ? 1 : 0; }	/* clearly the side line, not the corner point */
 		}
 		if (sim_away_x > 0) {			/* main line ends at the corner, the side line goes off away from the bypass */
@@ -344,7 +348,7 @@ static SIMRES sim_bypass(int side, int width_mm, int depth_mm, int centre_mm, in
 		}
 		if (r.clear_mm < 0.5) { r.hit = 1; }
 		if (done_t >= 0 && t - done_t == 150) { r.end_y_mm = y; }
-		if (done_t == t) { r.done_y_mm = y; }
+		if (done_t == t) { r.done_y_mm = y; r.done_sy_mm = y + 50.0 * sin(th); }
 		if (done_t == t) { r.end_th_deg = th * 57.2958; r.end_x_mm = x; }
 		if (done_t >= 0 && t > done_t && lost) { r.lost_after = 1; }
 	}
@@ -1099,13 +1103,33 @@ int main(void)
 		bo = vc_step(&v, &b);
 		CHECK("S5-H120b", bo.steer == -VC_BC_STEER_MAX, "zone 3: limited to -8 mm/s");
 		vc_init(&v, 0);
-		b = line_in(6, 0); b.bc_busy = 1;
+		b = line_in(7, 0); b.bc_busy = 1;
 		bo = vc_step(&v, &b);
-		CHECK("S5-H120c", bo.steer >= 60, "zone 6 (two zones off): not limited");
+		CHECK("S5-H120c", bo.steer >= 60, "zone 7 (three zones off): not limited (was zone 6 before S5-H142)");
 		vc_init(&v, 0);
 		b = line_in(5, 0); b.bc_busy = 0;
 		bo = vc_step(&v, &b);
 		CHECK("S5-H120d", bo.steer == 30, "not in a barcode: zone 5 gives the normal 30 mm/s");
+	}
+
+	/* H142: the barcode hold also covers 2 zones off (lab run, 2026-11-23: Z not read while the car wobbled) */
+	{
+		VC_IN b;
+		VC_OUT bo;
+
+		vc_init(&v, 0);
+		b = line_in(6, 0); b.bc_busy = 1;
+		bo = vc_step(&v, &b);
+		CHECK("S5-H142a", bo.mode == VC_MODE_DRIVE && bo.steer == 2 * VC_BC_STEER_MAX,
+		      "zone 6 (two zones off) while reading a barcode: limited to 16 mm/s, right way");
+		vc_init(&v, 0);
+		b = line_in(2, 0); b.bc_busy = 1;
+		bo = vc_step(&v, &b);
+		CHECK("S5-H142b", bo.steer == -2 * VC_BC_STEER_MAX, "zone 2: limited to -16 mm/s");
+		vc_init(&v, 0);
+		b = line_in(6, 0); b.bc_busy = 0;
+		bo = vc_step(&v, &b);
+		CHECK("S5-H142c", bo.steer >= 60, "zone 6 not in a barcode: the normal correction (unchanged)");
 	}
 
 	/* H141: right wheel on a hump (subsystem 4 tracking a height): no wheel may run backwards,
@@ -1392,7 +1416,7 @@ int main(void)
 		static const int closest[] = { 12, 15, 17, 20, 25 };
 		static const int errs[] = { -8, 0, 8 };
 		int side, iw, id, ic, iq, ie, n = 0, n_ok = 0, n_hit = 0, n_lost = 0, n_fail = 0, n_slow = 0, n_off = 0;
-		double worst_clear = 1e9, worst_ms = 0, worst_y = 0, worst_head = 0;
+		double worst_clear = 1e9, worst_ms = 0, worst_y = 0, worst_head = 0, worst_sy = 0;
 
 		for (side = -1; side <= 1; side += 2) {
 			for (iw = 0; iw < 5; iw++) for (id = 0; id < 2; id++) for (ic = 0; ic < 3; ic++)
@@ -1410,6 +1434,7 @@ int main(void)
 				if (r.ms > worst_ms) { worst_ms = r.ms; }
 				if (fabs(r.end_y_mm) > worst_y) { worst_y = fabs(r.end_y_mm); }
 				if (r.max_head_deg > worst_head) { worst_head = r.max_head_deg; }
+				if (r.ok && fabs(r.done_sy_mm) > worst_sy) { worst_sy = fabs(r.done_sy_mm); }
 				if (getenv("S5_SIM_VERBOSE") != NULL && (!r.ok || r.hit || r.clear_mm < 25.0 || fabs(r.end_y_mm) > 20.0 || r.lost_after)) {
 					printf("[SIM] side %d W%d dep%d c%d q%d e%d: ok%d fail%d hit%d clear %.0f ms %d y %.0f lost%d head %.0f  back %d lo %d lp %d d %d\n",
 					       side, widths[iw], depths[id], centres[ic], closest[iq], errs[ie], r.ok, r.fail_ev, r.hit,
@@ -1424,6 +1449,8 @@ int main(void)
 		CHECK("S5-H122c", n_slow == 0, "every detour is shorter than 20 s (the obstacle task gives up at 25 s)");
 		CHECK("S5-H122e", worst_head <= 12.0, "the car faces along the travel (within 12 degrees) when the line controller takes over");
 		CHECK("S5-H122d", n_lost == 0 && n_off == 0, "line following takes over and holds the line (no loss, under 20 mm off after 3 s)");
+		printf("[HOST] INFO H143: worst distance from the sensor row to the line when the line controller takes over: %.1f mm\n", worst_sy);
+		CHECK("S5-H143", worst_sy <= 10.0, "after straightening up on the way back the line is still under the centre sensors (within 10 mm), so the line controller does not start with the line at the edge (lab, 23 Nov: line lost after the rejoin on both sides)");
 	}
 
 	/* H123: how the curve is chosen from the obstacle */

@@ -114,7 +114,8 @@
 #define VC_JN_CONFIRM_MSGS	1	/* junction flag in this many line messages in a row */
 #define VC_JN_ADVANCE_MM	(VC_SENSOR_AXLE_MM - VC_BAR_MM / 2)	/* after the flag, before a turn: axle over the bar's centre */
 #define VC_JN_CROSS_MM		25	/* FORWARD: straight on after the flag, no steering by sensors, until the sensors are back on the line */
-#define VC_BC_STEER_MAX		8	/* mm/s steering limit while GP28 reads a barcode and the line is <= 1 zone off */
+#define VC_BC_STEER_MAX		8	/* mm/s steering limit while GP28 reads a barcode and the line is <= 1 zone off (x2 at 2 zones off) */
+#define VC_BC_HOLD_ZONES	2	/* the limit applies up to this many zones off centre; further off, the normal correction */
 #define VC_JN_SPEED		60	/* mm/s for those two */
 #define VC_JN_REARM_MM		100	/* after a manoeuvre: flag low and this far before the next */
 #define VC_BC_EXPIRE_MM		1500	/* a command not used by a junction this far on is dropped */
@@ -257,7 +258,12 @@
 #define VC_SW_ZONE_HI		5	/* ... of the sensor (zones 3..5), not just at its edge; the last look takes any zone */
 #define VC_SW_BIAS_MS		2500	/* after an early take-over a lost line is searched for towards the way the line leads */
 #define VC_SW_SETTLE_D10	100	/* heading (tenths of a degree) up to which the line is taken over at once */
-#define VC_SW_SETTLE_MM		60	/* the car straightens up over this distance ... */
+#ifndef VC_SW_SETTLE_MM
+#define VC_SW_SETTLE_MM		110	/* the car straightens up over this distance ... 60 -> 110 (lab, 23 Nov:
+				   the line was met at up to 60 degrees with the wheels still about 5 cm to the side;
+				   straightening in 60 mm swung the sensor 2 cm off the line and it was lost.
+				   About 2 x the sensor-to-axle distance lets the wheels reach the line, S5-H143) */
+#endif
 #define VC_SW_SETTLE_SPEED	60	/* ... at this speed, then the line controller takes over */
 #define VC_SW_KH		2	/* mm/s of steering per degree of heading error */
 #define VC_SW_STEER_MAX		90	/* mm/s */

@@ -130,9 +130,11 @@ static int follow_line(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 	v->err_prev  = err;
 	v->have_prev = 1;
 	o->steer = clamp(-VC_LF_STEER_SIGN * turn, VC_LF_STEER_MAX);
-	if (in->bc_busy && iabs(err) <= 1) {
-		/* GP28 is reading bars: a steady speed over them matters more than a tidy line */
-		o->steer = clamp(o->steer, VC_BC_STEER_MAX);
+	if (in->bc_busy && iabs(err) <= VC_BC_HOLD_ZONES) {
+		/* GP28 is reading bars: a steady speed over them matters more than a tidy line.
+		   8 mm/s up to 1 zone off, 16 mm/s at 2 zones off (lab, 23 Nov: small wobbles
+		   2 zones off steered hard mid-barcode and Z was not read) */
+		o->steer = clamp(o->steer, VC_BC_STEER_MAX * ((iabs(err) > 1) ? iabs(err) : 1));
 	}
 	o->speed = VC_LF_SPEED - VC_LF_SLOW_PER_ZONE * iabs(err);
 	if (o->speed < VC_LF_MIN_SPEED) {
@@ -480,6 +482,13 @@ static int sw_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 	case VC_SW_SETTLE:
 		len = VC_SW_SETTLE_MM;
 		if (s >= len) {
+			/* straightened up: if the line now lies to one side of the sensor, a loss right after
+			   is looked for on that side (at a corner next to the rejoin the line leads on there) */
+			if (!in->lost && in->zone != 0 && in->zone != VC_ZONE_CENTRE) {
+				int err = (int)in->zone - VC_ZONE_CENTRE;
+
+				v->post_dir = (-VC_LF_STEER_SIGN * err > 0) ? 1 : -1;
+			}
 			sw_done(v, in, o);
 			return 0;
 		}
