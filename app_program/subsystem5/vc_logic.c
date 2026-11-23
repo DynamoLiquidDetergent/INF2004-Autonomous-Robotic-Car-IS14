@@ -482,6 +482,13 @@ static int sw_step(VC_STATE *v, const VC_IN *in, VC_OUT *o)
 	case VC_SW_SETTLE:
 		len = VC_SW_SETTLE_MM;
 		if (s >= len) {
+			/* straightened up: if the line now lies to one side of the sensor, a loss right after
+			   is looked for on that side (at a corner next to the rejoin the line leads on there) */
+			if (!in->lost && in->zone != 0 && in->zone != VC_ZONE_CENTRE) {
+				int err = (int)in->zone - VC_ZONE_CENTRE;
+
+				v->post_dir = (-VC_LF_STEER_SIGN * err > 0) ? 1 : -1;
+			}
 			sw_done(v, in, o);
 			return 0;
 		}
