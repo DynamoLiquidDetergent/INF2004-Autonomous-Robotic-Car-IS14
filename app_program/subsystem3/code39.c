@@ -163,8 +163,57 @@ uint8_t code39_decode_symbol(const BcElem elems[29],
     // look up the decoded pattern in the lookup table to get the corresponding letter
     uint8_t ch = code39_lookup(decode_pat);
 
-    // The '*' character should only appear as a start/stop marker, never as a data character. If the decode somehow gives us '*', reject it. 
+    // The '*' character should only appear as a start/stop marker, never as a data character. If the decode somehow gives us '*', reject it.
     if (ch == '*') return CODE39_INVALID;
 
-    return ch;   // returns A–Z or CODE39_INVALID 
+    return ch;   // returns A–Z or CODE39_INVALID
+}
+
+// Lab, 23 Nov: *Q* read as 25 of 29 elements, the last bars too faint for GP28
+// (start, Q and 5 stop elements all clean).  See code39.h.
+uint8_t code39_decode_partial(const BcElem *elems, unsigned n)
+{
+    uint16_t min_w, max_w, thresh, max_narrow = 0u, min_wide = 0xFFFFu;
+    uint16_t start_pat = 0u, data_pat = 0u, stop_got = 0u, expected_stop;
+    unsigned i, n_stop;
+    bool     forward;
+    uint8_t  ch;
+
+    if (elems == NULL || n < CODE39_PARTIAL_MIN_ELEMS || n >= 29u) return CODE39_INVALID;
+
+    min_w = elems[0].w;
+    max_w = elems[0].w;
+    for (i = 1u; i < n; i++) {
+        if (elems[i].w < min_w) min_w = elems[i].w;
+        if (elems[i].w > max_w) max_w = elems[i].w;
+    }
+    thresh = (uint16_t)((min_w + max_w) / 2u);
+    for (i = 0u; i < n; i++) {
+        if (elems[i].w >= thresh) {
+            if (elems[i].w < min_wide) min_wide = elems[i].w;
+        } else if (elems[i].w > max_narrow) {
+            max_narrow = elems[i].w;
+        }
+    }
+    // narrow and wide must be clearly apart: narrowest wide >= 1.5 x widest narrow
+    if (max_narrow == 0u || min_wide == 0xFFFFu ||
+        (uint32_t)min_wide * 10u < (uint32_t)max_narrow * 15u) return CODE39_INVALID;
+
+    for (i = 0u; i < 9u; i++)   start_pat = (uint16_t)((start_pat << 1u) | (elems[i].w >= thresh ? 1u : 0u));
+    for (i = 10u; i < 19u; i++) data_pat  = (uint16_t)((data_pat  << 1u) | (elems[i].w >= thresh ? 1u : 0u));
+    if (elems[9].w >= thresh) return CODE39_INVALID;          // gap between characters is narrow
+
+    if (start_pat == CODE39_STAR_FWD_LOCAL)      forward = true;
+    else if (start_pat == CODE39_STAR_REV_LOCAL) forward = false;
+    else return CODE39_INVALID;
+
+    if (elems[19].w >= thresh) return CODE39_INVALID;
+    n_stop = n - 20u;                                          // stop elements read (4..8)
+    for (i = 20u; i < n; i++)   stop_got  = (uint16_t)((stop_got  << 1u) | (elems[i].w >= thresh ? 1u : 0u));
+    expected_stop = forward ? CODE39_STAR_FWD_LOCAL : CODE39_STAR_REV_LOCAL;
+    if (stop_got != (uint16_t)(expected_stop >> (9u - n_stop))) return CODE39_INVALID;
+
+    ch = code39_lookup(forward ? data_pat : reverse9(data_pat));
+    if (ch == '*') return CODE39_INVALID;
+    return ch;
 }

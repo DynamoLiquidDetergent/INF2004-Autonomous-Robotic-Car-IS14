@@ -37,4 +37,15 @@ uint8_t code39_decode_symbol(const BcElem elems[29],
                              uint16_t min_narrow_samples,
                              uint16_t wide_ratio_x10);
 
+// Fewest elements code39_decode_partial() accepts: start (9) + gap + letter (9)
+// + gap + the first 4 elements of the stop marker.
+#define CODE39_PARTIAL_MIN_ELEMS 24u
+
+// Decode a symbol whose end faded out: n elements, CODE39_PARTIAL_MIN_ELEMS <= n < 29.
+// Wide / narrow split at the middle of the narrowest and widest element; the
+// widest narrow and narrowest wide must be at least 1.5x apart.  The start
+// marker and the letter must be complete and valid, and every stop-marker
+// element that was read must match.  Returns the letter or CODE39_INVALID.
+uint8_t code39_decode_partial(const BcElem *elems, unsigned n);
+
 #endif
