@@ -1,0 +1,161 @@
+S5-M42 run 16 -- lab track, new image 8be7cbe (S5-H142): left wheel read 0 mm/s for the whole run (hardware), car jittery, Z not read
+(image 8be7cbe, S5_PHASE 7, WiFi + MQTT, VC_AUTO_START 0). Tester: Min Han, 2026-11-23.
+Excerpt: S4 and handling lines, the background scan and long runs of 90 deg echoes are cut; every vc:, GP28:, BARCODE:, wifi:,
+mqtt: and s1: line is kept. Every vc: line shows wheels L=0 while R=74..108: the left encoder (or motor) is not working.
+
+---- Opened the serial port COM3 ----
+microT-Kernel Version 3.00
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+dual-core (SMP) build, usermain on core 0
+safety: monitor running (hold 3000 ms after a fault, 500 ms after a scan)
+all subsystems started
+vc: calibrating the line sensor for 5 s -- sweep the robot slowly side to side across the black line (or leave it: defaults kept)
+wifi: cyw43_utk_task starting (proc 1)
+wifi: cyw43_init() ...
+wifi: cyw43_init() returned, bringing interface up ...
+obstacle: ready (servo GP12, trig GP16, echo GP17)
+obstacle: taking background scan, keep the path ahead CLEAR
+wifi: joining "minhan" ...
+wifi: link status -> joined AP, waiting for IP (1)
+GP28: min= 142 max= 272   (dark above 840, light below 610)
+obstacle:  90 deg  echo 14332 us  status 0  -> 247 cm
+obstacle:  90 deg  echo 14328 us  status 0  -> 247 cm
+obstacle:  90 deg  echo 14283 us  status 0  -> 246 cm
+GP28: min= 154 max= 248   (dark above 840, light below 610)
+obsS4 t_us=15125110 state=LEVEL motion=UNCLASSIFIED calibrated=1 valid=1 fresh=1 rc=0 pitch_md=-209 roll_md=-17 impact=0 hump=0 aborted=0 humps=0 impacts=0 aborts=0 max_us=7248 missed=0 bus_rc=0 init_rc=0 timebase=CONSISTENT odom_valid=1 height_valid=0 height_mm=-1 highest_valid=0 highest_mm=-1 height_reason=OK odo_mm=0 odo_ms=13957 odo_forward=1 fault_rc=0 build_id=UNSTAMPED profile=REPO encoder_valid=1 imu_status=OK dynamic_mg=79 interpolated=2 max_interp_us=40000 pending_imu=0 chain_valid=1 filter_compare=1 median_window=5 right_wheel_mode=1 track_um=120000 old_pitch_md=-212 old_roll_md=-92 old_valid=1 old_cal=1 old_state=2 diag_rejected=2 diag_run=0 diag_longest=1 imu_policy=QUALIFIED_ENDPOINTS_V1 accel_x_mg=-34 accel_y_mg=-24 accel_z_mg=920
+GP28: min= 176 max= 242   (dark above 840, light below 610)
+vc: t= 7077 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=    0
+vc: t= 7578 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=    0
+GP28: min= 177 max= 245   (dark above 840, light below 610)
+vc: t= 8098 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=    0
+vc: t= 8616 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=    0
+BARCODE: mapping A Z J Q -- only these letters are read
+GP28: min= 182 max= 236   (dark above 840, light below 610)
+vc: t= 9118 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=    0
+vc: t= 9637 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=    0
+vc: command from the dashboard: RESUME
+vc: mission state RUNNING
+vc: driving on (obstacle state 0, motion state 0, epoch 2)
+vc: motion state 1
+obstacle:  90 deg  echo 14285 us  status 0  -> 246 cm
+obstacle:  90 deg  echo 14239 us  status 0  -> 246 cm
+obstacle:  90 deg  echo 14289 us  status 0  -> 246 cm
+GP28: min= 178 max= 241   (dark above 840, light below 610)
+obstacle:  90 deg  echo 14233 us  status 0  -> 245 cm
+obstacle:  90 deg  echo 14284 us  status 0  -> 246 cm
+vc: t=10137 zone=3 lost=0 jn=0 cmd   80 mm/s steer  -30  wheels L=   0 R= 105  dist=    9
+obstacle:  90 deg  echo 14118 us  status 0  -> 243 cm
+obstacle:  90 deg  echo 14320 us  status 0  -> 247 cm
+[... 4 readings at 90 deg ...]
+obstacle:  90 deg  echo 14103 us  status 0  -> 243 cm
+vc: t=10657 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=   0 R=  80  dist=   34
+obstacle:  90 deg  echo 14038 us  status 0  -> 242 cm
+obstacle:  90 deg  echo 13931 us  status 0  -> 240 cm
+[... 3 readings at 90 deg ...]
+obstacle:  90 deg  echo 13770 us  status 0  -> 237 cm
+GP28: min= 181 max= 266   (dark above 840, light below 610)
+obstacle:  90 deg  echo 13607 us  status 0  -> 235 cm
+obstacle:  90 deg  echo 13663 us  status 0  -> 236 cm
+vc: t=11157 zone=3 lost=0 jn=0 cmd   80 mm/s steer  -30  wheels L=   0 R= 104  dist=   57
+obstacle:  90 deg  echo 13618 us  status 0  -> 235 cm
+obstacle:  90 deg  echo 13567 us  status 0  -> 234 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo 13319 us  status 0  -> 230 cm
+vc: t=11657 zone=3 lost=0 jn=0 cmd   80 mm/s steer    8  wheels L=   0 R= 104  dist=   85
+obstacle:  90 deg  echo 13223 us  status 0  -> 228 cm
+obstacle:  90 deg  echo 13279 us  status 0  -> 229 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo 13152 us  status 0  -> 227 cm
+GP28: min= 205 max=3273   (dark above 840, light below 610)
+obstacle:  90 deg  echo 13072 us  status 0  -> 225 cm
+obstacle:  90 deg  echo 13036 us  status 0  -> 225 cm
+vc: t=12157 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=   0 R=  74  dist=  109
+obstacle:  90 deg  echo 13092 us  status 0  -> 226 cm
+obstacle:  90 deg  echo 13016 us  status 0  -> 224 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo 12899 us  status 0  -> 222 cm
+vc: t=12657 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=   0 R=  75  dist=  131
+obstacle:  90 deg  echo 12768 us  status 0  -> 220 cm
+obstacle:  90 deg  echo 12779 us  status 0  -> 220 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo 12620 us  status 0  -> 218 cm
+GP28: min= 197 max=2993   (dark above 840, light below 610)
+obstacle:  90 deg  echo 12581 us  status 0  -> 217 cm
+obstacle:  90 deg  echo 12414 us  status 0  -> 214 cm
+vc: t=13157 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=   0 R=  92  dist=  155
+obstacle:  90 deg  echo 12515 us  status 0  -> 216 cm
+obstacle:  90 deg  echo 12591 us  status 0  -> 217 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo 12267 us  status 0  -> 212 cm
+vc: t=13658 zone=2 lost=0 jn=0 cmd   60 mm/s steer  -16  wheels L=   0 R=  94  dist=  177
+obstacle:  90 deg  echo 12175 us  status 0  -> 210 cm
+obstacle:  90 deg  echo 12124 us  status 0  -> 209 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo 12088 us  status 0  -> 208 cm
+GP28: min= 177 max=3268   (dark above 840, light below 610)
+obstacle:  90 deg  echo 12003 us  status 0  -> 207 cm
+obstacle:  90 deg  echo 11993 us  status 0  -> 207 cm
+obstacle:  90 deg  echo 11993 us  status 0  -> 207 cm
+BARCODE: 6 wide bars, no letter fits (error 0.93)
+vc: t=14178 zone=2 lost=0 jn=0 cmd   60 mm/s steer  -16  wheels L=   0 R=  93  dist=  200
+obstacle:  90 deg  echo 11855 us  status 0  -> 204 cm
+obstacle:  90 deg  echo 11815 us  status 0  -> 204 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo 11648 us  status 0  -> 201 cm
+vc: t=14697 zone=3 lost=0 jn=0 cmd   80 mm/s steer  -30  wheels L=   0 R= 108  dist=  224
+obstacle:  90 deg  echo 11584 us  status 0  -> 200 cm
+obstacle:  90 deg  echo 11735 us  status 0  -> 202 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo 11482 us  status 0  -> 198 cm
+GP28: min= 172 max=3355   (dark above 840, light below 610)
+obstacle:  90 deg  echo 11410 us  status 0  -> 197 cm
+obstacle:  90 deg  echo 11421 us  status 0  -> 197 cm
+vc: t=15198 zone=4 lost=0 jn=0 cmd  100 mm/s steer    0  wheels L=   0 R=  79  dist=  247
+obstacle:  90 deg  echo 11351 us  status 0  -> 196 cm
+obstacle:  90 deg  echo 11362 us  status 0  -> 196 cm
+obstacle:  90 deg  echo 11270 us  status 0  -> 194 cm
+vc: command from the dashboard: PAUSE
+vc: mission state PAUSED
+vc: HOLD (obstacle state 0, motion state 1, epoch 3)
+obstacle:  90 deg  echo 11260 us  status 0  -> 194 cm
+vc: motion state 0
+obstacle:  90 deg  echo 11189 us  status 0  -> 193 cm
+obstacle:  90 deg  echo 11209 us  status 0  -> 193 cm
+obstacle:  90 deg  echo 11158 us  status 0  -> 192 cm
+obstacle:  90 deg  echo 11305 us  status 0  -> 195 cm
+vc: t=15716 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   1  dist=  261
+obstacle:  90 deg  echo 11230 us  status 0  -> 194 cm
+obstacle:  90 deg  echo 11255 us  status 0  -> 194 cm
+[... 2 readings at 90 deg ...]
+obstacle:  90 deg  echo 11184 us  status 0  -> 193 cm
+GP28: min= 183 max= 255   (dark above 840, light below 610)
+obstacle:  90 deg  echo 11229 us  status 0  -> 194 cm
+obstacle:  90 deg  echo 11204 us  status 0  -> 193 cm
+obstacle:  90 deg  echo 11234 us  status 0  -> 194 cm
+vc: t=16217 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  261
+obstacle:  90 deg  echo 11234 us  status 0  -> 194 cm
+obstacle:  90 deg  echo 11184 us  status 0  -> 193 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo 11304 us  status 0  -> 195 cm
+vc: t=16737 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  261
+obstacle:  90 deg  echo 11235 us  status 0  -> 194 cm
+obstacle:  90 deg  echo 11233 us  status 0  -> 194 cm
+obstacle:  90 deg  echo 11209 us  status 0  -> 193 cm
+obstacle:  90 deg  echo 11233 us  status 0  -> 194 cm
+GP28: min= 183 max= 257   (dark above 840, light below 610)
+obstacle:  90 deg  echo 11183 us  status 0  -> 193 cm
+obstacle:  90 deg  echo 11209 us  status 0  -> 193 cm
+obstacle:  90 deg  echo 11183 us  status 0  -> 193 cm
+vc: t=17257 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  261
+obstacle:  90 deg  echo 11209 us  status 0  -> 193 cm
+obstacle:  90 deg  echo 11184 us  status 0  -> 193 cm
+[... 5 readings at 90 deg ...]
+obstacle:  90 deg  echo 11329 us  status 0  -> 195 cm
+vc: t=17777 zone=4 lost=0 jn=0 cmd    0 mm/s steer    0  wheels L=   0 R=   0  dist=  261
+obstacle:  90 deg  echo 11229 us  status 0  -> 194 cm
+obstacle:  90 deg  echo 11209 us  status 0  -> 193 cm
+obstacle:  90 deg  echo 11209 us  status 0  -> 193 cm
+obstacle:  90 deg  echo 11205 us  status 0  -> 193 cm
+GP28: min= 181 max= 250   (dark above 840, light below 610)
+obstacle:  90 deg  echo 11255 us  status 0  -> 194 cm
+---- Closed the serial port COM3 ----
